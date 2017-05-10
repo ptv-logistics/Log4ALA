@@ -13,7 +13,6 @@ You can obtain this project as a [Nuget Package](https://www.nuget.org/packages/
 
 Or reference it and use it according to the [License](./LICENSE).
 
-
 ## Use it
 
 **coming soon...** 
