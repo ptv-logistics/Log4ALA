@@ -7,7 +7,7 @@ It uses the [HTTPDataCollectorAPI](https://github.com/ealsur/HTTPDataCollectorAP
 
 ## Get it
 
-You can obtain this project as a [Nuget Package](https://www.nuget.org/packages/Log4ALA) **comming soon...** 
+You can obtain this project as a [Nuget Package](https://www.nuget.org/packages/Log4ALA) **coming soon...** 
 
     Install-Package Log4ALA
 
@@ -16,15 +16,15 @@ Or reference it and use it according to the [License](./LICENSE).
 
 ## Use it
 
-**comming soon...** 
+**coming soon...** 
 
 ## Configure it
 
-**comming soon...** 
+**coming soon...** 
 
 ## Example Log4Net Configuration file
 
-**comming soon...** 
+**coming soon...** 
 
 ## Issues
 
