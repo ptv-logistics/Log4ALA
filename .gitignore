@@ -240,3 +240,22 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+
+
+dogit.bat
+#.gitignore
+#.gitattributes
+
+#[Ll]og4ALATest/
+[Pp]ackages/
+[Aa]rtifacts/
+.svn/
+.vs/
+[Ss]rc/
+global.json
+Log4ALAPTV.sln
+
+
+
+

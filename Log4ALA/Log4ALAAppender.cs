@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Log4ALA
 {
-    public class Class1
+    public class Log4ALAAppender
     {
     }
 }
