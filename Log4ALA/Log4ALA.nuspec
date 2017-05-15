@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$id$</title>
+    <authors>mob</authors>
+    <owners>mob</owners>
+	<projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
+	<licenseUrl>https://github.com/ptv-logistics/Log4ALA/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Azure Log Analytics (ALA) appender for log4net... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
+    <copyright>Copyright © 2017 PTV Group</copyright>
+    <dependencies>
+      <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
+      <dependency id="Newtonsoft.Json" version="9.0.1" />
+      <dependency id="log4net" version="2.0.8" />
+      <dependency id="FluentScheduler" version="5.2.0" />
+    </dependencies>
+  </metadata>
+</package>
