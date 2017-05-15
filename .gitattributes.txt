@@ -1,3 +1,0 @@
-#Log4ALA/_CreateNewNuGetPackage/* linguist-vendored
-* linguist-vendored
-*.cs linguist-vendored=false
