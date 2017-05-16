@@ -16,6 +16,7 @@ namespace Log4ALA
         private static ILog log;
         private static ILog extraLog;
         public static bool isJobManagerInitialized = false;
+        private static RuntimeContext runtimeContext = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile.ToLower().EndsWith("web.config") ? RuntimeContext.WEB_APP : RuntimeContext.CONSOLE_APP;
 
 
         private LoggingEventSerializer serializer;
@@ -28,7 +29,6 @@ namespace Log4ALA
         public string AzureApiVersion { get; set; }
         public string WebProxyHost { get; set; }
         public int? WebProxyPort { get; set; }
-        public RuntimeContext RuntimeContext { get; set; }
 
         private static bool logMessageToFile = false;
         public bool LogMessageToFile { get; set; }
@@ -46,7 +46,7 @@ namespace Log4ALA
 
             try
             {
-                if (RuntimeContext.Equals(RuntimeContext.WEB_APP))
+                if (runtimeContext.Equals(RuntimeContext.WEB_APP))
                 {
                     InitJobManager();
                 }
@@ -93,7 +93,7 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                Error($"Unable to activate Log4ALAAppender: {ex.Message}", RuntimeContext);
+                Error($"Unable to activate Log4ALAAppender: {ex.Message}");
             }
         }
 
@@ -103,17 +103,17 @@ namespace Log4ALA
             {
                 if (httpDataCollectorAPI != null)
                 {
-                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent }, RuntimeContext);
-                    Info(content, RuntimeContext);
+                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent });
+                    Info(content);
 
-                    if (RuntimeContext.Equals(RuntimeContext.CONSOLE_APP))
+                    if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
                     {
                         Task.Run(() => httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue")).ContinueWith(t =>
                         {
                             var exception = t.Exception.InnerException;
                             if(exception != null)
                             {
-                                Error($"HTTPDataCollectorAPI job exception [{exception.Message}]", RuntimeContext.CONSOLE_APP, async: false);
+                                Error($"HTTPDataCollectorAPI job exception [{exception.Message}]", async: false);
                             }
                         },TaskContinuationOptions.OnlyOnFaulted);
 
@@ -132,12 +132,12 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                Error($"Unable to send data to Azure Log Analytics: {ex.Message}", RuntimeContext);
+                Error($"Unable to send data to Azure Log Analytics: {ex.Message}");
             }
         }
 
 
-        public static void Error(string logMessage, RuntimeContext context = RuntimeContext.CONSOLE_APP, bool async = true)
+        public static void Error(string logMessage, bool async = true)
         {
             if (log != null)
             {
@@ -147,7 +147,7 @@ namespace Log4ALA
                     ThreadPool.QueueUserWorkItem(task => log.Error(logMessage));
                     if (extraLog != null)
                     {
-                        if (context.Equals(RuntimeContext.CONSOLE_APP))
+                        if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
                         {
                             //http://www.ben-morris.com/using-asynchronous-log4net-appenders-for-high-performance-logging/
                             ThreadPool.QueueUserWorkItem(task => extraLog.Error(logMessage));
@@ -175,11 +175,11 @@ namespace Log4ALA
             }
         }
 
-        public static void Info(string logMessage, RuntimeContext context = RuntimeContext.CONSOLE_APP)
+        public static void Info(string logMessage)
         {
             if (logMessageToFile && log != null)
             {
-                if (context.Equals(RuntimeContext.CONSOLE_APP))
+                if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
                 {
                     //http://www.ben-morris.com/using-asynchronous-log4net-appenders-for-high-performance-logging/
                     ThreadPool.QueueUserWorkItem(task => log.Info(logMessage));
@@ -196,7 +196,7 @@ namespace Log4ALA
             }
         }
 
-        public static void InitJobManager(RuntimeContext context = RuntimeContext.CONSOLE_APP)
+        public static void InitJobManager()
         {
             if (!isJobManagerInitialized)
             {
@@ -210,7 +210,7 @@ namespace Log4ALA
         {
             if (obj.Exception != null)
             {
-                Error($"JobManager JobException of job [{obj.Name}]  - [{obj.Exception.StackTrace}]", RuntimeContext.CONSOLE_APP, async: false);
+                Error($"JobManager JobException of job [{obj.Name}]  - [{obj.Exception.StackTrace}]", async: false);
                 string jobName = obj.Name;
                 RemoveJobManagerJob(jobName);
             }
@@ -230,7 +230,7 @@ namespace Log4ALA
             }
             catch (Exception)
             {
-                Error($"JobManager job [{jobName}] couldn't removed", RuntimeContext.CONSOLE_APP, async: false);
+                Error($"JobManager job [{jobName}] couldn't removed", async: false);
             }
         }
 

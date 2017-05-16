@@ -18,19 +18,19 @@ namespace Log4ALA
     {
         public static char[] AllowedCharPlus = new char[] {'_'};
 
-        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents, RuntimeContext context = RuntimeContext.CONSOLE_APP)
+        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents)
         {
             var sb = new StringBuilder();
 
             foreach (var loggingEvent in loggingEvents)
             {
-                sb.AppendLine(SerializeLoggingEvent(loggingEvent, context));
+                sb.AppendLine(SerializeLoggingEvent(loggingEvent));
             }
 
             return sb.ToString();
         }
 
-        private string SerializeLoggingEvent(LoggingEvent loggingEvent, RuntimeContext context = RuntimeContext.CONSOLE_APP)
+        private string SerializeLoggingEvent(LoggingEvent loggingEvent)
         {
 
 
@@ -49,7 +49,7 @@ namespace Log4ALA
             var exception = loggingEvent.ExceptionObject;
             if (exception != null)
             {
-                Log4ALAAppender.Error($"loggingEvent.Exception: {exception}", context);
+                Log4ALAAppender.Error($"loggingEvent.Exception: {exception}");
                 payload.exception = new ExpandoObject();
                 payload.exception.message = exception.Message;
                 payload.exception.type = exception.GetType().Name;
