@@ -125,7 +125,7 @@ namespace Log4ALA
                         JobManager.AddJob(() =>
                         {
                             httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
-                        }, (s) => { s.WithName($"{Guid.NewGuid().ToString()}_BlobTextApp"); s.ToRunNow(); });
+                        }, (s) => { s.WithName($"{Guid.NewGuid().ToString()}_AppendLog"); s.ToRunNow(); });
 
                     }
                 }
