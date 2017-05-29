@@ -45,6 +45,35 @@ namespace Log4ALATest
 
 ``` 
 
+## Proxy settings
+
+The [HTTPDataCollectorAPI](https://github.com/ealsur/HTTPDataCollectorAPI) used under the hood doesn't support 
+explicit proxy settings so the only way at the moment is to set the default proxy by config (Web.config or App.config):
+
+Refer to this [article](https://msdn.microsoft.com/en-us/library/kd3cf2ex(v=vs.110).aspx) for more information.
+```xml
+<configuration>
+    <system.net>
+        <defaultProxy>
+            <proxy
+              proxyaddress="http://IP:PORT"
+              bypassonlocal="true" />
+        </defaultProxy>
+    </system.net>
+<configuration>
+``` 
+
+
+or by code:
+
+```csharp
+
+System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/", true);
+
+``` 
+
+
+
 ## Example App Configuration file
 
 This configuration is also available as a [App.config](https://github.com/ptv-logistics/Log4IoTHub/blob/master/Log4IoTHubTest/App.config):
