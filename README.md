@@ -112,8 +112,10 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <SharedKey value="YOUR_SHARED_KEY" />
     <!-- the log type... the name of the record type that you'll be creating-->
     <logType value="YOUR_LOG_TYPE" />
-    <!-- The API version of the HTTP Data Collector API -->
-    <azureApiVersion value="2016-04-01" />
+    <!-- optional API version of the HTTP Data Collector API (default 2016-04-01) -->
+    <!--<azureApiVersion value="2016-04-01" />-->
+    <!-- optional max retries if the HTTP Data Collector API request failed (default 6 retries) -->
+    <!--<httpDataCollectorRetry value="6" />-->
  
     <!-- 
     optional debug setting which should only be used during development or on testsystem.

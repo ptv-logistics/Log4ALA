@@ -8,6 +8,7 @@ using System.Threading;
 using FluentScheduler;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Log4ALA
 {
@@ -17,6 +18,13 @@ namespace Log4ALA
         private static ILog extraLog;
         public static bool isJobManagerInitialized = false;
         private static RuntimeContext runtimeContext = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile.ToLower().EndsWith("web.config") ? RuntimeContext.WEB_APP : RuntimeContext.CONSOLE_APP;
+
+        protected static readonly Random Random1 = new Random();
+        // Minimal delay between attempts to reconnect in milliseconds. 
+        protected const int MinDelay = 2500;
+
+        // Maximal delay between attempts to reconnect in milliseconds. 
+        protected const int MaxDelay = 80000;
 
 
         private LoggingEventSerializer serializer;
@@ -29,6 +37,7 @@ namespace Log4ALA
         public string AzureApiVersion { get; set; }
         public string WebProxyHost { get; set; }
         public int? WebProxyPort { get; set; }
+        public int? HttpDataCollectorRetry { get; set; }
 
         private static bool logMessageToFile = false;
         public bool LogMessageToFile { get; set; }
@@ -86,6 +95,11 @@ namespace Log4ALA
                     AzureApiVersion = "2016-04-01";
                 }
 
+                if (HttpDataCollectorRetry == null)
+                {
+                    HttpDataCollectorRetry = 6;
+                }
+
                 httpDataCollectorAPI = new HTTPDataCollectorAPI.Collector(WorkspaceId, SharedKey);
 
                 serializer = new LoggingEventSerializer();
@@ -108,7 +122,48 @@ namespace Log4ALA
 
                     if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
                     {
-                        Task.Run(() => httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue")).ContinueWith(t =>
+                        Task.Run(async () => {
+                            try
+                            {
+                                await httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
+                            }
+                            catch (Exception e)
+                            {
+
+                                int connectRetries = 0;
+                                var rootDelay = MinDelay;
+
+                                while (connectRetries <= HttpDataCollectorRetry)
+                                {
+                                    Warn($"HTTPDataCollectorAPI retry NumRetries:[{connectRetries}] exception:{FlattenException(e)}");
+
+                                    rootDelay *= 2;
+                                    if (rootDelay > MaxDelay)
+                                        rootDelay = MaxDelay;
+
+                                    var waitFor = rootDelay + Random1.Next(rootDelay);
+                                    try
+                                    {
+                                        Thread.Sleep(waitFor);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                    connectRetries++;
+
+                                    try
+                                    {
+                                        await httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
+                                    }
+                                    catch (Exception)
+                                    {
+                                        continue;
+                                    }
+                                }
+                                Error($"HTTPDataCollectorAPI failed after retry NumRetries:[{connectRetries}] exception:{FlattenException(e)}", false);
+                            }
+
+                        }).ContinueWith(t =>
                         {
                             var exception = t.Exception.InnerException;
                             if(exception != null)
@@ -122,9 +177,47 @@ namespace Log4ALA
                     {
                         //How to run Background Tasks in ASP.NET
                         //http://www.hanselman.com/blog/HowToRunBackgroundTasksInASPNET.aspx
-                        JobManager.AddJob(() =>
+                        JobManager.AddJob(async () =>
                         {
-                            httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
+                            try
+                            {
+                                await httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
+                            }
+                            catch (Exception e)
+                            {
+
+                                int connectRetries = 0;
+                                var rootDelay = MinDelay;
+
+                                while (connectRetries <= HttpDataCollectorRetry)
+                                {
+                                    Warn($"HTTPDataCollectorAPI retry NumRetries:[{connectRetries}] exception:{FlattenException(e)}");
+
+                                    rootDelay *= 2;
+                                    if (rootDelay > MaxDelay)
+                                        rootDelay = MaxDelay;
+
+                                    var waitFor = rootDelay + Random1.Next(rootDelay);
+                                    try
+                                    {
+                                        Thread.Sleep(waitFor);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                    connectRetries++;
+
+                                    try
+                                    {
+                                        await httpDataCollectorAPI.Collect(LogType, content, AzureApiVersion, "DateValue");
+                                    }
+                                    catch (Exception)
+                                    {
+                                        continue;
+                                    }
+                                }
+                                Error($"HTTPDataCollectorAPI failed after retry NumRetries:[{connectRetries}] exception:{FlattenException(e)}", false);
+                            }
                         }, (s) => { s.WithName($"{Guid.NewGuid().ToString()}_AppendLog"); s.ToRunNow(); });
 
                     }
@@ -196,6 +289,27 @@ namespace Log4ALA
             }
         }
 
+        public static void Warn(string logMessage)
+        {
+            if (logMessageToFile && log != null)
+            {
+                if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
+                {
+                    //http://www.ben-morris.com/using-asynchronous-log4net-appenders-for-high-performance-logging/
+                    ThreadPool.QueueUserWorkItem(task => log.Warn(logMessage));
+                }
+                else
+                {
+                    //How to run Background Tasks in ASP.NET
+                    //http://www.hanselman.com/blog/HowToRunBackgroundTasksInASPNET.aspx
+                    JobManager.AddJob(() =>
+                    {
+                        log.Warn(logMessage);
+                    }, (s) => { s.WithName($"{Guid.NewGuid().ToString()}_LogWarn"); s.ToRunNow(); });
+                }
+            }
+        }
+
         public static void InitJobManager()
         {
             if (!isJobManagerInitialized)
@@ -233,6 +347,31 @@ namespace Log4ALA
                 Error($"JobManager job [{jobName}] couldn't removed", async: false);
             }
         }
+
+        private static string FlattenException(Exception exception, bool logExcType = true, bool isStackTraceIgnored = false)
+        {
+            var stringBuilder = new StringBuilder();
+
+            while (exception != null)
+            {
+
+                if (logExcType)
+                {
+                    stringBuilder.AppendLine(string.Format("ExceptionType:[{0}]", exception.GetType().FullName));
+                }
+                stringBuilder.AppendLine(string.Format("Message:[{0}]", exception.Message));
+
+                if (!isStackTraceIgnored)
+                {
+                    stringBuilder.AppendLine(string.Format("StackTrace:[{0}]", exception.StackTrace));
+                }
+
+                exception = exception.InnerException;
+            }
+
+            return stringBuilder.ToString();
+        }
+
 
 
     }
