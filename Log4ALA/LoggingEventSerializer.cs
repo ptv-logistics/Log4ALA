@@ -38,7 +38,8 @@ namespace Log4ALA
             payload.DateValue = loggingEvent.TimeStamp.ToUniversalTime().ToString("o");
             payload.LogMessage = loggingEvent.MessageObject;
             payload.Logger = loggingEvent.LoggerName;
- 
+            payload.Level = loggingEvent.Level.DisplayName.ToUpper();
+
             //If any custom properties exist, add them to the dynamic object
             //i.e. if someone added loggingEvent.Properties["xx:traceId"] = "helloWorld"
             foreach (var key in loggingEvent.Properties.GetKeys())
