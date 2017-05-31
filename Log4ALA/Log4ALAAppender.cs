@@ -35,12 +35,12 @@ namespace Log4ALA
         public string SharedKey { get; set; }
         public string LogType { get; set; }
         public string AzureApiVersion { get; set; }
-        public string WebProxyHost { get; set; }
-        public int? WebProxyPort { get; set; }
         public int? HttpDataCollectorRetry { get; set; }
 
         private static bool logMessageToFile = false;
         public bool LogMessageToFile { get; set; }
+        public bool? AppendLogger { get; set; }
+        public bool? AppendLogLevel { get; set; }
 
         public string ErrLoggerName { get; set; }
 
@@ -117,7 +117,7 @@ namespace Log4ALA
             {
                 if (httpDataCollectorAPI != null)
                 {
-                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent });
+                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent }, this);
                     Info(content);
 
                     if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
@@ -324,7 +324,7 @@ namespace Log4ALA
         {
             if (obj.Exception != null)
             {
-                Error($"JobManager JobException of job [{obj.Name}]  - [{obj.Exception.StackTrace}]", async: false);
+                Error($"Log4ALA JobException of job [{obj.Name}]  - [{obj.Exception.StackTrace}]", async: false);
                 string jobName = obj.Name;
                 RemoveJobManagerJob(jobName);
             }
@@ -344,7 +344,7 @@ namespace Log4ALA
             }
             catch (Exception)
             {
-                Error($"JobManager job [{jobName}] couldn't removed", async: false);
+                Error($"Log4ALA job [{jobName}] couldn't removed", async: false);
             }
         }
 

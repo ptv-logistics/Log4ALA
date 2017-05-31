@@ -128,8 +128,15 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     errors will only be logged to log4ALA_error.log
     -->
     <!--<errLoggerName value="Log4ALAErrors2LogentriesLogger"/>-->
-    
-   
+
+    <!-- optional appendLogger to enable/disable sending the logger info 
+         to Azure Log Analytics (default true)
+    <appendLogger value="true"/>
+	-->
+    <!-- optional appendLogLevel to enable/disable sending the log level
+         to Azure Log Analytics (default true)
+    <appendLogLevel value="true"/>
+	-->
   </appender>
 
 

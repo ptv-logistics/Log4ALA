@@ -18,27 +18,34 @@ namespace Log4ALA
     {
         public static char[] AllowedCharPlus = new char[] {'_'};
 
-        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents)
+        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents, Log4ALAAppender appender)
         {
             var sb = new StringBuilder();
 
             foreach (var loggingEvent in loggingEvents)
             {
-                sb.AppendLine(SerializeLoggingEvent(loggingEvent));
+                sb.AppendLine(SerializeLoggingEvent(loggingEvent, appender));
             }
 
             return sb.ToString();
         }
 
-        private string SerializeLoggingEvent(LoggingEvent loggingEvent)
+        private string SerializeLoggingEvent(LoggingEvent loggingEvent, Log4ALAAppender appender)
         {
 
 
             dynamic payload = new ExpandoObject();
             payload.DateValue = loggingEvent.TimeStamp.ToUniversalTime().ToString("o");
             payload.LogMessage = loggingEvent.MessageObject;
-            payload.Logger = loggingEvent.LoggerName;
-            payload.Level = loggingEvent.Level.DisplayName.ToUpper();
+
+            if (appender.AppendLogger == null || (bool)appender.AppendLogger)
+            {
+                payload.Logger = loggingEvent.LoggerName;
+            }
+            if (appender.AppendLogLevel == null || (bool)appender.AppendLogLevel)
+            {
+                payload.Level = loggingEvent.Level.DisplayName.ToUpper();
+            }
 
             //If any custom properties exist, add them to the dynamic object
             //i.e. if someone added loggingEvent.Properties["xx:traceId"] = "helloWorld"
