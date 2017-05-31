@@ -291,7 +291,7 @@ namespace Log4ALA
 
         public static void Warn(string logMessage)
         {
-            if (logMessageToFile && log != null)
+            if (log != null)
             {
                 if (runtimeContext.Equals(RuntimeContext.CONSOLE_APP))
                 {
