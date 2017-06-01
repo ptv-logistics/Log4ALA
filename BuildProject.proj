@@ -1,0 +1,42 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ConfigurationList Condition="  '@(ConfigurationList)' == '' and $(Configuration) != '' " Include="$(Configuration.Split(';'))" />
+    <ConfigurationList Condition="  '@(ConfigurationList)' == '' " Include="Debug" />
+    <PlatformList Condition="  '@(PlatformList)' == '' and $(Platform) != '' " Include="$(Platform.Split(';'))" />
+    <PlatformList Condition="  '@(PlatformList)' == '' " Include="Any CPU"  />
+    <TargetList Condition="  '@(TargetList)' == '' and $(Targets) != '' " Include="$(Targets.Split(';'))" />
+    <TargetList Condition="  '@(TargetList)' == '' " Include="Rebuild" />
+    <ProjectList Condition="  '@(ProjectList)' == '' and $(Projects) != '' " Include="$(Projects.Split(';'))" />
+    <ProjectList Condition="  '@(ProjectList)' == '' " Include="$(MSBuildProjectDirectory)\Log4ALA.sln" />
+  </ItemGroup>
+ 
+  <Target Name="Rebuild" Outputs="%(PlatformList.Identity)">
+    <PropertyGroup>
+      <CurrentPlatform>%(PlatformList.Identity)</CurrentPlatform>
+    </PropertyGroup>
+    <MSBuild Projects="@(ProjectList)"
+             Properties="Configuration=%(ConfigurationList.Identity);Platform=$(CurrentPlatform);"
+             Targets="@(TargetList)"
+             SkipNonexistentProjects="true"  
+             />
+  </Target>
+</Project>
+
+<!--
+usage:
+msbuild BuildProject.proj  /p:Projects="ProjA;ProjB" /p:Configuration="Debug;Release" /p:Platform="XBox  360;Win32;x86" /p:Targets="target"
+
+examples:
+ 
+        msbuild BuildProject.proj   
+        this will rebuild default solution for Debug|Any CPU
+
+        msbuild BuildProject.proj /p:Projects="Test2.sln;Test1.sln" ^
+   /p:Configuration="Debug;Release" ^
+                 /p:Platform="XBox 360;Win32;x86" ^                               
+   /p:Targets="clean;build"
+
+   this will build everything
+
+
+-->
