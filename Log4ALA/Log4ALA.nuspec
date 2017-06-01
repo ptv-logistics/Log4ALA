@@ -11,13 +11,50 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Supporting multiple .NET framework added enable/disable sending logger/log level info to Azure Log Analytics</releaseNotes>
+    <releaseNotes>added enable/disable sending logger/log level info to Azure Log Analytics</releaseNotes>
     <dependencies>
       <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
       <dependency id="log4net" version="2.0.5" />
       <dependency id="FluentScheduler" version="5.0.0" />
-      <dependency id="Newtonsoft.Json" version="6.0.8" />
+      <dependency id="Newtonsoft.Json" version="9.0.1" />
     </dependencies>
+
+
+    <!--<dependencies>
+       <group targetFramework=".NETFramework4.5">
+        <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
+        <dependency id="log4net" version="2.0.5" />
+        <dependency id="FluentScheduler" version="5.0.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+      <group targetFramework=".NETFramework4.5.2">
+        <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
+        <dependency id="log4net" version="2.0.5" />
+        <dependency id="FluentScheduler" version="5.0.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+      <group targetFramework=".NETFramework4.6">
+        <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
+        <dependency id="log4net" version="2.0.5" />
+        <dependency id="FluentScheduler" version="5.0.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
+        <dependency id="log4net" version="2.0.5" />
+        <dependency id="FluentScheduler" version="5.0.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+    </dependencies>-->
+
+
+
+
+
+
+
+
+
   </metadata>
   <files>
     <file src="bin\Debug\**\$id$.dll"  target="lib" />

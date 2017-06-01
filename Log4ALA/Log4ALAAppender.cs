@@ -55,6 +55,7 @@ namespace Log4ALA
 
             try
             {
+ 
                 if (runtimeContext.Equals(RuntimeContext.WEB_APP))
                 {
                     InitJobManager();
