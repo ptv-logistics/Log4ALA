@@ -133,10 +133,21 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
          to Azure Log Analytics (default true)
     <appendLogger value="true"/>
 	-->
+	
     <!-- optional appendLogLevel to enable/disable sending the log level
          to Azure Log Analytics (default true)
     <appendLogLevel value="true"/>
 	-->
+	
+    <!-- optional error log file configuration (default relative_assembly_path/log4ALA_error.log)
+    <errAppenderFile value="C:\ups\errApp.log"/>
+	-->
+    
+    <!-- optional info log file configuration (default relative_assembly_path/log4ALA_info.log)
+    <infoAppenderFile value="C:\ups\infoApp.log"/>
+	-->
+
+	
   </appender>
 
 

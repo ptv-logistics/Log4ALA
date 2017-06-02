@@ -9,6 +9,7 @@ using FluentScheduler;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
+using System.IO;
 
 namespace Log4ALA
 {
@@ -25,6 +26,12 @@ namespace Log4ALA
 
         // Maximal delay between attempts to reconnect in milliseconds. 
         protected const int MaxDelay = 80000;
+
+        private const string LOG_ERR_APPENDER = "Log4ALAErrorAppender";
+        private const string LOG_INFO_APPENDER = "Log4ALAInfoAppender";
+
+        private const string LOG_ERR_DEFAULT_FILE = "log4ALA_error.log";
+        private const string LOG_INFO_DEFAULT_FILE = "log4ALA_info.log";
 
 
         private LoggingEventSerializer serializer;
@@ -44,6 +51,9 @@ namespace Log4ALA
 
         public string ErrLoggerName { get; set; }
 
+        public string ErrAppenderFile { get; set; }
+        public string InfoAppenderFile { get; set; }
+
 
         static Log4ALAAppender()
         {
@@ -55,11 +65,8 @@ namespace Log4ALA
 
             try
             {
- 
-                if (runtimeContext.Equals(RuntimeContext.WEB_APP))
-                {
-                    InitJobManager();
-                }
+                logMessageToFile = LogMessageToFile;
+
 
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
                 {
@@ -68,13 +75,41 @@ namespace Log4ALA
 
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
 
+                string setErrAppFileNameMessage, setInfoAppFileNameMessage;
+                bool isErrFile = SetAppenderFileNameIfAvailable(ErrAppenderFile, LOG_ERR_APPENDER, out setErrAppFileNameMessage);
+                bool isInfoFile = SetAppenderFileNameIfAvailable(InfoAppenderFile, LOG_INFO_APPENDER, out setInfoAppFileNameMessage);
+
+                if (isErrFile)
+                {
+                    Info(setErrAppFileNameMessage);
+                }
+                else
+                {
+                    Error(setErrAppFileNameMessage, false);
+                }
+
+                if (isInfoFile)
+                {
+                    Info(setInfoAppFileNameMessage);
+                }
+                else
+                {
+                    Error(setInfoAppFileNameMessage, false);
+                }
+
+
+                if (runtimeContext.Equals(RuntimeContext.WEB_APP))
+                {
+                    InitJobManager();
+                }
+
+  
                 if (!string.IsNullOrWhiteSpace(ErrLoggerName))
                 {
                     extraLog = LogManager.GetLogger(ErrLoggerName);
                 }
 
 
-                logMessageToFile = LogMessageToFile;
 
                 if (string.IsNullOrWhiteSpace(WorkspaceId))
                 {
@@ -105,12 +140,67 @@ namespace Log4ALA
 
                 serializer = new LoggingEventSerializer();
 
+
             }
             catch (Exception ex)
             {
                 Error($"Unable to activate Log4ALAAppender: {ex.Message}");
             }
         }
+
+        private bool SetAppenderFileNameIfAvailable(string appenderFile, string internalAppenderName, out string errMessage)
+        {
+            errMessage = null;
+
+            try
+            {
+                var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository().GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(appenderFile))
+                {
+                    String dir = Path.GetDirectoryName(appenderFile);
+
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+
+                    if (appender != null && !string.IsNullOrWhiteSpace(appender.Name))
+                    {
+                        appender.File = appenderFile;
+                        appender.ActivateOptions();
+                    }
+
+                    errMessage = $"successfully configured {internalAppenderName} with file {appender.File}";
+                }
+                else
+                {
+
+                    if (appender != null && !string.IsNullOrWhiteSpace(appender.Name))
+                    {
+                        if (internalAppenderName.Equals(LOG_ERR_APPENDER))
+                        {
+                            appender.File = LOG_ERR_DEFAULT_FILE;
+                        }
+                        else
+                        {
+                            appender.File = LOG_INFO_DEFAULT_FILE;
+
+                        }
+                        appender.ActivateOptions();
+                    }
+
+                    errMessage = $"No expicit file configuration ({(internalAppenderName.Equals(LOG_ERR_APPENDER) ? "errAppenderFile" : "infoAppenderFile")}) found for {internalAppenderName} use ({appender.File}) as default";
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                errMessage = $"Error during configuration of the internal {internalAppenderName} with file {appenderFile} : {e.Message}";
+                return false;
+            }
+          }
 
         protected override void Append(LoggingEvent loggingEvent)
         {
@@ -385,6 +475,20 @@ namespace Log4ALA
         WEB_APP = 1
     }
 
+ 
+    public class ALARollingFileAppender : RollingFileAppender
+    {
+        private bool isFirstTime = true;
+        protected override void OpenFile(string fileName, bool append)
+        {
+            if (isFirstTime)
+            {
+                isFirstTime = false;
+                return;
+            }
 
+            base.OpenFile(fileName, append);
+        }
+    }
 
 }
