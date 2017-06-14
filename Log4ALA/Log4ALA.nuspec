@@ -15,7 +15,6 @@
     <dependencies>
       <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
       <dependency id="log4net" version="2.0.5" />
-      <dependency id="FluentScheduler" version="5.0.0" />
       <dependency id="Newtonsoft.Json" version="9.0.1" />
     </dependencies>
 
@@ -24,25 +23,21 @@
        <group targetFramework=".NETFramework4.5">
         <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
         <dependency id="log4net" version="2.0.5" />
-        <dependency id="FluentScheduler" version="5.0.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.5.2">
         <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
         <dependency id="log4net" version="2.0.5" />
-        <dependency id="FluentScheduler" version="5.0.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.6">
         <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
         <dependency id="log4net" version="2.0.5" />
-        <dependency id="FluentScheduler" version="5.0.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.6.1">
         <dependency id="HTTPDataCollectorAPI" version="1.0.3" />
         <dependency id="log4net" version="2.0.5" />
-        <dependency id="FluentScheduler" version="5.0.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
     </dependencies>-->

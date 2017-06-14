@@ -127,10 +127,6 @@
   </ItemGroup>
   -->
   <ItemGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.5'">
-    <Reference Include="FluentScheduler, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b76503528a14ebd1, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentScheduler.5.0.0\lib\net40\FluentScheduler.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="HTTPDataCollectorAPI, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\HTTPDataCollectorAPI.1.0.3\lib\net45\HTTPDataCollectorAPI.dll</HintPath>
       <Private>True</Private>
@@ -231,6 +227,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="QueueLogger.cs" />
     <Compile Include="Log4ALAAppender.cs" />
     <Compile Include="LoggingEventSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
