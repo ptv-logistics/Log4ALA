@@ -11,9 +11,6 @@ namespace Log4ALA
         // Error message displayed when queue overflow occurs. 
         protected const String QueueOverflowMessage = "\n\nAzure Log Analytics buffer queue overflow. Message dropped.\n\n";
 
-        // Size of the internal event queue. 
-        protected const int QueueSize = 1000000;
-
         // Minimal delay between attempts to reconnect in milliseconds. 
         protected const int MinDelay = 100;
 
@@ -38,14 +35,57 @@ namespace Log4ALA
         public bool? AppendLogger { get; set; }
         public bool? AppendLogLevel { get; set; }
 
+        private Log4ALAAppender appender;
 
-        public QueueLogger()
+        private Timer logQueueSizeTimer = null;
+
+
+        // Size of the internal event queue. 
+        public int? LoggingQueueSize { get; set; } = ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE;
+
+        public QueueLogger(Log4ALAAppender appender)
         {
-            Queue = new BlockingCollection<string>(QueueSize);
+            Queue = new BlockingCollection<string>(LoggingQueueSize != null && LoggingQueueSize > 0 ? (int)LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
 
             WorkerThread = new Thread(new ThreadStart(Run));
-            WorkerThread.Name = "Azure Log Analytics Log4net Appender";
+            WorkerThread.Name = $"Azure Log Analytics Log4net Appender ({appender.Name})";
             WorkerThread.IsBackground = true;
+            this.appender = appender;
+            if (ConfigSettings.IsLogQueueSizeInterval)
+            {
+                CreateLogQueueSizeTimer();
+            }
+        }
+
+        private void CreateLogQueueSizeTimer()
+        {
+            if (logQueueSizeTimer != null)
+            {
+                logQueueSizeTimer.Dispose();
+                logQueueSizeTimer = null;
+            }
+            //create scheduler to log queue size to Azure Log Analytics start after 10 seconds and then log size each (2 minutes default)
+            logQueueSizeTimer = new Timer(new TimerCallback(LogQueueSize), this, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(ConfigSettings.LogQueueSizeInterval));
+        }
+
+        private void LogQueueSize(object state)
+        {
+            try
+            {
+                QueueLogger queueLogger = (QueueLogger)state;
+                string message = $"{queueLogger.appender.Name}-Size={queueLogger.Queue.Count}";
+                queueLogger.appender.log.Inf(message, queueLogger.appender.logMessageToFile);
+
+                if (aLACollector != null)
+                {
+                    Task task = Task.Run(async () => { await this.aLACollector.Collect("Log4ALAConnection", $"{{\"Msg\":\"{message}\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}", AzureApiVersion, "DateValue"); });
+                }
+
+            }
+            catch (Exception)
+            {
+                //continue
+            }
         }
 
 
@@ -68,12 +108,17 @@ namespace Log4ALA
                     {
                         try
                         {
-                            Task task = Task.Run(async () => { await this.aLACollector.Collect(LogType, line, AzureApiVersion, "DateValue"); });
-                            task.Wait();
+                            if (aLACollector != null)
+                            {
+                                Task task = Task.Run(async () => { await this.aLACollector.Collect(LogType, line, AzureApiVersion, "DateValue"); });
+                                task.Wait();
+                                appender.log.Inf(line, appender.logMessageToFile);
+                            }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
                             // Reopen the lost connection.
+                            appender.log.War($"reopen lost connection. [{ex}]");
                             ReopenConnection();
                             continue;
                         }
@@ -84,7 +129,9 @@ namespace Log4ALA
             }
             catch (ThreadInterruptedException ex)
             {
-                Log4ALAAppender.Error($"Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}", false);
+                string errMessage = $"Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}";
+                appender.log.Err(errMessage);
+                appender.extraLog.Err(errMessage);
             }
         }
 
@@ -98,12 +145,15 @@ namespace Log4ALA
                 try
                 {
                     OpenConnection();
-                    Log4ALAAppender.Info("successfully reconnected to Azure Log Analytics HTTP Data Collector API");
+                    appender.log.Inf("successfully reconnected to Azure Log Analytics HTTP Data Collector API", true);
                     return;
                 }
                 catch (Exception ex)
                 {
-                    Log4ALAAppender.Error($"Unable to connect to Azure Log Analytics HTTP Data Collector API => [{ex}]");
+                    string errMessage = $"Unable to connect to Azure Log Analytics HTTP Data Collector API => [{ex}]";
+                    appender.log.Err(errMessage);
+                    appender.extraLog.Err(errMessage);
+                    CloseConnection();
                 }
 
                 rootDelay *= 2;
@@ -130,7 +180,7 @@ namespace Log4ALA
                 if (aLACollector == null)
                 {
                     aLACollector = new HTTPDataCollectorAPI.Collector(WorkspaceId, SharedKey);
-                    Task task = Task.Run(async () => { await this.aLACollector.Collect("Log4ALAConnection", $"{{\"Message\":\"ping OpenConnection\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}", AzureApiVersion, "DateValue"); });
+                    Task task = Task.Run(async () => { await this.aLACollector.Collect("Log4ALAConnection", $"{{\"Msg\":\"ping-{appender.Name}-\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}", AzureApiVersion, "DateValue"); });
                     task.Wait();
                 }
             }
@@ -165,7 +215,7 @@ namespace Log4ALA
             {
                 if (!Queue.TryAdd(line))
                 {
-                    Log4ALAAppender.Warn(QueueOverflowMessage);
+                    appender.log.War(QueueOverflowMessage);
                 }
             }
         }

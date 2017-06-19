@@ -12,9 +12,8 @@ namespace Log4ALA
 {
     public class Log4ALAAppender : AppenderSkeleton
     {
-        private static ILog log;
-        private static ILog extraLog;
-        public static bool isJobManagerInitialized = false;
+        public ILog log;
+        public ILog extraLog;
 
         protected static readonly Random Random1 = new Random();
         // Minimal delay between attempts to reconnect in milliseconds. 
@@ -34,15 +33,21 @@ namespace Log4ALA
 
         private QueueLogger queueLogger;
 
+        public ConfigSettings configSettings;
+
         public string WorkspaceId { get; set; }
         public string SharedKey { get; set; }
         public string LogType { get; set; }
         public string AzureApiVersion { get; set; }
         public int? HttpDataCollectorRetry { get; set; }
 
-        private static bool logMessageToFile = false;
+        public bool logMessageToFile = false;
         public bool LogMessageToFile { get; set; }
+
+        public bool appendLogger = false;
         public bool? AppendLogger { get; set; }
+
+        public bool appendLogLevel = false;
         public bool? AppendLogLevel { get; set; }
 
         public string ErrLoggerName { get; set; }
@@ -50,8 +55,10 @@ namespace Log4ALA
         public string ErrAppenderFile { get; set; }
         public string InfoAppenderFile { get; set; }
 
+        public int? LoggingQueueSize { get; set; }
 
-        static Log4ALAAppender()
+
+        public Log4ALAAppender()
         {
         }
 
@@ -61,11 +68,10 @@ namespace Log4ALA
 
             try
             {
+                configSettings = new ConfigSettings(this.Name);
+                queueLogger = new QueueLogger(this);
 
-                queueLogger = new QueueLogger();
-
-                logMessageToFile = LogMessageToFile;
-
+                logMessageToFile = configSettings.ALALogMessageToFile != null ? (bool)configSettings.ALALogMessageToFile : LogMessageToFile;
 
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
                 {
@@ -75,78 +81,108 @@ namespace Log4ALA
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
 
                 string setErrAppFileNameMessage, setInfoAppFileNameMessage;
-                bool isErrFile = SetAppenderFileNameIfAvailable(ErrAppenderFile, LOG_ERR_APPENDER, out setErrAppFileNameMessage);
-                bool isInfoFile = SetAppenderFileNameIfAvailable(InfoAppenderFile, LOG_INFO_APPENDER, out setInfoAppFileNameMessage);
-
+                bool isErrFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAErrAppenderFile) ? ErrAppenderFile : configSettings.ALAErrAppenderFile, LOG_ERR_APPENDER, out setErrAppFileNameMessage);
+                bool isInfoFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAInfoAppenderFile) ? InfoAppenderFile : configSettings.ALAInfoAppenderFile, LOG_INFO_APPENDER, out setInfoAppFileNameMessage);
+                 
                 if (isErrFile)
                 {
-                    Info(setErrAppFileNameMessage);
+                    log.Inf(setErrAppFileNameMessage, true);
                 }
                 else
                 {
-                    Error(setErrAppFileNameMessage, false);
+                    log.Err(setErrAppFileNameMessage);
+                    extraLog.Err(setErrAppFileNameMessage);
                 }
 
                 if (isInfoFile)
                 {
-                    Info(setInfoAppFileNameMessage);
+                    log.Inf(setInfoAppFileNameMessage, true);
                 }
                 else
                 {
-                    Error(setInfoAppFileNameMessage, false);
+                    log.Err(setInfoAppFileNameMessage);
+                    extraLog.Err(setInfoAppFileNameMessage);
                 }
 
+                log.Inf($"loggerName:[{this.Name}]", true);
+                log.Inf($"logMessageToFile:[{logMessageToFile}]", true);
 
 
-                if (!string.IsNullOrWhiteSpace(ErrLoggerName))
+                if (!string.IsNullOrWhiteSpace(configSettings.ALAErrLoggerName))
+                {
+                    extraLog = LogManager.GetLogger(configSettings.ALAErrLoggerName);
+                    log.Inf($"errLoggerName:[{configSettings.ALAErrLoggerName}]", true);
+                }
+                else if (!string.IsNullOrWhiteSpace(ErrLoggerName))
                 {
                     extraLog = LogManager.GetLogger(ErrLoggerName);
+                    log.Inf($"errLoggerName:[{ErrLoggerName}]", true);
                 }
 
 
 
-                if (string.IsNullOrWhiteSpace(WorkspaceId))
+
+                if (string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
                 {
-                    throw new Exception($"the Log4ALAAppender property workspaceId [{WorkspaceId}] shouldn't be empty");
+                    throw new Exception($"the Log4ALAAppender property {this.Name}.workspaceId [{WorkspaceId}] shouldn't be empty");
                 }
 
-                queueLogger.WorkspaceId = WorkspaceId;
+                queueLogger.WorkspaceId = string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) ? WorkspaceId : configSettings.ALAWorkspaceId;
+                log.Inf($"workspaceId:[{queueLogger.WorkspaceId}]", true);
 
-                if (string.IsNullOrWhiteSpace(SharedKey))
+
+                if (string.IsNullOrWhiteSpace(configSettings.ALASharedKey) && string.IsNullOrWhiteSpace(SharedKey))
                 {
-                    throw new Exception($"the Log4ALAAppender property sharedKey [{SharedKey}] shouldn't be empty");
+                    throw new Exception($"the Log4ALAAppender property {this.Name}.sharedKey [{SharedKey}] shouldn't be empty");
                 }
 
-                queueLogger.SharedKey = SharedKey;
+                queueLogger.SharedKey = string.IsNullOrWhiteSpace(configSettings.ALASharedKey) ? SharedKey : configSettings.ALASharedKey;
+                log.Inf($"sharedKey:[{queueLogger.SharedKey.Remove(15)}...]", true);
 
-                if (string.IsNullOrWhiteSpace(LogType))
+                if (string.IsNullOrWhiteSpace(configSettings.ALALogType) && string.IsNullOrWhiteSpace(LogType))
                 {
-                    throw new Exception($"the Log4ALAAppender property logType [{LogType}] shouldn't be empty");
+                    throw new Exception($"the Log4ALAAppender property {this.Name}.logType [{LogType}] shouldn't be empty");
                 }
 
-                queueLogger.LogType = LogType;
+                queueLogger.LogType = string.IsNullOrWhiteSpace(configSettings.ALALogType) ? LogType : configSettings.ALALogType;
+                log.Inf($"logType:[{queueLogger.LogType}]", true);
 
-                if (string.IsNullOrWhiteSpace(AzureApiVersion))
-                {
-                    AzureApiVersion = "2016-04-01";
-                }
 
-                queueLogger.AzureApiVersion = AzureApiVersion;
+                queueLogger.AzureApiVersion = string.IsNullOrWhiteSpace(configSettings.ALAAzureApiVersion) ? (string.IsNullOrWhiteSpace(AzureApiVersion) ? "2016-04-01" : AzureApiVersion) : configSettings.ALAAzureApiVersion;
+                log.Inf($"azureApiVersion:[{queueLogger.AzureApiVersion}]", true);
 
-                if (HttpDataCollectorRetry == null)
-                {
-                    HttpDataCollectorRetry = 6;
-                }
+                queueLogger.HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? (HttpDataCollectorRetry == null ? 6 : HttpDataCollectorRetry) : configSettings.ALAHttpDataCollectorRetry;
+                log.Inf($"httpDataCollectorRetry:[{queueLogger.HttpDataCollectorRetry}]", true);
 
-                queueLogger.HttpDataCollectorRetry = HttpDataCollectorRetry;
+                queueLogger.LoggingQueueSize = configSettings.ALALoggingQueueSize != null && configSettings.ALALoggingQueueSize > 0 ? configSettings.ALALoggingQueueSize : (LoggingQueueSize != null && LoggingQueueSize > 0 ? LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
+                log.Inf($"loggingQueueSize:[{queueLogger.LoggingQueueSize}]", true);
 
                 serializer = new LoggingEventSerializer();
 
+                if ((configSettings.ALAAppendLogger == null || (bool)configSettings.ALAAppendLogger) && (AppendLogger == null || (bool)AppendLogger))
+                {
+                    this.appendLogger = true;
+                }
+
+                log.Inf($"appendLogger:[{this.appendLogger}]", true);
+
+                if ((configSettings.ALAAppendLogLevel == null || (bool)configSettings.ALAAppendLogLevel) && (AppendLogLevel == null || (bool)AppendLogLevel))
+                {
+                    this.appendLogLevel = true;
+                }
+                log.Inf($"appendLogLevel:[{this.appendLogLevel}]", true);
+
+                log.Inf($"alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
+                log.Inf($"alaQueueSizeLogIntervalInMin:[{ConfigSettings.LogQueueSizeInterval}]", true);
+ 
 
             }
             catch (Exception ex)
             {
-                Error($"Unable to activate Log4ALAAppender: {ex.Message}");
+                queueLogger = null;
+                string message = $"Unable to activate Log4ALAAppender: {ex.Message}";
+                log.Err(message);
+                extraLog.Err(message);
             }
         }
 
@@ -157,6 +193,7 @@ namespace Log4ALA
             try
             {
                 var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository().GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
+
 
                 if (!string.IsNullOrWhiteSpace(appenderFile))
                 {
@@ -183,17 +220,17 @@ namespace Log4ALA
                     {
                         if (internalAppenderName.Equals(LOG_ERR_APPENDER))
                         {
-                            appender.File = LOG_ERR_DEFAULT_FILE;
+                            appender.File = $"{this.Name}_{LOG_ERR_DEFAULT_FILE}";
                         }
                         else
                         {
-                            appender.File = LOG_INFO_DEFAULT_FILE;
+                            appender.File = $"{this.Name}_{LOG_INFO_DEFAULT_FILE}";
 
                         }
                         appender.ActivateOptions();
                     }
 
-                    errMessage = $"No expicit file configuration ({(internalAppenderName.Equals(LOG_ERR_APPENDER) ? "errAppenderFile" : "infoAppenderFile")}) found for {internalAppenderName} use ({appender.File}) as default";
+                    errMessage = $"No explicit file configuration ({(internalAppenderName.Equals(LOG_ERR_APPENDER) ? "errAppenderFile" : "infoAppenderFile")}) found for {internalAppenderName} use ({appender.File}) as default";
                 }
                 return true;
             }
@@ -211,44 +248,18 @@ namespace Log4ALA
                 if (queueLogger != null)
                 {
                     var content = serializer.SerializeLoggingEvents(new[] { loggingEvent }, this);
-                    Info(content);
                     queueLogger.AddLine(content);
                 }
             }
             catch (Exception ex)
             {
-                Error($"Unable to send data to Azure Log Analytics: {ex.Message}");
+                string message = $"Unable to send data to Azure Log Analytics: {ex.Message}";
+                log.Err(message);
+                extraLog.Err(message);
             }
         }
 
 
-        public static void Error(string logMessage, bool async = true)
-        {
-            if (log != null)
-            {
-                log.Error(logMessage);
-                if (extraLog != null)
-                {
-                    extraLog.Error(logMessage);
-                }
-            }
-        }
-
-        public static void Info(string logMessage)
-        {
-            if (logMessageToFile && log != null)
-            {
-                log.Info(logMessage);
-            }
-        }
-
-        public static void Warn(string logMessage)
-        {
-            if (log != null)
-            {
-                log.Warn(logMessage);
-            }
-        }
 
         private static string FlattenException(Exception exception, bool logExcType = true, bool isStackTraceIgnored = false)
         {
@@ -303,4 +314,33 @@ namespace Log4ALA
         }
     }
 
+
+    public static class LogExtensions
+    {
+
+        public static void Err(this ILog log, string logMessage)
+        {
+            if (log != null)
+            {
+                log.Error(logMessage);
+             }
+        }
+
+        public static void Inf(this ILog log, string logMessage, bool logMessage2File = false)
+        {
+            if (logMessage2File && log != null)
+            {
+                log.Info(logMessage);
+            }
+        }
+
+        public static void War(this ILog log, string logMessage)
+        {
+            if (log != null)
+            {
+                log.Warn(logMessage);
+            }
+        }
+
+    }
 }

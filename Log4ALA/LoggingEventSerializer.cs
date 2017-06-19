@@ -38,11 +38,11 @@ namespace Log4ALA
             payload.DateValue = loggingEvent.TimeStamp.ToUniversalTime().ToString("o");
             payload.LogMessage = loggingEvent.MessageObject;
 
-            if (appender.AppendLogger == null || (bool)appender.AppendLogger)
+            if (appender.appendLogger)
             {
                 payload.Logger = loggingEvent.LoggerName;
             }
-            if (appender.AppendLogLevel == null || (bool)appender.AppendLogLevel)
+            if (appender.appendLogLevel)
             {
                 payload.Level = loggingEvent.Level.DisplayName.ToUpper();
             }
@@ -57,7 +57,9 @@ namespace Log4ALA
             var exception = loggingEvent.ExceptionObject;
             if (exception != null)
             {
-                Log4ALAAppender.Error($"loggingEvent.Exception: {exception}");
+                string errMessage = $"loggingEvent.Exception: {exception}";
+                appender.log.Err(errMessage);
+                appender.extraLog.Err(errMessage);
                 payload.exception = new ExpandoObject();
                 payload.exception.message = exception.Message;
                 payload.exception.type = exception.GetType().Name;
