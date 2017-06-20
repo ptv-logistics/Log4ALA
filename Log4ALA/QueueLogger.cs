@@ -114,6 +114,12 @@ namespace Log4ALA
                                 task.Wait();
                                 appender.log.Inf($"[{appender.Name}] - {line}", appender.logMessageToFile);
                             }
+                            else
+                            {
+                                appender.log.War($"[{appender.Name}] - HTTP Data Collector not ininialized..try initilaizing");
+                                ReopenConnection();
+                                continue;
+                            }
                         }
                         catch (Exception ex)
                         {
