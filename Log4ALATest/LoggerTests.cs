@@ -34,7 +34,7 @@ namespace Log4ALATest
 
 
             System.Console.WriteLine("done3");
-            System.Threading.Thread.Sleep(new TimeSpan(0, 2, 0));
+            System.Threading.Thread.Sleep(new TimeSpan(0, 5, 0));
         }
     }
 }
