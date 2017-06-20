@@ -112,13 +112,13 @@ namespace Log4ALA
                             {
                                 Task task = Task.Run(async () => { await this.aLACollector.Collect(LogType, line, AzureApiVersion, "DateValue"); });
                                 task.Wait();
-                                appender.log.Inf(line, appender.logMessageToFile);
+                                appender.log.Inf($"[{appender.Name}] - {line}", appender.logMessageToFile);
                             }
                         }
                         catch (Exception ex)
                         {
                             // Reopen the lost connection.
-                            appender.log.War($"reopen lost connection. [{ex}]");
+                            appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex}]");
                             ReopenConnection();
                             continue;
                         }
@@ -129,7 +129,7 @@ namespace Log4ALA
             }
             catch (ThreadInterruptedException ex)
             {
-                string errMessage = $"Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}";
+                string errMessage = $"[{appender.Name}] - Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}";
                 appender.log.Err(errMessage);
                 appender.extraLog.Err(errMessage);
             }
@@ -145,12 +145,19 @@ namespace Log4ALA
                 try
                 {
                     OpenConnection();
-                    appender.log.Inf("successfully reconnected to Azure Log Analytics HTTP Data Collector API", true);
+                    try
+                    {
+                        appender.log.Inf($"[{appender.Name}] - successfully reconnected to Azure Log Analytics HTTP Data Collector API", true);
+                    }
+                    catch (Exception)
+                    {
+                        //continue
+                    }
                     return;
                 }
                 catch (Exception ex)
                 {
-                    string errMessage = $"Unable to connect to Azure Log Analytics HTTP Data Collector API => [{ex}]";
+                    string errMessage = $"[{appender.Name}] - Unable to connect to Azure Log Analytics HTTP Data Collector API => [{ex}]";
                     appender.log.Err(errMessage);
                     appender.extraLog.Err(errMessage);
                     CloseConnection();
@@ -180,8 +187,6 @@ namespace Log4ALA
                 if (aLACollector == null)
                 {
                     aLACollector = new HTTPDataCollectorAPI.Collector(WorkspaceId, SharedKey);
-                    Task task = Task.Run(async () => { await this.aLACollector.Collect("Log4ALAConnection", $"{{\"Msg\":\"ping-{appender.Name}-\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}", AzureApiVersion, "DateValue"); });
-                    task.Wait();
                 }
             }
             catch (Exception ex)
@@ -215,7 +220,7 @@ namespace Log4ALA
             {
                 if (!Queue.TryAdd(line))
                 {
-                    appender.log.War(QueueOverflowMessage);
+                    appender.log.War($"[{appender.Name}] - QueueOverflowMessage");
                 }
             }
         }

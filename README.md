@@ -72,6 +72,12 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 
 ``` 
 
+## General Configuration 
+
+It's possible to configure multiple log4net Azure Log Analytics appender(s). The properties (e.g. workspaceId, SharedKey...) of each appender could be configured as 
+appender properties, appSettings in App.config/Web.config or as Azure Configuration Setting with fallback strategy AzureSetting=>appSetting=>appenderProperty.
+If the properties will be configured as appSetting in App.config/Web.config or as Azure Configuration Settings it's important to attach the appender name as prefix 
+to the property e.g. **YourAppenderName.workspaceId**
 
 
 ## Example App Configuration file
@@ -92,6 +98,19 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     -->
     <add key="log4net.Config" value="log4net.config"/>
     <add key="log4net.Config.Watch" value="True"/>
+
+	<!--ALAAppender name (prefix) dependent settings-->
+    <add key="Log4ALAAppender_1.workspaceId" value=""/>
+    <add key="Log4ALAAppender_1.SharedKey" value=""/>
+    <add key="Log4ALAAppender_1.logType" value=""/>
+    <add key="Log4ALAAppender_1.logMessageToFile" value="true"/>
+
+    
+    <add key="Log4ALAAppender_2.workspaceId" value=""/>
+    <add key="Log4ALAAppender_2.SharedKey" value=""/>
+    <add key="Log4ALAAppender_2.logType" value=""/>
+    <add key="Log4ALAAppender_2.logMessageToFile" value="true"/>
+
   </appSettings>
 
 </configuration>
@@ -102,27 +121,30 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 ```xml
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <log4net>
-  
-  <appender name="Log4ALAAppender"
-               type="Log4ALA.Log4ALAAppender, Log4ALA">
+
+  <appender name="Log4ALAAppender_1" type="Log4ALA.Log4ALAAppender, Log4ALA" />
+  <appender name="Log4ALAAppender_2" type="Log4ALA.Log4ALAAppender, Log4ALA" />
+
+
+  <appender name="Log4ALAAppender_3" type="Log4ALA.Log4ALAAppender, Log4ALA">
 
     <!--mandatory id of the Azure Log Analytics WorkspaceID -->
-    <workspaceId value="YOUR_WORKSPACE_ID" />
-    <!--the primary key Primary Key => OMS Portal Overview/Settings/Connected Sources-->
-    <SharedKey value="YOUR_SHARED_KEY" />
-    <!-- the log type... the name of the record type that you'll be creating-->
-    <logType value="YOUR_LOG_TYPE" />
+    <workspaceId value="" />
+    <!--mandatory primary key Primary Key OMS Portal Overview/Settings/Connected Sources-->
+    <SharedKey value="" />
+    <!-- mandatory log type... the name of the record type that you'll be creating-->
+    <logType value="" />
     <!-- optional API version of the HTTP Data Collector API (default 2016-04-01) -->
     <!--<azureApiVersion value="2016-04-01" />-->
     <!-- optional max retries if the HTTP Data Collector API request failed (default 6 retries) -->
     <!--<httpDataCollectorRetry value="6" />-->
- 
+
     <!-- 
     optional debug setting which should only be used during development or on testsystem.
     Set logMessageToFile=true to inspect your messages (in log4ALA_info.log) which will be sent to the Azure Log Analytics Workspace.
     -->
-    <logMessageToFile value="true"/>
-    
+    <!--<logMessageToFile value="true"/>-->
+
     <!-- 
     optional name of an logger defined further down with an depending appender e.g. logentries to log internal errors. If the value is empty or the property isn't defined 
     errors will only be logged to log4ALA_error.log
@@ -132,22 +154,20 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- optional appendLogger to enable/disable sending the logger info 
          to Azure Log Analytics (default true)
     <appendLogger value="true"/>
-	-->
-	
+	  -->
+
     <!-- optional appendLogLevel to enable/disable sending the log level
          to Azure Log Analytics (default true)
     <appendLogLevel value="true"/>
-	-->
-	
+	  -->
+
     <!-- optional error log file configuration (default relative_assembly_path/log4ALA_error.log)
     <errAppenderFile value="C:\ups\errApp.log"/>
-	-->
-    
+	  -->
+
     <!-- optional info log file configuration (default relative_assembly_path/log4ALA_info.log)
     <infoAppenderFile value="C:\ups\infoApp.log"/>
-	-->
-
-	
+	  -->
   </appender>
 
 
@@ -171,8 +191,24 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
   </logger>
   -->
 
-  <logger name="Log4ALALogger" additivity="false">
-    <appender-ref ref="Log4ALAAppender" />
+
+
+  <!--<logger name="Log4ALALoggerAllInOne" additivity="false">
+    <appender-ref ref="Log4ALAAppender_1" />
+    <appender-ref ref="Log4ALAAppender_2" />
+    <appender-ref ref="Log4ALAAppender_3" />
+  </logger>-->
+
+  <logger name="Log4ALALogger_1" additivity="false">
+    <appender-ref ref="Log4ALAAppender_1" />
+  </logger>
+  
+  <logger name="Log4ALALogger_2" additivity="false">
+    <appender-ref ref="Log4ALAAppender_2" />
+  </logger>
+
+  <logger name="Log4ALALogger_3" additivity="false">
+    <appender-ref ref="Log4ALAAppender_3" />
   </logger>
   
 </log4net>
