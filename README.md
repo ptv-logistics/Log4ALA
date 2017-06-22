@@ -18,7 +18,7 @@ Or reference it and use it according to the [License](./LICENSE).
 
 Chapter 2 Create a workspace => https://docs.microsoft.com/en-GB/azure/log-analytics/log-analytics-get-started
 
-## Get the workspace id and shared key (Primary Key)
+## Get the workspace id and shared key (aka primary key)
 
 ![workspaceId/SharedKey](https://github.com/ptv-logistics/Log4ALA/blob/master/oms.jpg)
 
