@@ -13,6 +13,15 @@ You can obtain this project as a [Nuget Package](https://www.nuget.org/packages/
 
 Or reference it and use it according to the [License](./LICENSE).
 
+
+## Create a Azure Log Analytics Workspace
+
+Chapter 2 Create a workspace => https://docs.microsoft.com/en-GB/azure/log-analytics/log-analytics-get-started
+
+## Get the workspace id and shared key (Primary Key)
+
+![workspaceId/SharedKey](https://https://github.com/ptv-logistics/Log4ALA/oms.jpg)
+
 ## Use it
 
 This example is also available as a [LoggerTests.cs](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/LoggerTests.cs):
