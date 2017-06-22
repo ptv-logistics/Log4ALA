@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Add .NET 4.5.1 support and updated HTTPDataCollector dependency to version 1.0.4</releaseNotes>
+    <releaseNotes>Add .NET 4.5.1 support and updated HTTPDataCollectorAPI dependency to version 1.0.4</releaseNotes>
     <dependencies>
       <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
       <dependency id="log4net" version="2.0.5" />
