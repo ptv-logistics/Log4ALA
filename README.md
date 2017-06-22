@@ -20,7 +20,7 @@ Chapter 2 Create a workspace => https://docs.microsoft.com/en-GB/azure/log-analy
 
 ## Get the workspace id and shared key (aka primary key)
 
-![workspaceId/SharedKey](https://github.com/ptv-logistics/Log4ALA/blob/master/oms.jpg?raw=true)
+![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/oms.jpg)
 
 ## Use it
 
