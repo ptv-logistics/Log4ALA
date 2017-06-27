@@ -11,7 +11,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Now support log messages with semicolon separated key=value strings...the keys will then be mapped to Azure Log Analytic properties/columns</releaseNotes>
+    <releaseNotes>Add duplicate key detection to log messages with semicolon separated key=value strings...duplicate keys will be mapped to Azur Log Analytic properties/columns Key_Duplicate0 and Key_Duplicate1.
+    </releaseNotes>
     <dependencies>
       <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
       <dependency id="log4net" version="2.0.5" />
