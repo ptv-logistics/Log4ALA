@@ -53,7 +53,7 @@ namespace Log4ALATest
             //Log messages with semicolon separated key=value strings...the keys will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger2.Info($"id=log-{i}; message=test{i}");
+                alaLogger2.Info($"id=log-{i}; message=test-{i}");
             }
 
             System.Console.WriteLine("done2");
@@ -61,7 +61,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test{i}\"}}");
+                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
             }
 
             System.Console.WriteLine("done3");
