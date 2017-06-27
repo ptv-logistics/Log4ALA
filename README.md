@@ -16,7 +16,7 @@ Or reference it and use it according to the [License](./LICENSE).
 
 ## Create a Azure Log Analytics Workspace
 
-Chapter 2 Create a workspace => https://docs.microsoft.com/en-GB/azure/log-analytics/log-analytics-get-started
+[Chapter 2 Create a workspace](https://docs.microsoft.com/en-GB/azure/log-analytics/log-analytics-get-started)
 
 ## Get the workspace id and shared key (aka primary key)
 
