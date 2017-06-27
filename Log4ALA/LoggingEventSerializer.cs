@@ -7,10 +7,12 @@
 
 using log4net.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
+using System;
 
 namespace Log4ALA
 {
@@ -33,10 +35,31 @@ namespace Log4ALA
         private string SerializeLoggingEvent(LoggingEvent loggingEvent, Log4ALAAppender appender)
         {
 
-
             dynamic payload = new ExpandoObject();
             payload.DateValue = loggingEvent.TimeStamp.ToUniversalTime().ToString("o");
-            payload.LogMessage = loggingEvent.MessageObject;
+           
+
+            var valObjects = new ExpandoObject() as IDictionary<string, Object>;
+            if (appender.jsonDetecton && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ValidateJSON((string)loggingEvent.MessageObject))
+            {
+                Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
+                foreach (var val in values)
+                {
+                    valObjects.Add(val.Key, val.Value);
+                }
+                payload.LogMessage = valObjects;
+            }
+            else
+            {
+                if (appender.keyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
+                {
+                    payload.LogMessage = ConvertKeyValueMessage((string)loggingEvent.MessageObject);
+                }
+                else
+                {
+                    payload.LogMessage = loggingEvent.MessageObject;
+                }
+            }
 
             if (appender.appendLogger)
             {
@@ -76,6 +99,74 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
+        private static dynamic ConvertKeyValueMessage(string message)
+        {
+            var msgPayload = new ExpandoObject() as IDictionary<string, Object>;
+
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                string[] le1Sp = message.Split(';');
+
+                //remove empty objects
+                le1Sp = le1Sp.Where(ll => !string.IsNullOrWhiteSpace((ll))).Select(l => l.Trim()).ToArray();
+
+                StringBuilder misc = new StringBuilder();
+
+                foreach (var le1p in le1Sp)
+                {
+                    if (le1p.Count(c => c == '=') > 1)
+                    {
+                        string[] le1pSP = le1p.Split(' ');
+                        //remove whitespaces
+                        le1pSP = le1pSP.Select(l => l.Trim()).ToArray();
+                        foreach (var le1pp in le1pSP)
+                        {
+                            if (le1pp.Count(c => c == '=') == 1)
+                            {
+                                string[] le1ppSP = le1pp.Split('=');
+                                if (le1ppSP.Length == 2)
+                                {
+                                    msgPayload.Add(le1ppSP[0], le1ppSP[1]);
+                                }
+                            }
+                            else
+                            {
+                                misc.Append(le1pp);
+                                misc.Append(" ");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (le1p.Count(c => c == '=') == 1)
+                        {
+                            string[] le1ppSP = le1p.Split('=');
+                            if (le1ppSP.Length == 2)
+                            {
+                                msgPayload.Add(le1ppSP[0], (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+                            }
+                        }
+                        else
+                        {
+                            misc.Append(le1p);
+                            misc.Append(" ");
+                        }
+                    }
+                }
+
+                string miscStr = misc.ToString().Trim();
+
+                if (!string.IsNullOrWhiteSpace(miscStr))
+                {
+                    msgPayload.Add("Misc", miscStr);
+                }
+
+            }
+ 
+            return msgPayload;
+        }
+
+
         private static string RemoveSpecialCharacters(string str)
         {
             var sb = new StringBuilder(str.Length);
@@ -85,5 +176,19 @@ namespace Log4ALA
             }
             return sb.ToString();
         }
+
+        public bool ValidateJSON(string s)
+        {
+            try
+            {
+                JToken.Parse(s);
+                return true;
+            }
+            catch (JsonReaderException ex)
+            {
+                return false;
+            }
+        }
+
     }
 }

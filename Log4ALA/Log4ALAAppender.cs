@@ -46,7 +46,7 @@ namespace Log4ALA
 
         public bool appendLogger = false;
         public bool? AppendLogger { get; set; }
-
+ 
         public bool appendLogLevel = false;
         public bool? AppendLogLevel { get; set; }
 
@@ -57,6 +57,11 @@ namespace Log4ALA
 
         public int? LoggingQueueSize { get; set; }
 
+        public bool keyValueDetection = true;
+        public bool? KeyValueDetection { get; set; }
+
+        public bool jsonDetecton = true;
+        public bool? JsonDetection { get; set; }
 
         public Log4ALAAppender()
         {
@@ -171,6 +176,19 @@ namespace Log4ALA
                     this.appendLogLevel = true;
                 }
                 log.Inf($"[{this.Name}] - appendLogLevel:[{this.appendLogLevel}]", true);
+
+                if ((configSettings.ALAKeyValueDetection == null || (bool)configSettings.ALAKeyValueDetection) && (KeyValueDetection == null || (bool)KeyValueDetection))
+                {
+                    this.keyValueDetection = true;
+                }
+                log.Inf($"[{this.Name}] - keyValueDetection:[{this.keyValueDetection}]", true);
+
+                if ((configSettings.ALAJsonDetection == null || (bool)configSettings.ALAJsonDetection) && (JsonDetection == null || (bool)JsonDetection))
+                {
+                    this.jsonDetecton = true;
+                }
+                log.Inf($"[{this.Name}] - jsonDetecton:[{this.jsonDetecton}]", true);
+
 
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalInMin:[{ConfigSettings.LogQueueSizeInterval}]", true);

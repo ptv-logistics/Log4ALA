@@ -21,6 +21,8 @@ namespace Log4ALA
         private const string QUEUE_SIZE_LOG_INTERVAL_PROP = "alaQueueSizeLogIntervalInMin";
         private const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
+        private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";
+        private const string ALA_JSON_DETECTION_PROP = "jsonDetecton";
 
 
 
@@ -152,6 +154,25 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(isLogQueueSizeInterval) ? false : Boolean.Parse(isLogQueueSizeInterval));
             }
         }
+
+        public bool? ALAKeyValueDetection
+        {
+            get
+            {
+                string aLAKeyValueDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_VALUE_DETECTION_PROP}");
+                return (string.IsNullOrWhiteSpace(aLAKeyValueDetection) ? (bool?)null : Boolean.Parse(aLAKeyValueDetection));
+            }
+        }
+
+        public bool? ALAJsonDetection
+        {
+            get
+            {
+                string aLAJsonDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_JSON_DETECTION_PROP}");
+                return (string.IsNullOrWhiteSpace(aLAJsonDetection) ? (bool?)null : Boolean.Parse(aLAJsonDetection));
+            }
+        }
+
 
     }
 }
