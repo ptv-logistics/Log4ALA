@@ -13,6 +13,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System;
+using System.Collections.Concurrent;
 
 namespace Log4ALA
 {
@@ -45,7 +46,10 @@ namespace Log4ALA
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
                 foreach (var val in values)
                 {
-                    valObjects.Add(val.Key, val.Value);
+                    if (!valObjects.ContainsKey(val.Key))
+                    {
+                        valObjects.Add(val.Key, val.Value);
+                    }
                 }
                 payload.LogMessage = valObjects;
             }
@@ -112,6 +116,8 @@ namespace Log4ALA
 
                 StringBuilder misc = new StringBuilder();
 
+                ConcurrentDictionary<string, int> duplicates = new ConcurrentDictionary<string, int>();
+
                 foreach (var le1p in le1Sp)
                 {
                     if (le1p.Count(c => c == '=') > 1)
@@ -124,9 +130,29 @@ namespace Log4ALA
                             if (le1pp.Count(c => c == '=') == 1)
                             {
                                 string[] le1ppSP = le1pp.Split('=');
-                                if (le1ppSP.Length == 2)
-                                {
-                                    msgPayload.Add(le1ppSP[0], le1ppSP[1]);
+                                if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2) { 
+
+                                    if (!msgPayload.ContainsKey(le1ppSP[0]))
+                                    {
+                                        msgPayload.Add(le1ppSP[0], le1ppSP[1]);
+                                    }
+                                    else
+                                    {
+                                        int duplicateCounter;
+                                        if (duplicates.ContainsKey(le1ppSP[0]))
+                                        {
+                                            duplicates.TryRemove(le1ppSP[0], out duplicateCounter);
+                                            duplicates.TryAdd(le1ppSP[0], ++duplicateCounter);
+                                        }
+                                        else
+                                        {
+                                            duplicateCounter = 0;
+                                            duplicates.TryAdd(le1ppSP[0], duplicateCounter);
+                                        }
+
+                                        msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", le1ppSP[1]);
+
+                                    }
                                 }
                             }
                             else
@@ -141,9 +167,31 @@ namespace Log4ALA
                         if (le1p.Count(c => c == '=') == 1)
                         {
                             string[] le1ppSP = le1p.Split('=');
-                            if (le1ppSP.Length == 2)
+ 
+                            if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                msgPayload.Add(le1ppSP[0], (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+
+                                if (!msgPayload.ContainsKey(le1ppSP[0]))
+                                {
+                                    msgPayload.Add(le1ppSP[0], (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+                                }
+                                else
+                                {
+                                    int duplicateCounter;
+                                    if (duplicates.ContainsKey(le1ppSP[0]))
+                                    {
+                                        duplicates.TryRemove(le1ppSP[0], out duplicateCounter);
+                                        duplicates.TryAdd(le1ppSP[0], ++duplicateCounter);
+                                    }
+                                    else
+                                    {
+                                        duplicateCounter = 0;
+                                        duplicates.TryAdd(le1ppSP[0], duplicateCounter);
+                                    }
+
+                                    msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+
+                                }
                             }
                         }
                         else
