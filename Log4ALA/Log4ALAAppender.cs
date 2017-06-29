@@ -57,10 +57,10 @@ namespace Log4ALA
 
         public int? LoggingQueueSize { get; set; }
 
-        public bool keyValueDetection = true;
+        public bool keyValueDetection = false;
         public bool? KeyValueDetection { get; set; }
 
-        public bool jsonDetecton = true;
+        public bool jsonDetection = false;
         public bool? JsonDetection { get; set; }
 
         public Log4ALAAppender()
@@ -185,9 +185,9 @@ namespace Log4ALA
 
                 if ((configSettings.ALAJsonDetection == null || (bool)configSettings.ALAJsonDetection) && (JsonDetection == null || (bool)JsonDetection))
                 {
-                    this.jsonDetecton = true;
+                    this.jsonDetection = true;
                 }
-                log.Inf($"[{this.Name}] - jsonDetecton:[{this.jsonDetecton}]", true);
+                log.Inf($"[{this.Name}] - jsonDetecton:[{this.jsonDetection}]", true);
 
 
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);

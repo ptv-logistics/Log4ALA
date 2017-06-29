@@ -22,7 +22,7 @@ namespace Log4ALA
         private const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
         private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";
-        private const string ALA_JSON_DETECTION_PROP = "jsonDetecton";
+        private const string ALA_JSON_DETECTION_PROP = "jsonDetection";
 
 
 
