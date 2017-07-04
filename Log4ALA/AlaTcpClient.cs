@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
@@ -21,6 +23,7 @@ namespace Log4ALA
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
             serverAddr = $"{workSpaceID}.{AlaApiUrl}";
+            ConfigureServiceEndpoint(serverAddr, true, true);
         }
 
         private int tcpPort = 443;
@@ -140,5 +143,31 @@ namespace Log4ALA
                 }
             }
         }
+
+        private static ConcurrentDictionary<string, ServicePoint> ServiceEndpointConfigruations = new ConcurrentDictionary<string, ServicePoint>();
+
+        public static void ConfigureServiceEndpoint(string seURL, bool useNagle = false, bool isSSL = false, bool isChanged = false)
+        {
+            if (!ServiceEndpointConfigruations.ContainsKey(seURL) || isChanged)
+            {
+
+                string protocol = "http";
+
+                if (!seURL.Contains("://"))
+                {
+                    seURL = $"{(isSSL ? $"{protocol}s": protocol)}://{seURL}";
+                }
+
+                ServicePoint instanceServicePoint = ServicePointManager.FindServicePoint(new Uri(seURL));
+                //http://blogs.msdn.com/b/windowsazurestorage/archive/2010/06/25/nagle-s-algorithm-is-not-friendly-towards-small-requests.aspx
+                instanceServicePoint.UseNagleAlgorithm = useNagle;
+                //instanceServicePoint.ReceiveBufferSize = 45000192;
+                instanceServicePoint.ConnectionLimit = 100 * (Environment.ProcessorCount > 0 ? Environment.ProcessorCount : 1);
+                //set to 0 to force ServicePoint connections to close after servicing a request
+                instanceServicePoint.ConnectionLeaseTimeout = 0;
+                ServiceEndpointConfigruations.AddOrUpdate(seURL, instanceServicePoint, (key, oldValue) => instanceServicePoint);
+            }
+        }
+
     }
 }

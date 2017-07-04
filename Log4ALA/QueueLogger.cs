@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Log4ALA
 {
@@ -19,6 +21,9 @@ namespace Log4ALA
 
         // Maximal delay between attempts to reconnect in milliseconds. 
         protected const int MaxDelay = 10000;
+
+        public const int BatchSizeMax = 31457280; //30 mb quota limit per post
+        public const int BatchSizeTimeSecMax = 120; //30 mb quota limit per post
 
         protected readonly BlockingCollection<string> Queue;
         protected readonly Thread WorkerThread;
@@ -52,6 +57,9 @@ namespace Log4ALA
         public bool LogMessageToFile { get; set; }
         public bool? AppendLogger { get; set; }
         public bool? AppendLogLevel { get; set; }
+        public int? BatchSizeInBytes { get; set; }
+        public int? BatchNumItems { get; set; }
+        public int? BatchWaitInSec { get; set; }
 
         private Log4ALAAppender appender;
 
@@ -108,6 +116,7 @@ namespace Log4ALA
             }
         }
 
+        private Stopwatch stopwatch = Stopwatch.StartNew();
 
         protected virtual void Run()
         {
@@ -121,17 +130,21 @@ namespace Log4ALA
                 {
                     // Take data from queue.
                     string line = string.Empty;
-                      int byteLength = 0;
+                    int byteLength = 0;
                     int numItems = 0;
-                    StringBuilder buffer = StringBuilderCache.Acquire();
+                    StringBuilder buffer = new StringBuilder(); //StringBuilderCache.Acquire();
                     buffer.Append("[");
-
-                    while ((Queue.TryTake(out line) && byteLength < 29000000) || (Queue.TryTake(out line) && numItems < 10))
+                    stopwatch.Restart();
+                    while (
+                           (byteLength < BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < BatchSizeTimeSecMax) ||
+                           (numItems < BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < BatchSizeTimeSecMax) ||
+                           ((stopwatch.ElapsedMilliseconds / 1000) < BatchWaitInSec && byteLength < BatchSizeMax)
+                          )
                     {
                         try
                         {
 
-                            if (line != null)
+                            if (Queue.TryTake(out line) && !string.IsNullOrWhiteSpace(line))
                             {
                                 byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
@@ -139,7 +152,6 @@ namespace Log4ALA
                                 buffer.Append(",");
                                 ++numItems;
                             }
-
                         }
                         catch (Exception)
                         {
@@ -152,8 +164,13 @@ namespace Log4ALA
                     {
                         try
                         {
-                            string alaPayLoad = StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
+                            string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
+                            if (string.IsNullOrWhiteSpace(alaPayLoad) || alaPayLoad.Length == 1)
+                            {
+                                break;
+                            }
                             HttpRequest($"{alaPayLoad}]");
+
                             try
                             {
                                 appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
@@ -162,6 +179,7 @@ namespace Log4ALA
                             {
                                 //continue
                             }
+                            buffer.Clear();
                             break;
 
                         }
@@ -364,5 +382,5 @@ namespace Log4ALA
     }
 
 
- 
+
 }

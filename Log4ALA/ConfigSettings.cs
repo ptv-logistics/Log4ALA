@@ -23,6 +23,11 @@ namespace Log4ALA
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
         private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";
         private const string ALA_JSON_DETECTION_PROP = "jsonDetection";
+        private const string ALA_BATCH_SIZE_BYTES_PROP = "batchSizeInBytes";
+        private const string ALA_BATCH_NUM_ITEMS_PROP = "batchNumItems";
+        private const string ALA_BATCH_WAIT_SECONDS_PROP = "batchWaitInSec";
+
+        
 
 
 
@@ -172,6 +177,34 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLAJsonDetection) ? (bool?)null : Boolean.Parse(aLAJsonDetection));
             }
         }
+
+        public int? ALABatchSizeInBytes
+        {
+            get
+            {
+                string aLABatchSizeInBytes = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_SIZE_BYTES_PROP}");
+                return (string.IsNullOrWhiteSpace(aLABatchSizeInBytes) ? (int?)null : int.Parse(aLABatchSizeInBytes));
+            }
+        }
+
+        public int? ALABatchNumItems
+        {
+            get
+            {
+                string aLABatchNumItems = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_NUM_ITEMS_PROP}");
+                return (string.IsNullOrWhiteSpace(aLABatchNumItems) ? (int?)null : int.Parse(aLABatchNumItems));
+            }
+        }
+
+        public int? ALABatchWaitInSec
+        {
+            get
+            {
+                string aLABatchWaitInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_SECONDS_PROP}");
+                return (string.IsNullOrWhiteSpace(aLABatchWaitInSec) ? (int?)null : int.Parse(aLABatchWaitInSec));
+            }
+        }
+
 
 
     }

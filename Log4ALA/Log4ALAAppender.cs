@@ -63,6 +63,13 @@ namespace Log4ALA
         public bool jsonDetection = false;
         public bool? JsonDetection { get; set; }
 
+        public int? BatchSizeInBytes { get; set; }
+
+        public int? BatchNumItems { get; set; }
+        public int? BatchWaitInSec { get; set; }
+
+
+
         public Log4ALAAppender()
         {
         }
@@ -161,6 +168,22 @@ namespace Log4ALA
 
                 queueLogger.LoggingQueueSize = configSettings.ALALoggingQueueSize != null && configSettings.ALALoggingQueueSize > 0 ? configSettings.ALALoggingQueueSize : (LoggingQueueSize != null && LoggingQueueSize > 0 ? LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
                 log.Inf($"[{this.Name}] - loggingQueueSize:[{queueLogger.LoggingQueueSize}]", true);
+
+                queueLogger.BatchSizeInBytes = configSettings.ALABatchSizeInBytes == null ? (BatchSizeInBytes == null ? 0 : BatchSizeInBytes) : configSettings.ALABatchSizeInBytes;
+                log.Inf($"[{this.Name}] - batchSizeInBytes:[{queueLogger.BatchSizeInBytes}]", true);
+
+                queueLogger.BatchNumItems = configSettings.ALABatchNumItems == null ? (BatchNumItems == null ? 0 : BatchNumItems) : configSettings.ALABatchNumItems;
+                log.Inf($"[{this.Name}] - batchNumItems:[{queueLogger.BatchNumItems}]", true);
+
+                queueLogger.BatchWaitInSec = configSettings.ALABatchWaitInSec == null ? (BatchWaitInSec == null ? 0 : BatchWaitInSec) : configSettings.ALABatchWaitInSec;
+                log.Inf($"[{this.Name}] - batchWaitInSec:[{queueLogger.BatchWaitInSec}]", true);
+
+
+                if ((queueLogger.BatchNumItems + queueLogger.BatchSizeInBytes + queueLogger.BatchWaitInSec) == 0)
+                {
+                    queueLogger.BatchNumItems = 1;
+                }
+
 
                 serializer = new LoggingEventSerializer();
 
