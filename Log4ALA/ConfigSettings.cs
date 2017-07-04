@@ -18,7 +18,7 @@ namespace Log4ALA
         private const string ALA_ERR_APPENDER_FILE_PROP = "errAppenderFile";
         private const string ALA_INFO_APPENDER_FILE_PROP = "infoAppenderFile";
         public const int DEFAULT_LOGGER_QUEUE_SIZE = 1000000;
-        private const string QUEUE_SIZE_LOG_INTERVAL_PROP = "alaQueueSizeLogIntervalInMin";
+        private const string QUEUE_SIZE_LOG_INTERVAL_PROP = "alaQueueSizeLogIntervalInSec";
         private const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
         private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";

@@ -11,10 +11,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Add duplicate key detection to log messages with semicolon separated key=value strings...duplicate keys will be mapped to Azur Log Analytic properties/columns Key_Duplicate0 and Key_Duplicate1.
-    </releaseNotes>
+    <releaseNotes>Speed up... replace HTTPDataCollectorAPI (using HttpWebRequest) dependency with a raw TcpClient implementation and added batch support to send the data as batch to Azure Log Analytics.</releaseNotes>
     <dependencies>
-      <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
       <dependency id="log4net" version="2.0.5" />
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
       <dependency id="Newtonsoft.Json" version="9.0.1" />
@@ -23,31 +21,26 @@
 
     <!--<dependencies>
        <group targetFramework=".NETFramework4.5">
-        <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.5.1">
-        <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.5.2">
-        <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.6">
-        <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
       <group targetFramework=".NETFramework4.6.1">
-        <dependency id="HTTPDataCollectorAPI" version="1.0.4" />
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />

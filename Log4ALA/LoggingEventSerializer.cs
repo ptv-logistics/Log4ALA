@@ -130,11 +130,13 @@ namespace Log4ALA
                             if (le1pp.Count(c => c == '=') == 1)
                             {
                                 string[] le1ppSP = le1pp.Split('=');
-                                if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2) { 
+                                if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
+                                {
+                                    string value = convertIfDateTime(le1ppSP[1]);
 
                                     if (!msgPayload.ContainsKey(le1ppSP[0]))
                                     {
-                                        msgPayload.Add(le1ppSP[0], le1ppSP[1]);
+                                        msgPayload.Add(le1ppSP[0], value);
                                     }
                                     else
                                     {
@@ -150,7 +152,7 @@ namespace Log4ALA
                                             duplicates.TryAdd(le1ppSP[0], duplicateCounter);
                                         }
 
-                                        msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", le1ppSP[1]);
+                                        msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", value);
 
                                     }
                                 }
@@ -170,10 +172,12 @@ namespace Log4ALA
  
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
+                                string value = convertIfDateTime(le1ppSP[1]);
+
 
                                 if (!msgPayload.ContainsKey(le1ppSP[0]))
                                 {
-                                    msgPayload.Add(le1ppSP[0], (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+                                    msgPayload.Add(le1ppSP[0], (value).TrimEnd(new char[] { ',' }));
                                 }
                                 else
                                 {
@@ -189,7 +193,7 @@ namespace Log4ALA
                                         duplicates.TryAdd(le1ppSP[0], duplicateCounter);
                                     }
 
-                                    msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (le1ppSP[1]).TrimEnd(new char[] { ',' }));
+                                    msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (value).TrimEnd(new char[] { ',' }));
 
                                 }
                             }
@@ -214,6 +218,17 @@ namespace Log4ALA
             return msgPayload;
         }
 
+        public static string convertIfDateTime(string dateTimeString)
+        {
+            string value = dateTimeString;
+            DateTime parsedDateTime;
+            if (DateTime.TryParse(value, out parsedDateTime))
+            {
+                value = parsedDateTime.ToUniversalTime().ToString("o");
+            }
+
+            return value;
+        }
 
         private static string RemoveSpecialCharacters(string str)
         {
