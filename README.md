@@ -1,9 +1,7 @@
 ## Log4ALA
 
-Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the [HTTP Data Collector API](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api).
+Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics.
 The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.
-
-It uses the [HTTPDataCollectorAPI](https://github.com/ealsur/HTTPDataCollectorAPI) package internally.
 
 ## Get it
 
