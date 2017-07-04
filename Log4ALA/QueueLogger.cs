@@ -1,18 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Net;
-using System.Net.Security;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace Log4ALA
 {
@@ -20,12 +13,6 @@ namespace Log4ALA
     {
         // Error message displayed when queue overflow occurs. 
         protected const String QueueOverflowMessage = "\n\nAzure Log Analytics buffer queue overflow. Message dropped.\n\n";
-
-
-        private ConcurrentDictionary<int, StringBuilder> alaBatchTypes = new ConcurrentDictionary<int, StringBuilder>();
-        private ConcurrentDictionary<int, int> alaBatchByteLength = new ConcurrentDictionary<int, int>();
-        private ConcurrentDictionary<int, int> alaBatchLength = new ConcurrentDictionary<int, int>();
-
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         protected const int MinDelay = 100;
@@ -71,7 +58,6 @@ namespace Log4ALA
         private Timer logQueueSizeTimer = null;
 
         private AlaTcpClient alaClient = null;
-
 
 
         // Size of the internal event queue. 
@@ -135,62 +121,7 @@ namespace Log4ALA
                 {
                     // Take data from queue.
                     string line = string.Empty;
-                    //string dateValue = DateTime.Now.ToUniversalTime().ToString("o");
-
-                    //while (Queue.TryTake(out line))
-                    //{
-                    //    try
-                    //    {
-                    //        if (line != null)
-                    //        {
-                    //            var lineObj = JObject.Parse(line);
-                    //            //lineObj["DateValue"] = dateValue;
-
-                    //            //line = JsonConvert.SerializeObject(lineObj, Formatting.None);
-
-
-                    //            int uniqueKeyHash = String.Join(".", AllTokens(lineObj).Where(t => t.Type == JTokenType.Property).Select(prop => ((JProperty)prop).Name).ToArray()).GetHashCode();
-                    //            int byteLength = System.Text.Encoding.Unicode.GetByteCount(line);
-                    //            int byteLengthSum = 0;
-                    //            int numItems = 0;
-
-                    //            if (alaBatchTypes.ContainsKey(uniqueKeyHash))
-                    //            {
-                    //                byteLengthSum = alaBatchByteLength[uniqueKeyHash] + byteLength;
-                    //                numItems = ++alaBatchLength[uniqueKeyHash];
-
-                    //                alaBatchByteLength.AddOrUpdate(uniqueKeyHash, byteLengthSum, (key, oldValue) => byteLengthSum);
-                    //                alaBatchTypes[uniqueKeyHash].Append(line);
-                    //                alaBatchTypes[uniqueKeyHash].Append(",");
-                    //            }
-                    //            else
-                    //            {
-                    //                byteLengthSum = byteLength;
-                    //                numItems = 1;
-
-                    //                StringBuilder buffer = new StringBuilder();
-                    //                buffer.Append("[");
-                    //                buffer.Append(line);
-                    //                buffer.Append(",");
-                    //                if (alaBatchTypes.TryAdd(uniqueKeyHash, buffer))
-                    //                {
-                    //                    alaBatchByteLength.TryAdd(uniqueKeyHash, byteLengthSum);
-                    //                    alaBatchLength.TryAdd(uniqueKeyHash, numItems);
-                    //                }
-                    //            }
-
-                    //            if (byteLengthSum < 29000000 && numItems > 10)
-                    //            {
-                    //                break;
-                    //            }
-                    //        }
-                    //    }
-                    //    catch (Exception)
-                    //    {
-                    //        continue;
-                    //    }
-                    //}
-                    int byteLength = 0;
+                      int byteLength = 0;
                     int numItems = 0;
                     StringBuilder buffer = StringBuilderCache.Acquire();
                     buffer.Append("[");
@@ -216,20 +147,6 @@ namespace Log4ALA
                         }
                     }
 
-
-
-
-
-                    // Send data, reconnect if needed.
-                    //foreach (var key in alaBatchTypes.Keys)
-                    //{
-                    //    StringBuilder bufferRemoved;
-
-                    //if (alaBatchTypes.TryRemove(key, out bufferRemoved))
-                    //{
-                    //    int byteLengthRemoved, lengthRemoved;
-                    //    alaBatchByteLength.TryRemove(key, out byteLengthRemoved);
-                    //    alaBatchLength.TryRemove(key, out lengthRemoved);
 
                     while (true)
                     {
