@@ -244,6 +244,8 @@
   <ItemGroup>
     <Compile Include="AlaTcpClient.cs" />
     <Compile Include="ConfigSettings.cs" />
+    <Compile Include="ConnectionPool.cs" />
+    <Compile Include="CustomSocket.cs" />
     <Compile Include="QueueLogger.cs" />
     <Compile Include="Log4ALAAppender.cs" />
     <Compile Include="LoggingEventSerializer.cs" />

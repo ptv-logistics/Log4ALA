@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CustomLibraries.Threading;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -24,6 +25,7 @@ namespace Log4ALA
             workSpaceID = workSpaceId;
             serverAddr = $"{workSpaceID}.{AlaApiUrl}";
             ConfigureServiceEndpoint(serverAddr, true, true);
+            ConnectionPool.InitializeConnectionPool(serverAddr, tcpPort, 50, 50);
         }
 
         private int tcpPort = 443;
@@ -42,7 +44,7 @@ namespace Log4ALA
 
         public void Connect()
         {
-            client = new TcpClient(serverAddr, tcpPort);
+            client = ConnectionPool.GetSocket();//new TcpClient(serverAddr, tcpPort);
             client.NoDelay = true;
             //client.SendTimeout = 500;
             //client.ReceiveTimeout = 1000;
@@ -136,7 +138,30 @@ namespace Log4ALA
             {
                 try
                 {
+
+                    if (ActiveStream != null)
+                    {
+                        ActiveStream.Dispose();
+                    }
                     client.Close();
+                }
+                catch
+                {
+                }
+            }
+        }
+        public void Put()
+        {
+            if (client != null)
+            {
+                try
+                {
+                    ConnectionPool.PutSocket((CustomSocket)client);
+                    if (ActiveStream != null)
+                    {
+                        ActiveStream.Dispose();
+                    }
+
                 }
                 catch
                 {
@@ -155,7 +180,7 @@ namespace Log4ALA
 
                 if (!seURL.Contains("://"))
                 {
-                    seURL = $"{(isSSL ? $"{protocol}s": protocol)}://{seURL}";
+                    seURL = $"{(isSSL ? $"{protocol}s" : protocol)}://{seURL}";
                 }
 
                 ServicePoint instanceServicePoint = ServicePointManager.FindServicePoint(new Uri(seURL));

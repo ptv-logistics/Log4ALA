@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using CustomLibraries.Threading;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +8,6 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Log4ALA
 {
@@ -65,7 +65,7 @@ namespace Log4ALA
 
         private Timer logQueueSizeTimer = null;
 
-        private AlaTcpClient alaClient = null;
+        //private AlaTcpClient alaClient = null;
 
 
         // Size of the internal event queue. 
@@ -104,10 +104,7 @@ namespace Log4ALA
                 string message = $"{queueLogger.appender.Name}-Size={queueLogger.Queue.Count}";
                 queueLogger.appender.log.Inf(message, queueLogger.appender.logMessageToFile);
 
-                if (alaClient != null)
-                {
-                    HttpRequest($"{{\"Msg\":\"{message}\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}");
-                }
+                HttpRequest($"{{\"Msg\":\"{message}\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}");
 
             }
             catch (Exception)
@@ -122,9 +119,6 @@ namespace Log4ALA
         {
             try
             {
-                // Open connection.
-                ReopenConnection();
-
                 // Send data in queue.
                 while (true)
                 {
@@ -160,42 +154,23 @@ namespace Log4ALA
                     }
 
 
-                    while (true)
+                    string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
+                    if (string.IsNullOrWhiteSpace(alaPayLoad) || alaPayLoad.Length == 1)
                     {
-                        try
-                        {
-                            string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
-                            if (string.IsNullOrWhiteSpace(alaPayLoad) || alaPayLoad.Length == 1)
-                            {
-                                break;
-                            }
-                            HttpRequest($"{alaPayLoad}]");
-
-                            try
-                            {
-                                appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
-                            }
-                            catch (Exception)
-                            {
-                                //continue
-                            }
-                            buffer.Clear();
-                            break;
-
-                        }
-                        catch (Exception ex)
-                        {
-                            // Reopen the lost connection.
-                            appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex}]");
-                            ReopenConnection();
-                            continue;
-                        }
-
-                        break;
+                        continue;
                     }
 
-                    //}
-                    //}
+                    HttpRequest($"{alaPayLoad}]");
+
+                    try
+                    {
+                        appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
+                    }
+                    catch (Exception)
+                    {
+                        //continue
+                    }
+                    buffer.Clear();
                 }
             }
             catch (ThreadInterruptedException ex)
@@ -221,16 +196,26 @@ namespace Log4ALA
             }
         }
 
-        protected void ReopenConnection()
+        protected AlaTcpClient ReopenConnection(AlaTcpClient client = null)
         {
-            CloseConnection();
+            CloseConnection(client);
 
             var rootDelay = MinDelay;
+            int retryCount = 0;
+
             while (true)
             {
+                AlaTcpClient alaClient = null;
                 try
                 {
-                    OpenConnection();
+
+                    if (retryCount > HttpDataCollectorRetry)
+                    {
+                        ConnectionPool.Initialized = false;
+                        retryCount = 0;
+                    }
+
+                    alaClient = OpenConnection();
                     try
                     {
                         appender.log.Inf($"[{appender.Name}] - successfully reconnected to AlaClient", true);
@@ -239,11 +224,12 @@ namespace Log4ALA
                     {
                         //continue
                     }
-                    return;
+                    return alaClient;
                 }
                 catch (Exception ex)
                 {
-                    string errMessage = $"[{appender.Name}] - Unable to connect to AlaClient => [{ex}]";
+                    CloseConnection(alaClient);
+                    string errMessage = $"[{appender.Name}] - Unable to connect to AlaClient => [{ex.Message}]";
                     appender.log.Err(errMessage);
                     appender.extraLog.Err(errMessage);
                 }
@@ -253,6 +239,8 @@ namespace Log4ALA
                     rootDelay = MaxDelay;
 
                 var waitFor = rootDelay + Random.Next(rootDelay);
+
+                ++retryCount;
 
                 try
                 {
@@ -267,26 +255,25 @@ namespace Log4ALA
             }
         }
 
-        protected virtual void OpenConnection()
+        protected virtual AlaTcpClient OpenConnection()
         {
             try
             {
-                if (alaClient == null)
-                {
-                    // Create AlaClient instance providing all needed parameters.
-                    alaClient = new AlaTcpClient(sharedKey, WorkspaceId);
-                }
+                // Create AlaClient instance providing all needed parameters.
+                AlaTcpClient alaClient = new AlaTcpClient(sharedKey, WorkspaceId);
 
                 alaClient.Connect();
+
+                return alaClient;
 
             }
             catch (Exception ex)
             {
-                throw new IOException($"An error occurred while init/ping AlaClient.", ex);
+                throw new IOException($"An error occurred while init AlaTcpClient.", ex);
             }
         }
 
-        protected virtual void CloseConnection()
+        protected virtual void CloseConnection(AlaTcpClient alaClient)
         {
             if (alaClient != null)
             {
@@ -321,43 +308,65 @@ namespace Log4ALA
 
         private void HttpRequest(string log)
         {
-            string result = string.Empty;
-
-            var utf8Encoding = new UTF8Encoding();
-            Byte[] content = utf8Encoding.GetBytes(log);
-
-            var rfcDate = DateTime.Now.ToUniversalTime().ToString("r");
-            var signature = HashSignature("POST", content.Length, "application/json", rfcDate, "/api/logs");
-
-            string alaServerAddr = $"{WorkspaceId}.ods.opinsights.azure.com";
-            string alaServerContext = $"/api/logs?api-version={AzureApiVersion}";
-
-            // Send request headers
-            var builder = new StringBuilder();
-            builder.AppendLine($"POST {alaServerContext} HTTP/1.1");
-            builder.AppendLine($"Host: {alaServerAddr}");
-            builder.AppendLine($"Content-Length: " + content.Length);   // only for POST request
-            builder.AppendLine("Content-Type: application/json");
-            builder.AppendLine($"Log-Type: {LogType}");
-            builder.AppendLine($"x-ms-date: {rfcDate}");
-            builder.AppendLine($"Authorization: {signature}");
-            builder.AppendLine("time-generated-field: DateValue");
-            builder.AppendLine("Connection: close");
-            builder.AppendLine();
-            var header = Encoding.ASCII.GetBytes(builder.ToString());
-
-            // Send http headers
-            alaClient.Write(header, 0, header.Length, true);
-
-            // Send payload data
-            string httpResultBody = alaClient.Write(content, 0, content.Length);
-
-            if (!string.IsNullOrWhiteSpace(httpResultBody))
+            while (true)
             {
-                string errMessage = httpResultBody;
-                appender.log.Err(errMessage);
-                throw new Exception(errMessage);
+                AlaTcpClient alaClient = null;
+                try
+                {
+                    alaClient = OpenConnection();
+
+                    string result = string.Empty;
+
+                    var utf8Encoding = new UTF8Encoding();
+                    Byte[] content = utf8Encoding.GetBytes(log);
+
+                    var rfcDate = DateTime.Now.ToUniversalTime().ToString("r");
+                    var signature = HashSignature("POST", content.Length, "application/json", rfcDate, "/api/logs");
+
+                    string alaServerAddr = $"{WorkspaceId}.ods.opinsights.azure.com";
+                    string alaServerContext = $"/api/logs?api-version={AzureApiVersion}";
+
+                    // Send request headers
+                    var builder = new StringBuilder();
+                    builder.AppendLine($"POST {alaServerContext} HTTP/1.1");
+                    builder.AppendLine($"Host: {alaServerAddr}");
+                    builder.AppendLine($"Content-Length: " + content.Length);   // only for POST request
+                    builder.AppendLine("Content-Type: application/json");
+                    builder.AppendLine($"Log-Type: {LogType}");
+                    builder.AppendLine($"x-ms-date: {rfcDate}");
+                    builder.AppendLine($"Authorization: {signature}");
+                    builder.AppendLine("time-generated-field: DateValue");
+                    builder.AppendLine("Connection: close");
+                    builder.AppendLine();
+                    var header = Encoding.ASCII.GetBytes(builder.ToString());
+
+                    // Send http headers
+                    alaClient.Write(header, 0, header.Length, true);
+
+                    // Send payload data
+                    string httpResultBody = alaClient.Write(content, 0, content.Length);
+
+
+                    if (!string.IsNullOrWhiteSpace(httpResultBody))
+                    {
+                        string errMessage = httpResultBody;
+                        appender.log.Err(errMessage);
+                        throw new Exception(errMessage);
+                    }
+                    alaClient.Put();
+
+                }
+                catch (Exception ex)
+                {
+                    // Reopen the lost connection.
+                    appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex.Message}]");
+                    ReopenConnection(alaClient);
+                    continue;
+                }
+
+                break;
             }
+
         }
 
 
@@ -378,9 +387,6 @@ namespace Log4ALA
             }
         }
 
-
     }
-
-
-
+    
 }
