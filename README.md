@@ -157,7 +157,12 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <log4net>
 
-  <appender name="Log4ALAAppender_1" type="Log4ALA.Log4ALAAppender, Log4ALA" />
+  <appender name="Log4ALAAppender_1" type="Log4ALA.Log4ALAAppender, Log4ALA" >
+    <filter type="log4net.Filter.LevelRangeFilter">
+      <levelMin value="INFO" />
+      <levelMax value="FATAL" />
+    </filter>
+  </appender>
   <appender name="Log4ALAAppender_2" type="Log4ALA.Log4ALAAppender, Log4ALA" />
 
 
@@ -203,6 +208,16 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- optional info log file configuration (default relative_assembly_path/log4ALA_info.log)
     <infoAppenderFile value="C:\ups\infoApp.log"/>
 	  -->
+
+    <!-- optional batch configuration to send a defined byte size of log messages as batch to Azure Log Analytics (default 0)
+    <batchSizeInBytes value="C:\ups\infoApp.log"/>
+	  -->
+    <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics (default 1)
+    <batchNumItems value="C:\ups\infoApp.log"/>
+	  -->
+    <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics (default 0)
+     <batchWaitInSec value="C:\ups\infoApp.log"/>
+	  -->
   </appender>
 
 
@@ -225,8 +240,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <appender-ref ref="LeAppender" />
   </logger>
   -->
-
-
+ 
 
   <!--<logger name="Log4ALALoggerAllInOne" additivity="false">
     <appender-ref ref="Log4ALAAppender_1" />
@@ -245,7 +259,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
   <logger name="Log4ALALogger_3" additivity="false">
     <appender-ref ref="Log4ALAAppender_3" />
   </logger>
-  
+
 </log4net>
 ``` 
 
