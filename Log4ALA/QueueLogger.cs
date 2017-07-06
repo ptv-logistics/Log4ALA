@@ -15,15 +15,8 @@ namespace Log4ALA
     {
         // Error message displayed when queue overflow occurs. 
         protected const String QueueOverflowMessage = "\n\nAzure Log Analytics buffer queue overflow. Message dropped.\n\n";
-
-        // Minimal delay between attempts to reconnect in milliseconds. 
-        protected const int MinDelay = 100;
-
-        // Maximal delay between attempts to reconnect in milliseconds. 
-        protected const int MaxDelay = 10000;
-
+          
         public const int BatchSizeMax = 31457280; //30 mb quota limit per post
-        public const int BatchSizeTimeSecMax = 120; //30 mb quota limit per post
 
         protected readonly BlockingCollection<string> Queue;
         protected readonly Thread WorkerThread;
@@ -31,49 +24,18 @@ namespace Log4ALA
 
         protected bool IsRunning = false;
 
-        public string WorkspaceId { get; set; }
-
         private byte[] SharedKeyBytes { get; set; }
-        private string sharedKey;
-        public string SharedKey
-        {
-            set
-            {
-                sharedKey = value;
-                SharedKeyBytes = Convert.FromBase64String(sharedKey);
-            }
-            get
-            {
-                return sharedKey;
-            }
-        }
-
-
-        public string LogType { get; set; }
-
-        public string AzureApiVersion { get; set; }
-        public int? HttpDataCollectorRetry { get; set; }
-
-        public bool LogMessageToFile { get; set; }
-        public bool? AppendLogger { get; set; }
-        public bool? AppendLogLevel { get; set; }
-        public int? BatchSizeInBytes { get; set; }
-        public int? BatchNumItems { get; set; }
-        public int? BatchWaitInSec { get; set; }
 
         private Log4ALAAppender appender;
 
         private Timer logQueueSizeTimer = null;
 
-        //private AlaTcpClient alaClient = null;
-
-
-        // Size of the internal event queue. 
-        public int? LoggingQueueSize { get; set; } = ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE;
+        private AlaTcpClient alaClient = null;
 
         public QueueLogger(Log4ALAAppender appender)
         {
-            Queue = new BlockingCollection<string>(LoggingQueueSize != null && LoggingQueueSize > 0 ? (int)LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
+            Queue = new BlockingCollection<string>(appender.LoggingQueueSize != null && appender.LoggingQueueSize > 0 ? (int)appender.LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
+            SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
 
             WorkerThread = new Thread(new ThreadStart(Run));
             WorkerThread.Name = $"Azure Log Analytics Log4net Appender ({appender.Name})";
@@ -102,7 +64,7 @@ namespace Log4ALA
             {
                 QueueLogger queueLogger = (QueueLogger)state;
                 string message = $"{queueLogger.appender.Name}-Size={queueLogger.Queue.Count}";
-                queueLogger.appender.log.Inf(message, queueLogger.appender.logMessageToFile);
+                queueLogger.appender.log.Inf(message, queueLogger.appender.LogMessageToFile);
 
                 HttpRequest($"{{\"Msg\":\"{message}\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}");
 
@@ -114,63 +76,75 @@ namespace Log4ALA
         }
 
         private Stopwatch stopwatch = Stopwatch.StartNew();
+        private StringBuilder buffer = new StringBuilder();//StringBuilderCache.Acquire();
 
         protected virtual void Run()
         {
             try
             {
+                OpenConnection();
+
                 // Send data in queue.
                 while (true)
                 {
+
+                    buffer.Clear();
+
                     // Take data from queue.
                     string line = string.Empty;
                     int byteLength = 0;
                     int numItems = 0;
-                    StringBuilder buffer = new StringBuilder(); //StringBuilderCache.Acquire();
                     buffer.Append("[");
                     stopwatch.Restart();
                     while (
-                           (byteLength < BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < BatchSizeTimeSecMax) ||
-                           (numItems < BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < BatchSizeTimeSecMax) ||
-                           ((stopwatch.ElapsedMilliseconds / 1000) < BatchWaitInSec && byteLength < BatchSizeMax)
+                           (byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           (numItems < appender.BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax)
                           )
                     {
                         try
                         {
-
-                            if (Queue.TryTake(out line) && !string.IsNullOrWhiteSpace(line))
+                            if (Queue.TryTake(out line))
                             {
-                                byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
+                                if (!string.IsNullOrWhiteSpace(line))
+                                {
+                                    byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
-                                buffer.Append(line);
-                                buffer.Append(",");
-                                ++numItems;
+                                    buffer.Append(line);
+                                    buffer.Append(",");
+                                    ++numItems;
+                                    line = string.Empty;
+                                }
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ee)
                         {
+                            string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
+                            appender.log.Err(errMessage);
                             continue;
                         }
                     }
 
-
-                    string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
-                    if (string.IsNullOrWhiteSpace(alaPayLoad) || alaPayLoad.Length == 1)
+                    if (buffer.Length <= 2)
                     {
+                        string errMessage = $"[{appender.Name}] - write batch to ALA the buffer collection process exceeds time out of {appender.BatchWaitMaxInSec} seconds";
+                        appender.log.Inf(errMessage, appender.LogMessageToFile);
                         continue;
                     }
+
+                    string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
 
                     HttpRequest($"{alaPayLoad}]");
 
                     try
                     {
-                        appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
+                        //appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
                     }
                     catch (Exception)
                     {
                         //continue
                     }
-                    buffer.Clear();
+
                 }
             }
             catch (ThreadInterruptedException ex)
@@ -196,26 +170,26 @@ namespace Log4ALA
             }
         }
 
-        protected AlaTcpClient ReopenConnection(AlaTcpClient client = null)
+        protected void ReopenConnection()
         {
-            CloseConnection(client);
+            CloseConnection();
 
-            var rootDelay = MinDelay;
+            var rootDelay = ConfigSettings.MIN_DELAY;
             int retryCount = 0;
 
             while (true)
             {
-                AlaTcpClient alaClient = null;
                 try
                 {
 
-                    if (retryCount > HttpDataCollectorRetry)
-                    {
-                        ConnectionPool.Initialized = false;
-                        retryCount = 0;
-                    }
+                    //if ((bool)appender.UseSocketPool && retryCount > (int)appender.HttpDataCollectorRetry)
+                    //{
+                    //    ConnectionPool.Initialized = false;
+                    //    alaClient.InitPool();
+                    //    retryCount = 0;
+                    //}
 
-                    alaClient = OpenConnection();
+                    OpenConnection();
                     try
                     {
                         appender.log.Inf($"[{appender.Name}] - successfully reconnected to AlaClient", true);
@@ -224,19 +198,19 @@ namespace Log4ALA
                     {
                         //continue
                     }
-                    return alaClient;
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    CloseConnection(alaClient);
+                    CloseConnection();
                     string errMessage = $"[{appender.Name}] - Unable to connect to AlaClient => [{ex.Message}]";
                     appender.log.Err(errMessage);
                     appender.extraLog.Err(errMessage);
                 }
 
                 rootDelay *= 2;
-                if (rootDelay > MaxDelay)
-                    rootDelay = MaxDelay;
+                if (rootDelay > ConfigSettings.MAX_DELAY)
+                    rootDelay = ConfigSettings.MAX_DELAY;
 
                 var waitFor = rootDelay + Random.Next(rootDelay);
 
@@ -255,16 +229,14 @@ namespace Log4ALA
             }
         }
 
-        protected virtual AlaTcpClient OpenConnection()
+        protected virtual void OpenConnection()
         {
             try
             {
                 // Create AlaClient instance providing all needed parameters.
-                AlaTcpClient alaClient = new AlaTcpClient(sharedKey, WorkspaceId);
+                alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
 
                 alaClient.Connect();
-
-                return alaClient;
 
             }
             catch (Exception ex)
@@ -273,7 +245,7 @@ namespace Log4ALA
             }
         }
 
-        protected virtual void CloseConnection(AlaTcpClient alaClient)
+        protected virtual void CloseConnection()
         {
             if (alaClient != null)
             {
@@ -306,14 +278,17 @@ namespace Log4ALA
         }
 
 
+
+        private StringBuilder headerBuilder = new StringBuilder();
+
         private void HttpRequest(string log)
         {
+
             while (true)
             {
-                AlaTcpClient alaClient = null;
                 try
                 {
-                    alaClient = OpenConnection();
+                    headerBuilder.Clear();
 
                     string result = string.Empty;
 
@@ -323,22 +298,21 @@ namespace Log4ALA
                     var rfcDate = DateTime.Now.ToUniversalTime().ToString("r");
                     var signature = HashSignature("POST", content.Length, "application/json", rfcDate, "/api/logs");
 
-                    string alaServerAddr = $"{WorkspaceId}.ods.opinsights.azure.com";
-                    string alaServerContext = $"/api/logs?api-version={AzureApiVersion}";
+                    string alaServerAddr = $"{appender.WorkspaceId}.ods.opinsights.azure.com";
+                    string alaServerContext = $"/api/logs?api-version={appender.AzureApiVersion}";
 
                     // Send request headers
-                    var builder = new StringBuilder();
-                    builder.AppendLine($"POST {alaServerContext} HTTP/1.1");
-                    builder.AppendLine($"Host: {alaServerAddr}");
-                    builder.AppendLine($"Content-Length: " + content.Length);   // only for POST request
-                    builder.AppendLine("Content-Type: application/json");
-                    builder.AppendLine($"Log-Type: {LogType}");
-                    builder.AppendLine($"x-ms-date: {rfcDate}");
-                    builder.AppendLine($"Authorization: {signature}");
-                    builder.AppendLine("time-generated-field: DateValue");
-                    builder.AppendLine("Connection: close");
-                    builder.AppendLine();
-                    var header = Encoding.ASCII.GetBytes(builder.ToString());
+                    headerBuilder.AppendLine($"POST {alaServerContext} HTTP/1.1");
+                    headerBuilder.AppendLine($"Host: {alaServerAddr}");
+                    headerBuilder.AppendLine($"Content-Length: " + content.Length);   // only for POST request
+                    headerBuilder.AppendLine("Content-Type: application/json");
+                    headerBuilder.AppendLine($"Log-Type: {appender.LogType}");
+                    headerBuilder.AppendLine($"x-ms-date: {rfcDate}");
+                    headerBuilder.AppendLine($"Authorization: {signature}");
+                    headerBuilder.AppendLine("time-generated-field: DateValue");
+                    headerBuilder.AppendLine("Connection: close");
+                    headerBuilder.AppendLine();
+                    var header = Encoding.ASCII.GetBytes(headerBuilder.ToString());
 
                     // Send http headers
                     alaClient.Write(header, 0, header.Length, true);
@@ -355,12 +329,15 @@ namespace Log4ALA
                     }
                     alaClient.Put();
 
+                    //appender.log.Inf(headerBuilder.ToString(), appender.logMessageToFile);
+                    appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
+
                 }
                 catch (Exception ex)
                 {
                     // Reopen the lost connection.
                     appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex.Message}]");
-                    ReopenConnection(alaClient);
+                    ReopenConnection();
                     continue;
                 }
 
@@ -383,10 +360,10 @@ namespace Log4ALA
             {
                 var calculatedHash = sha256.ComputeHash(bytesToHash);
                 var stringHash = Convert.ToBase64String(calculatedHash);
-                return "SharedKey " + WorkspaceId + ":" + stringHash;
+                return "SharedKey " + appender.WorkspaceId + ":" + stringHash;
             }
         }
 
     }
-    
+
 }

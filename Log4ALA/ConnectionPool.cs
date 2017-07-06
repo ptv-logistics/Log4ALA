@@ -105,14 +105,15 @@ namespace CustomLibraries.Threading
         /// Return the given socket back to the socket pool.
         /// </summary>
         /// <param name="socket">Socket connection to return.</param>
-        public static void PutSocket(CustomSocket socket)
+        public static bool PutSocket(CustomSocket socket)
         {
+            bool isClosed = false;
             lock (availableSockets)
             {
                 TimeSpan socketLifeTime = DateTime.Now.Subtract(socket.TimeCreated);
 
                 if (ConnectionPool.availableSockets.Count < ConnectionPool.POOL_MAX_SIZE &&
-                    socketLifeTime.Seconds < 30)// Configuration Value
+                    socketLifeTime.Seconds < 20)// Configuration Value
                 {
                     if (socket != null)
                     {
@@ -123,14 +124,18 @@ namespace CustomLibraries.Threading
                         else
                         {
                             socket.Close();
+                            isClosed = true;
                         }
                     }
                 }
                 else
                 {
                     socket.Close();
+                    isClosed = true;
                 }
             }
+
+            return isClosed;
 
         }
 

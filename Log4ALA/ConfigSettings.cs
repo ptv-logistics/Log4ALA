@@ -19,15 +19,46 @@ namespace Log4ALA
         private const string ALA_INFO_APPENDER_FILE_PROP = "infoAppenderFile";
         public const int DEFAULT_LOGGER_QUEUE_SIZE = 1000000;
         private const string QUEUE_SIZE_LOG_INTERVAL_PROP = "alaQueueSizeLogIntervalInSec";
-        private const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
         private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";
         private const string ALA_JSON_DETECTION_PROP = "jsonDetection";
         private const string ALA_BATCH_SIZE_BYTES_PROP = "batchSizeInBytes";
         private const string ALA_BATCH_NUM_ITEMS_PROP = "batchNumItems";
         private const string ALA_BATCH_WAIT_SECONDS_PROP = "batchWaitInSec";
+        private const string ALA_BATCH_WAIT_MAX_SECONDS_PROP = "batchWaitMaxInSec";
 
-        
+
+        public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
+        public const int DEFAULT_BATCH_WAIT_MAX_SECONDS = 60;
+        public const string DEFAULT_AZURE_API_VERSION = "2016-04-01";
+        public const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
+        public const int DEFAULT_BATCH_SIZE_BYTES = 0;
+        public const int DEFAULT_BATCH_NUM_ITEMS = 1;
+        public const int DEFAULT_BATCH_WAIT_SECONDS = 0;
+        public const bool DEFAULT_APPEND_LOGGER = true;
+        public const bool DEFAULT_APPEND_LOGLEVEL = true;
+        public const bool DEFAULT_LOG_MESSAGE_TOFILE = false;
+        public const bool DEFAULT_KEY_VALUE_DETECTION = true;
+        public const bool DEFAULT_JSON_DETECTION = true;
+
+        // Minimal delay between attempts to reconnect in milliseconds. 
+        public const int MIN_DELAY = 100;
+
+        // Maximal delay between attempts to reconnect in milliseconds. 
+        public const int MAX_DELAY = 10000;
+
+        public const string LOG_ERR_APPENDER = "Log4ALAErrorAppender";
+        public const string LOG_INFO_APPENDER = "Log4ALAInfoAppender";
+
+        public const string LOG_ERR_DEFAULT_FILE = "log4ALA_error.log";
+        public const string LOG_INFO_DEFAULT_FILE = "log4ALA_info.log";
+
+
+        //private const string ALA_USE_SOCKET_POOL_PROP = "useSocketPool";
+        //private const string ALA_MIN_SOCK_CONN_PROP = "minSocketConn";
+        //private const string ALA_MAX_SOCK_CONN_PROP = "maxSocketConn";
+
+
 
 
 
@@ -205,7 +236,43 @@ namespace Log4ALA
             }
         }
 
+        public int? ALABatchWaitMaxInSec
+        {
+            get
+            {
+                string aLABatchWaitMaxInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_MAX_SECONDS_PROP}");
+                return (string.IsNullOrWhiteSpace(aLABatchWaitMaxInSec) ? (int?)null : int.Parse(aLABatchWaitMaxInSec));
+            }
+        }
 
 
+        
+
+        //public bool? ALAUseSocketPool
+        //{
+        //    get
+        //    {
+        //        string aLAUseSocketPool = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_USE_SOCKET_POOL_PROP}");
+        //        return (string.IsNullOrWhiteSpace(aLAUseSocketPool) ? (bool?)null : Boolean.Parse(aLAUseSocketPool));
+        //    }
+        //}
+
+        //public int? ALAMinSocketConn
+        //{
+        //    get
+        //    {
+        //        string aLAMinSocketConn = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MIN_SOCK_CONN_PROP}");
+        //        return (string.IsNullOrWhiteSpace(aLAMinSocketConn) ? (int?)null : int.Parse(aLAMinSocketConn));
+        //    }
+        //}
+
+        //public int? ALAMaxSocketConn
+        //{
+        //    get
+        //    {
+        //        string aLAMaxSocketConn = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_SOCK_CONN_PROP}");
+        //        return (string.IsNullOrWhiteSpace(aLAMaxSocketConn) ? (int?)null : int.Parse(aLAMaxSocketConn));
+        //    }
+        //}
     }
 }

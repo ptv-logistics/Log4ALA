@@ -41,7 +41,7 @@ namespace Log4ALA
            
 
             var valObjects = new ExpandoObject() as IDictionary<string, Object>;
-            if (appender.jsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ValidateJSON((string)loggingEvent.MessageObject))
+            if ((bool)appender.JsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ValidateJSON((string)loggingEvent.MessageObject))
             {
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
                 foreach (var val in values)
@@ -55,7 +55,7 @@ namespace Log4ALA
             }
             else
             {
-                if (appender.keyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
+                if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
                 {
                     payload.LogMessage = ConvertKeyValueMessage((string)loggingEvent.MessageObject);
                 }
@@ -65,11 +65,11 @@ namespace Log4ALA
                 }
             }
 
-            if (appender.appendLogger)
+            if ((bool)appender.AppendLogger)
             {
                 payload.Logger = loggingEvent.LoggerName;
             }
-            if (appender.appendLogLevel)
+            if ((bool)appender.AppendLogLevel)
             {
                 payload.Level = loggingEvent.Level.DisplayName.ToUpper();
             }

@@ -18,19 +18,36 @@ namespace Log4ALA
         private byte[] sharedKeyBytes;
         private string workSpaceID;
 
+        //private bool UseSocketPool { get; set; }
+        //private int MinSocketConn { get; set; }
+        //private int MaxSocketConn { get; set; }
+
+
         // Creates AlaClient instance. 
-        public AlaTcpClient(string sharedKey, string workSpaceId)
+        public AlaTcpClient(string sharedKey, string workSpaceId) //, bool useSocketPool = false, int minSocketConn = 5, int maxSocketConn = 5)
         {
+            //UseSocketPool = useSocketPool;
+            //MinSocketConn = minSocketConn;
+            //MaxSocketConn = maxSocketConn;
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
             serverAddr = $"{workSpaceID}.{AlaApiUrl}";
             ConfigureServiceEndpoint(serverAddr, true, true);
-            ConnectionPool.InitializeConnectionPool(serverAddr, tcpPort, 50, 50);
+            //InitPool();
         }
+
+
+        //public void InitPool()
+        //{
+        //    if (UseSocketPool)
+        //    {
+        //        ConnectionPool.InitializeConnectionPool(serverAddr, tcpPort, MinSocketConn, MaxSocketConn);
+        //    }
+
+        //}
 
         private int tcpPort = 443;
         private TcpClient client = null;
-        private Stream stream = null;
         private SslStream sslStream = null;
         private String serverAddr;
 
@@ -44,14 +61,20 @@ namespace Log4ALA
 
         public void Connect()
         {
-            client = ConnectionPool.GetSocket();//new TcpClient(serverAddr, tcpPort);
+            //if (UseSocketPool)
+            //{
+            //    client = ConnectionPool.GetSocket();
+            //}
+            //else
+            //{
+                client = new TcpClient(serverAddr, tcpPort);
+            //}
+
             client.NoDelay = true;
             //client.SendTimeout = 500;
             //client.ReceiveTimeout = 1000;
 
-            stream = client.GetStream();
-
-            sslStream = new SslStream(stream);
+            sslStream = new SslStream(client.GetStream());
             sslStream.AuthenticateAsClient(serverAddr);
 
         }
@@ -99,6 +122,10 @@ namespace Log4ALA
                         //result = Encoding.GetEncoding("gbk").GetString(data, index, data.Length - index);
                     }
                 }
+                else
+                {
+                    result = "couldn't read response from stream";
+                }
             }
 
             return result;
@@ -138,7 +165,6 @@ namespace Log4ALA
             {
                 try
                 {
-
                     if (ActiveStream != null)
                     {
                         ActiveStream.Dispose();
@@ -156,12 +182,23 @@ namespace Log4ALA
             {
                 try
                 {
-                    ConnectionPool.PutSocket((CustomSocket)client);
-                    if (ActiveStream != null)
-                    {
-                        ActiveStream.Dispose();
-                    }
+                    //if (UseSocketPool)
+                    //{
+                    //    if (ConnectionPool.PutSocket((CustomSocket)client))
+                    //    {
+                    //        if (ActiveStream != null)
+                    //        {
+                    //            ActiveStream.Dispose();
+                    //        }
 
+                    //        Connect();
+                    //    }
+                    //}
+                    //else
+                    //{
+                        Close();
+                        Connect();
+                    //}
                 }
                 catch
                 {
