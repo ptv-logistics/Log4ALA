@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
+                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
             }
 
             System.Console.WriteLine("done4");
@@ -210,17 +210,19 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 	  -->
 
     <!-- optional batch configuration to send a defined byte size of log messages as batch to Azure Log Analytics (default 0)
-    <batchSizeInBytes value="C:\ups\infoApp.log"/>
+    <batchSizeInBytes value="0"/>
 	  -->
     <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics (default 1)
-    <batchNumItems value="C:\ups\infoApp.log"/>
+    <batchNumItems value="1"/>
 	  -->
     <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics (default 0)
-     <batchWaitInSec value="C:\ups\infoApp.log"/>
+     <batchWaitInSec value="0"/>
+	  -->
+    <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to Azure Log Analytics (default 60)
+     <batchWaitMaxInSec value="60"/>
 	  -->
   </appender>
-
-
+  
   <!--
   <appender name="LeAppender" type="log4net.Appender.LogentriesAppender, LogentriesLog4net">
     <immediateFlush value="true" />
@@ -241,7 +243,6 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
   </logger>
   -->
  
-
   <!--<logger name="Log4ALALoggerAllInOne" additivity="false">
     <appender-ref ref="Log4ALAAppender_1" />
     <appender-ref ref="Log4ALAAppender_2" />
