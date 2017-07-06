@@ -124,7 +124,7 @@ namespace Log4ALA
                         }
                     }
 
-                    if (buffer.Length <= 2)
+                    if (buffer.ToString().Length <= 1)
                     {
                         string errMessage = $"[{appender.Name}] - write batch to ALA the buffer collection process exceeds time out of {appender.BatchWaitMaxInSec} seconds";
                         appender.log.Inf(errMessage, appender.LogMessageToFile);
