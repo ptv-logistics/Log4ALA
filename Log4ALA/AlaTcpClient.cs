@@ -1,5 +1,4 @@
-﻿using CustomLibraries.Threading;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -18,33 +17,14 @@ namespace Log4ALA
         private byte[] sharedKeyBytes;
         private string workSpaceID;
 
-        //private bool UseSocketPool { get; set; }
-        //private int MinSocketConn { get; set; }
-        //private int MaxSocketConn { get; set; }
-
-
         // Creates AlaClient instance. 
-        public AlaTcpClient(string sharedKey, string workSpaceId) //, bool useSocketPool = false, int minSocketConn = 5, int maxSocketConn = 5)
+        public AlaTcpClient(string sharedKey, string workSpaceId)
         {
-            //UseSocketPool = useSocketPool;
-            //MinSocketConn = minSocketConn;
-            //MaxSocketConn = maxSocketConn;
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
             serverAddr = $"{workSpaceID}.{AlaApiUrl}";
             ConfigureServiceEndpoint(serverAddr, true, true);
-            //InitPool();
         }
-
-
-        //public void InitPool()
-        //{
-        //    if (UseSocketPool)
-        //    {
-        //        ConnectionPool.InitializeConnectionPool(serverAddr, tcpPort, MinSocketConn, MaxSocketConn);
-        //    }
-
-        //}
 
         private int tcpPort = 443;
         private TcpClient client = null;
@@ -61,18 +41,8 @@ namespace Log4ALA
 
         public void Connect()
         {
-            //if (UseSocketPool)
-            //{
-            //    client = ConnectionPool.GetSocket();
-            //}
-            //else
-            //{
-                client = new TcpClient(serverAddr, tcpPort);
-            //}
-
+            client = new TcpClient(serverAddr, tcpPort);
             client.NoDelay = true;
-            //client.SendTimeout = 500;
-            //client.ReceiveTimeout = 1000;
 
             sslStream = new SslStream(client.GetStream());
             sslStream.AuthenticateAsClient(serverAddr);
@@ -182,23 +152,8 @@ namespace Log4ALA
             {
                 try
                 {
-                    //if (UseSocketPool)
-                    //{
-                    //    if (ConnectionPool.PutSocket((CustomSocket)client))
-                    //    {
-                    //        if (ActiveStream != null)
-                    //        {
-                    //            ActiveStream.Dispose();
-                    //        }
-
-                    //        Connect();
-                    //    }
-                    //}
-                    //else
-                    //{
-                        Close();
-                        Connect();
-                    //}
+                    Close();
+                    Connect();
                 }
                 catch
                 {

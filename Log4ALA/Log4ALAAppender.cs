@@ -46,13 +46,7 @@ namespace Log4ALA
         public int? BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
         public int? BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int? BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
-
-        //public bool? UseSocketPool { get; set; }
-        //public int? MinSocketConn { get; set; }
-        //public int? MaxSocketConn { get; set; }
-
-
-
+ 
         public Log4ALAAppender()
         {
         }
@@ -164,16 +158,6 @@ namespace Log4ALA
                 }
 
                 log.Inf($"[{this.Name}] - batchNumItems:[{BatchNumItems}]", true);
-
-                //UseSocketPool = configSettings.ALAUseSocketPool == null ? (UseSocketPool == null ? false : (bool)UseSocketPool) : (bool)configSettings.ALAUseSocketPool;
-                //log.Inf($"[{this.Name}] - useSocketPool:[{UseSocketPool}]", true);
-
-                //MinSocketConn = configSettings.ALAMinSocketConn == null ? (MinSocketConn == null ? 5 : (int)MinSocketConn) : (int)configSettings.ALAMinSocketConn;
-                //log.Inf($"[{this.Name}] - minSocketConn:[{MinSocketConn}]", true);
-
-                //MaxSocketConn = configSettings.ALAMaxSocketConn == null ? (MaxSocketConn == null ? 5 : (int)MaxSocketConn) : (int)configSettings.ALAMaxSocketConn;
-                //log.Inf($"[{this.Name}] - maxSocketConn:[{MaxSocketConn}]", true);
-
 
                 serializer = new LoggingEventSerializer();
 

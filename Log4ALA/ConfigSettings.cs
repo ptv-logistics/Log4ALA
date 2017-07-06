@@ -54,14 +54,6 @@ namespace Log4ALA
         public const string LOG_INFO_DEFAULT_FILE = "log4ALA_info.log";
 
 
-        //private const string ALA_USE_SOCKET_POOL_PROP = "useSocketPool";
-        //private const string ALA_MIN_SOCK_CONN_PROP = "minSocketConn";
-        //private const string ALA_MAX_SOCK_CONN_PROP = "maxSocketConn";
-
-
-
-
-
         private string propPrefix = string.Empty;
 
         public ConfigSettings(string propPrefix)
@@ -244,35 +236,6 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLABatchWaitMaxInSec) ? (int?)null : int.Parse(aLABatchWaitMaxInSec));
             }
         }
-
-
         
-
-        //public bool? ALAUseSocketPool
-        //{
-        //    get
-        //    {
-        //        string aLAUseSocketPool = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_USE_SOCKET_POOL_PROP}");
-        //        return (string.IsNullOrWhiteSpace(aLAUseSocketPool) ? (bool?)null : Boolean.Parse(aLAUseSocketPool));
-        //    }
-        //}
-
-        //public int? ALAMinSocketConn
-        //{
-        //    get
-        //    {
-        //        string aLAMinSocketConn = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MIN_SOCK_CONN_PROP}");
-        //        return (string.IsNullOrWhiteSpace(aLAMinSocketConn) ? (int?)null : int.Parse(aLAMinSocketConn));
-        //    }
-        //}
-
-        //public int? ALAMaxSocketConn
-        //{
-        //    get
-        //    {
-        //        string aLAMaxSocketConn = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_SOCK_CONN_PROP}");
-        //        return (string.IsNullOrWhiteSpace(aLAMaxSocketConn) ? (int?)null : int.Parse(aLAMaxSocketConn));
-        //    }
-        //}
     }
 }

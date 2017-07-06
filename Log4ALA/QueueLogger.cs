@@ -1,5 +1,4 @@
-﻿using CustomLibraries.Threading;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -136,15 +135,6 @@ namespace Log4ALA
 
                     HttpRequest($"{alaPayLoad}]");
 
-                    try
-                    {
-                        //appender.log.Inf($"[{appender.Name}] - {alaPayLoad}", appender.logMessageToFile);
-                    }
-                    catch (Exception)
-                    {
-                        //continue
-                    }
-
                 }
             }
             catch (ThreadInterruptedException ex)
@@ -181,14 +171,6 @@ namespace Log4ALA
             {
                 try
                 {
-
-                    //if ((bool)appender.UseSocketPool && retryCount > (int)appender.HttpDataCollectorRetry)
-                    //{
-                    //    ConnectionPool.Initialized = false;
-                    //    alaClient.InitPool();
-                    //    retryCount = 0;
-                    //}
-
                     OpenConnection();
                     try
                     {
@@ -330,7 +312,14 @@ namespace Log4ALA
                     alaClient.Put();
 
                     //appender.log.Inf(headerBuilder.ToString(), appender.logMessageToFile);
-                    appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
+                    try
+                    {
+                        appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
+                    }
+                    catch
+                    {
+                        //continue
+                    }
 
                 }
                 catch (Exception ex)
