@@ -48,7 +48,7 @@ namespace Log4ALA
                 {
                     if (!valObjects.ContainsKey(val.Key))
                     {
-                        valObjects.Add(val.Key, val.Value);
+                        valObjects.Add(val.Key, val.Value.OfMaxBytes((int)appender.MaxFieldByteLength));
                     }
                 }
                 payload.LogMessage = valObjects;
