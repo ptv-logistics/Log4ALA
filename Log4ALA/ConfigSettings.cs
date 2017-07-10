@@ -42,7 +42,7 @@ namespace Log4ALA
         public const bool DEFAULT_LOG_MESSAGE_TOFILE = false;
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
-        public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32766;
+        public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
