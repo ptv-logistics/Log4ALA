@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Add feature to trim field values to the max allowed size of 32 bytes.</releaseNotes>
+    <releaseNotes>Add feature to trim field values to the max allowed size of 32766 bytes.</releaseNotes>
     <dependencies>
       <dependency id="log4net" version="2.0.5" />
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
