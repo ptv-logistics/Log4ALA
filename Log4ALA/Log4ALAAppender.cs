@@ -46,7 +46,8 @@ namespace Log4ALA
         public int? BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
         public int? BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int? BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
- 
+        public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+
         public Log4ALAAppender()
         {
         }
@@ -152,7 +153,10 @@ namespace Log4ALA
                 BatchWaitMaxInSec = configSettings.ALABatchWaitMaxInSec == null ? BatchWaitMaxInSec : configSettings.ALABatchWaitMaxInSec;
                 log.Inf($"[{this.Name}] - batchWaitMaxInSec:[{BatchWaitMaxInSec}]", true);
 
-                if(BatchSizeInBytes > 0 || BatchWaitInSec > 0)
+                MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? MaxFieldByteLength : configSettings.ALAMaxFieldByteLength;
+                log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
+
+                if (BatchSizeInBytes > 0 || BatchWaitInSec > 0)
                 {
                     BatchNumItems = 0;
                 }

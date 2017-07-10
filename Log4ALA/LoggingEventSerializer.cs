@@ -57,7 +57,7 @@ namespace Log4ALA
             {
                 if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
                 {
-                    payload.LogMessage = ConvertKeyValueMessage((string)loggingEvent.MessageObject);
+                    payload.LogMessage = ConvertKeyValueMessage((string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength);
                 }
                 else
                 {
@@ -103,7 +103,7 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private static dynamic ConvertKeyValueMessage(string message)
+        private static dynamic ConvertKeyValueMessage(string message, int maxByteLength)
         {
             var msgPayload = new ExpandoObject() as IDictionary<string, Object>;
 
@@ -132,7 +132,7 @@ namespace Log4ALA
                                 string[] le1ppSP = le1pp.Split('=');
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
-                                    string value = convertIfDateTime(le1ppSP[1]);
+                                    string value = Convert(le1ppSP[1], maxByteLength);
 
                                     if (!msgPayload.ContainsKey(le1ppSP[0]))
                                     {
@@ -172,7 +172,7 @@ namespace Log4ALA
  
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                string value = convertIfDateTime(le1ppSP[1]);
+                                string value = Convert(le1ppSP[1], maxByteLength);
 
 
                                 if (!msgPayload.ContainsKey(le1ppSP[0]))
@@ -210,7 +210,7 @@ namespace Log4ALA
 
                 if (!string.IsNullOrWhiteSpace(miscStr))
                 {
-                    msgPayload.Add("Misc", miscStr);
+                    msgPayload.Add("Misc", miscStr.OfMaxBytes(maxByteLength));
                 }
 
             }
@@ -218,13 +218,17 @@ namespace Log4ALA
             return msgPayload;
         }
 
-        public static string convertIfDateTime(string dateTimeString)
+        public static string Convert(string messageValue, int maxByteLength)
         {
-            string value = dateTimeString;
+            string value = messageValue;
             DateTime parsedDateTime;
             if (DateTime.TryParse(value, out parsedDateTime))
             {
                 value = parsedDateTime.ToUniversalTime().ToString("o");
+            }
+            else
+            {
+                value = messageValue.OfMaxBytes(maxByteLength);
             }
 
             return value;
@@ -254,4 +258,23 @@ namespace Log4ALA
         }
 
     }
+
+
+    static class StringExtension
+    {
+
+        public static string OfMaxBytes(this string str, int maxByteLength)
+        {
+            return str.Aggregate("", (s, c) =>
+            {
+                if (Encoding.UTF8.GetByteCount(s + c) <= maxByteLength)
+                {
+                    s += c;
+                }
+                return s;
+            });
+        }
+
+    }
+
 }

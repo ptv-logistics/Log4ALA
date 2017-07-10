@@ -26,6 +26,8 @@ namespace Log4ALA
         private const string ALA_BATCH_NUM_ITEMS_PROP = "batchNumItems";
         private const string ALA_BATCH_WAIT_SECONDS_PROP = "batchWaitInSec";
         private const string ALA_BATCH_WAIT_MAX_SECONDS_PROP = "batchWaitMaxInSec";
+        private const string ALA_MAX_FIELD_BYTE_LENGTH_PROP = "maxFieldByteLength";
+       
 
 
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
@@ -40,6 +42,7 @@ namespace Log4ALA
         public const bool DEFAULT_LOG_MESSAGE_TOFILE = false;
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
+        public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
@@ -236,6 +239,20 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLABatchWaitMaxInSec) ? (int?)null : int.Parse(aLABatchWaitMaxInSec));
             }
         }
+
+        public int? ALAMaxFieldByteLength
+        {
+            get
+            {
+                string aLAMaxFieldByteLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_BYTE_LENGTH_PROP}");
+                return (string.IsNullOrWhiteSpace(aLAMaxFieldByteLength) ? (int?)null : int.Parse(aLAMaxFieldByteLength));
+            }
+        }
+
+
+
+
         
+
     }
 }
