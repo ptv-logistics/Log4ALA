@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
+                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
             }
 
             System.Console.WriteLine("done4");
@@ -221,6 +221,13 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to Azure Log Analytics (default 60)
      <batchWaitMaxInSec value="60"/>
 	  -->
+    <!-- optional trim field values to the max allowed size of 32 KB (default 32 KB)
+     <maxFieldByteLength value="32000"/>
+	  -->
+    <!-- optional to change the core Azure Log Analytics field names (default {'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'})
+     <coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
+	  -->
+
   </appender>
   
   <!--
