@@ -65,7 +65,7 @@ namespace Log4ALA
                 string message = $"{queueLogger.appender.Name}-Size={queueLogger.Queue.Count}";
                 queueLogger.appender.log.Inf(message, queueLogger.appender.LogMessageToFile);
 
-                HttpRequest($"{{\"Msg\":\"{message}\",\"DateValue\":\"{DateTime.UtcNow.ToString("o")}\"}}");
+                HttpRequest($"{{\"Msg\":\"{message}\",\"{appender.coreFields.DateFieldName}\":\"{DateTime.UtcNow.ToString("o")}\"}}");
 
             }
             catch (Exception)
@@ -291,7 +291,7 @@ namespace Log4ALA
                     headerBuilder.AppendLine($"Log-Type: {appender.LogType}");
                     headerBuilder.AppendLine($"x-ms-date: {rfcDate}");
                     headerBuilder.AppendLine($"Authorization: {signature}");
-                    headerBuilder.AppendLine("time-generated-field: DateValue");
+                    headerBuilder.AppendLine($"time-generated-field: {appender.coreFields.DateFieldName}");
                     headerBuilder.AppendLine("Connection: close");
                     headerBuilder.AppendLine();
                     var header = Encoding.ASCII.GetBytes(headerBuilder.ToString());

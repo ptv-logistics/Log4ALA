@@ -14,12 +14,13 @@ using System.Linq;
 using System.Text;
 using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 
 namespace Log4ALA
 {
     public class LoggingEventSerializer
     {
-        public static char[] AllowedCharPlus = new char[] {'_'};
+        public static char[] AllowedCharPlus = new char[] { '_' };
 
         public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents, Log4ALAAppender appender)
         {
@@ -36,9 +37,10 @@ namespace Log4ALA
         private string SerializeLoggingEvent(LoggingEvent loggingEvent, Log4ALAAppender appender)
         {
 
-            dynamic payload = new ExpandoObject();
-            payload.DateValue = loggingEvent.TimeStamp.ToUniversalTime().ToString("o");
-           
+            IDictionary<string, Object> payload = new ExpandoObject() as IDictionary<string, Object>;
+
+            payload.Add(appender.coreFields.DateFieldName, loggingEvent.TimeStamp.ToUniversalTime().ToString("o"));
+
 
             var valObjects = new ExpandoObject() as IDictionary<string, Object>;
             if ((bool)appender.JsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ValidateJSON((string)loggingEvent.MessageObject))
@@ -48,30 +50,29 @@ namespace Log4ALA
                 {
                     if (!valObjects.ContainsKey(val.Key))
                     {
-                        valObjects.Add(val.Key, val.Value.OfMaxBytes((int)appender.MaxFieldByteLength));
+                        payload.Add(val.Key, Convert(val.Value, (int)appender.MaxFieldByteLength));
                     }
                 }
-                payload.LogMessage = valObjects;
             }
             else
             {
                 if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
                 {
-                    payload.LogMessage = ConvertKeyValueMessage((string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength);
+                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName);
                 }
                 else
                 {
-                    payload.LogMessage = loggingEvent.MessageObject;
+                    payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.MessageObject);
                 }
             }
 
             if ((bool)appender.AppendLogger)
             {
-                payload.Logger = loggingEvent.LoggerName;
+                payload.Add(appender.coreFields.LoggerFieldName, loggingEvent.LoggerName);
             }
             if ((bool)appender.AppendLogLevel)
             {
-                payload.Level = loggingEvent.Level.DisplayName.ToUpper();
+                payload.Add(appender.coreFields.LevelFieldName, loggingEvent.Level.DisplayName.ToUpper());
             }
 
             //If any custom properties exist, add them to the dynamic object
@@ -87,26 +88,22 @@ namespace Log4ALA
                 string errMessage = $"loggingEvent.Exception: {exception}";
                 appender.log.Err(errMessage);
                 appender.extraLog.Err(errMessage);
-                payload.exception = new ExpandoObject();
-                payload.exception.message = exception.Message;
-                payload.exception.type = exception.GetType().Name;
-                payload.exception.stackTrace = exception.StackTrace;
+                payload.Add("ExMsg", exception.Message);
+                payload.Add("ExType", exception.GetType().Name);
+                payload.Add("ExStackTrace", exception.StackTrace);
                 if (exception.InnerException != null)
                 {
-                    payload.exception.innerException = new ExpandoObject();
-                    payload.exception.innerException.message = exception.InnerException.Message;
-                    payload.exception.innerException.type = exception.InnerException.GetType().Name;
-                    payload.exception.innerException.stackTrace = exception.InnerException.StackTrace;
+                    payload.Add("InnerExMsg", exception.InnerException.Message);
+                    payload.Add("InnerExType", exception.InnerException.GetType().Name);
+                    payload.Add("InnerExStackTrace", exception.InnerException.StackTrace);
                 }
             }
 
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private static dynamic ConvertKeyValueMessage(string message, int maxByteLength)
+        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME)
         {
-            var msgPayload = new ExpandoObject() as IDictionary<string, Object>;
-
             if (!string.IsNullOrWhiteSpace(message))
             {
                 string[] le1Sp = message.Split(';');
@@ -132,11 +129,11 @@ namespace Log4ALA
                                 string[] le1ppSP = le1pp.Split('=');
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
-                                    string value = Convert(le1ppSP[1], maxByteLength);
+                                    object value = Convert(le1ppSP[1], maxByteLength);
 
-                                    if (!msgPayload.ContainsKey(le1ppSP[0]))
+                                    if (!payload.ContainsKey(le1ppSP[0]))
                                     {
-                                        msgPayload.Add(le1ppSP[0], value);
+                                        payload.Add(le1ppSP[0], value);
                                     }
                                     else
                                     {
@@ -152,7 +149,7 @@ namespace Log4ALA
                                             duplicates.TryAdd(le1ppSP[0], duplicateCounter);
                                         }
 
-                                        msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", value);
+                                        payload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", value);
 
                                     }
                                 }
@@ -169,15 +166,15 @@ namespace Log4ALA
                         if (le1p.Count(c => c == '=') == 1)
                         {
                             string[] le1ppSP = le1p.Split('=');
- 
+
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                string value = Convert(le1ppSP[1], maxByteLength);
+                                object value = Convert(le1ppSP[1], maxByteLength);
 
 
-                                if (!msgPayload.ContainsKey(le1ppSP[0]))
+                                if (!payload.ContainsKey(le1ppSP[0]))
                                 {
-                                    msgPayload.Add(le1ppSP[0], (value).TrimEnd(new char[] { ',' }));
+                                    payload.Add(le1ppSP[0], (value));
                                 }
                                 else
                                 {
@@ -193,7 +190,7 @@ namespace Log4ALA
                                         duplicates.TryAdd(le1ppSP[0], duplicateCounter);
                                     }
 
-                                    msgPayload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (value).TrimEnd(new char[] { ',' }));
+                                    payload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (value));
 
                                 }
                             }
@@ -210,28 +207,37 @@ namespace Log4ALA
 
                 if (!string.IsNullOrWhiteSpace(miscStr))
                 {
-                    msgPayload.Add("Misc", miscStr.OfMaxBytes(maxByteLength));
+                    payload.Add(miscMsgFieldName, miscStr.OfMaxBytes(maxByteLength));
                 }
 
             }
- 
-            return msgPayload;
         }
 
-        public static string Convert(string messageValue, int maxByteLength)
+        public static object Convert(string messageValue, int maxByteLength)
         {
             string value = messageValue;
+            object convertedValue = null;
             DateTime parsedDateTime;
-            if (DateTime.TryParse(value, out parsedDateTime))
+            double parsedDouble;
+            bool parsedBool;
+            if (Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedDouble))
             {
-                value = parsedDateTime.ToUniversalTime().ToString("o");
+                convertedValue = parsedDouble;
+            }
+            else if (DateTime.TryParse(value, out parsedDateTime))
+            {
+                convertedValue = parsedDateTime.ToUniversalTime();
+            }
+            else if (Boolean.TryParse(value, out parsedBool))
+            {
+                convertedValue = parsedBool;
             }
             else
             {
-                value = messageValue.OfMaxBytes(maxByteLength);
+                convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ',' });
             }
 
-            return value;
+            return convertedValue;
         }
 
         private static string RemoveSpecialCharacters(string str)
@@ -276,5 +282,4 @@ namespace Log4ALA
         }
 
     }
-
 }

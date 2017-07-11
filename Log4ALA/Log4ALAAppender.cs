@@ -2,6 +2,7 @@
 using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Log4ALA
         public ILog extraLog;
 
         protected static readonly Random Random1 = new Random();
-  
+
         private LoggingEventSerializer serializer;
 
         private QueueLogger queueLogger;
@@ -47,6 +48,31 @@ namespace Log4ALA
         public int? BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int? BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
         public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+
+
+        public CoreFieldNames coreFields;
+
+        private string coreFieldNames;
+        public string CoreFieldNames {
+            get {
+                return coreFieldNames;
+            }
+            set
+            {
+                string tempValue;
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    tempValue = JsonConvert.SerializeObject(new CoreFieldNames() { DateFieldName = ConfigSettings.DEFAULT_DATE_FIELD_NAME, MiscMessageFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, LevelFieldName = ConfigSettings.DEFAULT_LEVEL_FIELD_NAME, LoggerFieldName = ConfigSettings.DEFAULT_LOGGER_FIELD_NAME });
+                }
+                else
+                {
+                    tempValue = value;
+                }
+
+                coreFields = JsonConvert.DeserializeObject<CoreFieldNames>(tempValue.Replace("'", "\""));
+                coreFieldNames = tempValue.Replace("'", "\"");
+            }
+        }
 
         public Log4ALAAppender()
         {
@@ -135,9 +161,11 @@ namespace Log4ALA
                 LogType = string.IsNullOrWhiteSpace(configSettings.ALALogType) ? LogType : configSettings.ALALogType;
                 log.Inf($"[{this.Name}] - logType:[{LogType}]", true);
 
-
                 AzureApiVersion = string.IsNullOrWhiteSpace(configSettings.ALAAzureApiVersion) ? AzureApiVersion : configSettings.ALAAzureApiVersion;
                 log.Inf($"[{this.Name}] - azureApiVersion:[{AzureApiVersion}]", true);
+
+                CoreFieldNames = string.IsNullOrWhiteSpace(configSettings.ALACoreFieldNames) ? CoreFieldNames : configSettings.ALACoreFieldNames;
+                log.Inf($"[{this.Name}] - coreFieldNames:[{CoreFieldNames}]", true);
 
                 HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? HttpDataCollectorRetry : configSettings.ALAHttpDataCollectorRetry;
                 log.Inf($"[{this.Name}] - httpDataCollectorRetry:[{HttpDataCollectorRetry}]", true);
@@ -154,6 +182,10 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - batchWaitMaxInSec:[{BatchWaitMaxInSec}]", true);
 
                 MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? MaxFieldByteLength : configSettings.ALAMaxFieldByteLength;
+                if(MaxFieldByteLength > ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH)
+                {
+                    MaxFieldByteLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+                }
                 log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
 
                 if (BatchSizeInBytes > 0 || BatchWaitInSec > 0)
@@ -349,4 +381,14 @@ namespace Log4ALA
         }
 
     }
+
+    public class CoreFieldNames
+    {
+        public string DateFieldName { get; set; } = ConfigSettings.DEFAULT_DATE_FIELD_NAME;
+        public string MiscMessageFieldName { get; set; } = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME;
+        public string LoggerFieldName { get; set; } = ConfigSettings.DEFAULT_LOGGER_FIELD_NAME;
+        public string LevelFieldName { get; set; } = ConfigSettings.DEFAULT_LEVEL_FIELD_NAME;
+
+    }
+
 }
