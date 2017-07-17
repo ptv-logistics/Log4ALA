@@ -108,11 +108,11 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 
 ## Features
 
-1) You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, 
+1. You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, 
 batchNumItems or batchWaitInSec (described further down).
-2) Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
-3) Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
-4) Configurable core field names
+2. Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
+3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
+4. Configurable core field names
 
 
 ## General Configuration 
