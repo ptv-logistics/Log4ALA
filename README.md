@@ -180,14 +180,15 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!--<httpDataCollectorRetry value="6" />-->
 
     <!-- 
-    optional debug setting which should only be used during development or on testsystem.
-    Set logMessageToFile=true to inspect your messages (in log4ALA_info.log) which will be sent to the Azure Log Analytics Workspace.
+    optional debug setting which should only be used during development or on testsystem. Set 
+	logMessageToFile=true to inspect your messages (in log4ALA_info.log) which will be sent to the 
+	Azure Log Analytics Workspace.
     -->
     <!--<logMessageToFile value="true"/>-->
 
     <!-- 
-    optional name of an logger defined further down with an depending appender e.g. logentries to log internal errors. If the value is empty or the property isn't defined 
-    errors will only be logged to log4ALA_error.log
+    optional name of an logger defined further down with an depending appender e.g. logentries to log internal 
+	errors. If the value is empty or the property isn't defined errors will only be logged to log4ALA_error.log
     -->
     <!--<errLoggerName value="Log4ALAErrors2LogentriesLogger"/>-->
 
@@ -209,23 +210,33 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <infoAppenderFile value="C:\ups\infoApp.log"/>
 	  -->
 
-    <!-- optional batch configuration to send a defined byte size of log messages as batch to Azure Log Analytics (default 0)
+    <!-- optional batch configuration to send a defined byte size of log messages as batch to Azure Log Analytics 
+	(default 0)
+
     <batchSizeInBytes value="0"/>
 	  -->
-    <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics (default 1)
+    <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics 
+	     (default 1)
+
     <batchNumItems value="1"/>
 	  -->
-    <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics (default 0)
+    <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics 
+	     (default 0)
+
      <batchWaitInSec value="0"/>
 	  -->
-    <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to Azure Log Analytics (default 60)
+    <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to 
+	     Azure Log Analytics (default 60)
+
      <batchWaitMaxInSec value="60"/>
 	  -->
     <!-- optional trim field values to the max allowed size of 32 KB (default 32 KB)
      <maxFieldByteLength value="32000"/>
 	  -->
-    <!-- optional to change the core Azure Log Analytics field names (default {'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'})
-     <coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
+    <!-- optional to change the core Azure Log Analytics field names 
+	     (default {'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'})
+    
+	<coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
 	  -->
 
   </appender>
