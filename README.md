@@ -82,8 +82,7 @@ namespace Log4ALATest
 
 ## Proxy settings
 
-The [HTTPDataCollectorAPI](https://github.com/ealsur/HTTPDataCollectorAPI) used under the hood doesn't support 
-explicit proxy settings so the only way at the moment is to set the default proxy by config (Web.config or App.config):
+At the the moment the default proxy could only be set by config (Web.config or App.config):
 
 Refer to this [article](https://msdn.microsoft.com/en-us/library/kd3cf2ex(v=vs.110).aspx) for more information.
 ```xml
@@ -106,6 +105,15 @@ or by code:
 System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/", true);
 
 ``` 
+
+## Features
+
+1) You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, 
+batchNumItems or batchWaitInSec (described further down).
+2) Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
+3) Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
+4) Configurable core field names
+
 
 ## General Configuration 
 
@@ -284,7 +292,8 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 
 ## Issues
 
-Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) but there is no way (right now) to know when has the payload been indexed completely... see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/)
+Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the OMS Portal
+click *Usage* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/)
 
 ## Supported Frameworks
 
