@@ -50,7 +50,7 @@ namespace Log4ALA
                 {
                     if (!valObjects.ContainsKey(val.Key))
                     {
-                        payload.Add(val.Key, Convert(val.Value, (int)appender.MaxFieldByteLength));
+                        payload.Add(val.Key.TrimFieldName((int)appender.MaxFieldNameLength), val.Value.TypeConvert((int)appender.MaxFieldByteLength));
                     }
                 }
             }
@@ -58,7 +58,7 @@ namespace Log4ALA
             {
                 if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
                 {
-                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName);
+                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength);
                 }
                 else
                 {
@@ -102,7 +102,7 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME)
+        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -129,34 +129,22 @@ namespace Log4ALA
                                 string[] le1ppSP = le1pp.Split('=');
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
-                                    object value = Convert(le1ppSP[1], maxByteLength);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
+                                }
+                            }
+                            else if(le1pp.Count(c => c == '=') == 2) {
+                                string[] le1ppSP = le1pp.Split('=');
+                                if(le1ppSP.Length == 3 && !string.IsNullOrWhiteSpace(le1ppSP[0]) && !string.IsNullOrWhiteSpace(le1ppSP[1]) && 
+                                    string.IsNullOrWhiteSpace(le1ppSP[2]) && le1pp.Trim().EndsWith("=") && 
+                                    $"{le1ppSP[1].Trim()}=".IsBase64())
+                                {
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}=".TypeConvert(maxByteLength), maxFieldNameLength);
 
-                                    if (!payload.ContainsKey(le1ppSP[0]))
-                                    {
-                                        payload.Add(le1ppSP[0], value);
-                                    }
-                                    else
-                                    {
-                                        int duplicateCounter;
-                                        if (duplicates.ContainsKey(le1ppSP[0]))
-                                        {
-                                            duplicates.TryRemove(le1ppSP[0], out duplicateCounter);
-                                            duplicates.TryAdd(le1ppSP[0], ++duplicateCounter);
-                                        }
-                                        else
-                                        {
-                                            duplicateCounter = 0;
-                                            duplicates.TryAdd(le1ppSP[0], duplicateCounter);
-                                        }
-
-                                        payload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", value);
-
-                                    }
                                 }
                             }
                             else
                             {
-                                misc.Append(le1pp);
+                                misc.Append(le1pp.TypeConvert(maxByteLength));
                                 misc.Append(" ");
                             }
                         }
@@ -169,35 +157,12 @@ namespace Log4ALA
 
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                object value = Convert(le1ppSP[1], maxByteLength);
-
-
-                                if (!payload.ContainsKey(le1ppSP[0]))
-                                {
-                                    payload.Add(le1ppSP[0], (value));
-                                }
-                                else
-                                {
-                                    int duplicateCounter;
-                                    if (duplicates.ContainsKey(le1ppSP[0]))
-                                    {
-                                        duplicates.TryRemove(le1ppSP[0], out duplicateCounter);
-                                        duplicates.TryAdd(le1ppSP[0], ++duplicateCounter);
-                                    }
-                                    else
-                                    {
-                                        duplicateCounter = 0;
-                                        duplicates.TryAdd(le1ppSP[0], duplicateCounter);
-                                    }
-
-                                    payload.Add($"{le1ppSP[0]}_Duplicate{duplicateCounter}", (value));
-
-                                }
+                                CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
                             }
                         }
                         else
                         {
-                            misc.Append(le1p);
+                            misc.Append(le1p.TypeConvert(maxByteLength));
                             misc.Append(" ");
                         }
                     }
@@ -213,32 +178,35 @@ namespace Log4ALA
             }
         }
 
-        public static object Convert(string messageValue, int maxByteLength)
+        private static void CreateAlaField(IDictionary<string, object> payload, ConcurrentDictionary<string, int> duplicates, string key, object value, int maxFieldNameLength)
         {
-            string value = messageValue;
-            object convertedValue = null;
-            DateTime parsedDateTime;
-            double parsedDouble;
-            bool parsedBool;
-            if (Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedDouble))
+
+            key = key.TrimFieldName(maxFieldNameLength);
+
+            if (!payload.ContainsKey(key))
             {
-                convertedValue = parsedDouble;
-            }
-            else if (DateTime.TryParse(value, out parsedDateTime))
-            {
-                convertedValue = parsedDateTime.ToUniversalTime();
-            }
-            else if (Boolean.TryParse(value, out parsedBool))
-            {
-                convertedValue = parsedBool;
+                payload.Add(key, value);
             }
             else
             {
-                convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ',' });
-            }
+                int duplicateCounter;
+                if (duplicates.ContainsKey(key))
+                {
+                    duplicates.TryRemove(key, out duplicateCounter);
+                    duplicates.TryAdd(key, ++duplicateCounter);
+                }
+                else
+                {
+                    duplicateCounter = 0;
+                    duplicates.TryAdd(key, duplicateCounter);
+                }
 
-            return convertedValue;
+                payload.Add($"{key}_Duplicate{duplicateCounter}", value);
+
+            }
         }
+
+
 
         private static string RemoveSpecialCharacters(string str)
         {
@@ -280,6 +248,52 @@ namespace Log4ALA
                 return s;
             });
         }
+
+        public static string TrimFieldName(this string str, int length = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
+        {
+            return str.Length > length ? str.Substring(0, length) : str;
+        }
+
+        public static bool IsBase64(this string base64value)
+        {
+            try
+            {
+                byte[] converted = System.Convert.FromBase64String(base64value);
+                return base64value.EndsWith("=");
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static object TypeConvert(this string messageValue, int maxByteLength)
+        {
+            string value = messageValue;
+            object convertedValue = null;
+            DateTime parsedDateTime;
+            double parsedDouble;
+            bool parsedBool;
+            if (Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedDouble))
+            {
+                convertedValue = parsedDouble;
+            }
+            else if (DateTime.TryParse(value, out parsedDateTime))
+            {
+                convertedValue = parsedDateTime.ToUniversalTime();
+            }
+            else if (Boolean.TryParse(value, out parsedBool))
+            {
+                convertedValue = parsedBool;
+            }
+            else
+            {
+                convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ',' });
+            }
+
+            return convertedValue;
+        }
+
 
     }
 }

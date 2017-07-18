@@ -28,8 +28,8 @@ namespace Log4ALA
         private const string ALA_BATCH_WAIT_MAX_SECONDS_PROP = "batchWaitMaxInSec";
         private const string ALA_MAX_FIELD_BYTE_LENGTH_PROP = "maxFieldByteLength";
         private const string ALA_CORE_FIELD_NAMES_PROP = "coreFieldNames";
+        private const string ALA_MAX_FIELD_NAME_LENGTH_PROP = "maxFieldNameLength";
 
-        
 
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
         public const int DEFAULT_BATCH_WAIT_MAX_SECONDS = 60;
@@ -44,6 +44,7 @@ namespace Log4ALA
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
+        public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 500;
 
         public const string DEFAULT_DATE_FIELD_NAME = "DateValue";
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
@@ -252,6 +253,15 @@ namespace Log4ALA
             {
                 string aLAMaxFieldByteLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_BYTE_LENGTH_PROP}");
                 return (string.IsNullOrWhiteSpace(aLAMaxFieldByteLength) ? (int?)null : int.Parse(aLAMaxFieldByteLength));
+            }
+        }
+
+        public int? ALAMaxFieldNameLength
+        {
+            get
+            {
+                string aLAMaxFieldNameLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_NAME_LENGTH_PROP}");
+                return (string.IsNullOrWhiteSpace(aLAMaxFieldNameLength) ? (int?)null : int.Parse(aLAMaxFieldNameLength));
             }
         }
 

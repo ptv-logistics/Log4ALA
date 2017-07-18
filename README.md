@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
+                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
             }
 
             System.Console.WriteLine("done4");
@@ -112,7 +112,8 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 batchNumItems or batchWaitInSec (described further down).
 2. Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
 3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
-4. Configurable core field names
+4. Field names greater than 500 chars will be truncated (the value could be configured with maxFieldNameLength).
+5. Configurable core field names
 
 
 ## General Configuration 
@@ -223,28 +224,32 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 
     <batchSizeInBytes value="0"/>
 	  -->
-    <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics 
+     <!-- optional batch configuration to send a defined number of log items as batch to Azure Log Analytics 
 	     (default 1)
 
-    <batchNumItems value="1"/>
+     <batchNumItems value="1"/>
 	  -->
-    <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics 
+     <!-- optional batch configuration to send a time based collection of log messages as batch to Azure Log Analytics 
 	     (default 0)
 
      <batchWaitInSec value="0"/>
 	  -->
-    <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to 
+     <!-- optional interval after a batch process will be finished to send the collected of log messages as batch to 
 	     Azure Log Analytics (default 60)
 
      <batchWaitMaxInSec value="60"/>
 	  -->
-    <!-- optional trim field values to the max allowed size of 32 KB (default 32 KB)
+     <!-- optional trim field values to the max allowed size of 32 KB (default 32 KB)
      <maxFieldByteLength value="32000"/>
 	  -->
-    <!-- optional to change the core Azure Log Analytics field names 
+     <!-- optional to change the core Azure Log Analytics field names 
 	     (default {'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'})
     
-	<coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
+	 <coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
+	  -->
+     
+	 <!-- optional trim field values to the max allowed field name length of 500  (default 500)
+     <maxFieldNameLength value="500"/>
 	  -->
 
   </appender>

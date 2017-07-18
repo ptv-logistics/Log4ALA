@@ -48,6 +48,7 @@ namespace Log4ALA
         public int? BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int? BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
         public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+        public int? MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
 
 
         public CoreFieldNames coreFields;
@@ -187,6 +188,14 @@ namespace Log4ALA
                     MaxFieldByteLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
                 }
                 log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
+
+
+                MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? MaxFieldNameLength : configSettings.ALAMaxFieldNameLength;
+                if (MaxFieldNameLength > ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
+                {
+                    MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+                }
+                log.Inf($"[{this.Name}] - maxFieldNameLength:[{MaxFieldNameLength}]", true);
 
                 if (BatchSizeInBytes > 0 || BatchWaitInSec > 0)
                 {
