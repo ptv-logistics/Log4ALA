@@ -104,15 +104,18 @@ namespace Log4ALA
                     {
                         try
                         {
-                            line = Queue.Take();
-                            if (!string.IsNullOrWhiteSpace(line))
+                            if (Queue.Count > 0)
                             {
-                                byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
+                                line = Queue.Take();
+                                if (!string.IsNullOrWhiteSpace(line))
+                                {
+                                    byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
-                                buffer.Append(line);
-                                buffer.Append(",");
-                                ++numItems;
-                                line = string.Empty;
+                                    buffer.Append(line);
+                                    buffer.Append(",");
+                                    ++numItems;
+                                    line = string.Empty;
+                                }
                             }
                         }
                         catch (Exception ee)
