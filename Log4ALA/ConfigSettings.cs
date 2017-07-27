@@ -29,6 +29,7 @@ namespace Log4ALA
         private const string ALA_MAX_FIELD_BYTE_LENGTH_PROP = "maxFieldByteLength";
         private const string ALA_CORE_FIELD_NAMES_PROP = "coreFieldNames";
         private const string ALA_MAX_FIELD_NAME_LENGTH_PROP = "maxFieldNameLength";
+        private const string ALA_THREAD_PRIORITY_PROP = "threadPriority";
 
 
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
@@ -50,6 +51,7 @@ namespace Log4ALA
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
         public const string DEFAULT_LOGGER_FIELD_NAME = "Logger";
         public const string DEFAULT_LEVEL_FIELD_NAME = "Level";
+        public const string DEFAULT_THREAD_PRIORITY = "Normal";
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
@@ -270,6 +272,14 @@ namespace Log4ALA
             get
             {
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_CORE_FIELD_NAMES_PROP}");
+            }
+        }
+
+        public string ALAThreadPriority
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_THREAD_PRIORITY_PROP}");
             }
         }
 

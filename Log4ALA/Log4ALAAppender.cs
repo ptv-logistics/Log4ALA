@@ -75,6 +75,10 @@ namespace Log4ALA
             }
         }
 
+        public string ThreadPriority { get; set; } = ConfigSettings.DEFAULT_THREAD_PRIORITY;
+
+
+
         public Log4ALAAppender()
         {
         }
@@ -167,6 +171,9 @@ namespace Log4ALA
 
                 CoreFieldNames = string.IsNullOrWhiteSpace(configSettings.ALACoreFieldNames) ? CoreFieldNames : configSettings.ALACoreFieldNames;
                 log.Inf($"[{this.Name}] - coreFieldNames:[{CoreFieldNames}]", true);
+
+                ThreadPriority = string.IsNullOrWhiteSpace(configSettings.ALAThreadPriority) ? ThreadPriority : configSettings.ALAThreadPriority;
+                log.Inf($"[{this.Name}] - threadPriority:[{ThreadPriority}]", true);
 
                 HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? HttpDataCollectorRetry : configSettings.ALAHttpDataCollectorRetry;
                 log.Inf($"[{this.Name}] - httpDataCollectorRetry:[{HttpDataCollectorRetry}]", true);

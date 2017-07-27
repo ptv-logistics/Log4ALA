@@ -39,6 +39,7 @@ namespace Log4ALA
             WorkerThread = new Thread(new ThreadStart(Run));
             WorkerThread.Name = $"Azure Log Analytics Log4net Appender ({appender.Name})";
             WorkerThread.IsBackground = true;
+            WorkerThread.Priority = (ThreadPriority)Enum.Parse(typeof(ThreadPriority), appender.ThreadPriority);
             this.appender = appender;
             if (ConfigSettings.IsLogQueueSizeInterval)
             {
@@ -103,17 +104,15 @@ namespace Log4ALA
                     {
                         try
                         {
-                            if (Queue.TryTake(out line))
+                            line = Queue.Take();
+                            if (!string.IsNullOrWhiteSpace(line))
                             {
-                                if (!string.IsNullOrWhiteSpace(line))
-                                {
-                                    byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
+                                byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
-                                    buffer.Append(line);
-                                    buffer.Append(",");
-                                    ++numItems;
-                                    line = string.Empty;
-                                }
+                                buffer.Append(line);
+                                buffer.Append(",");
+                                ++numItems;
+                                line = string.Empty;
                             }
                         }
                         catch (Exception ee)

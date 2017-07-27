@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2017 PTV Group</copyright>
-    <releaseNotes>Fix issue during key=value extraction with base64 encoded string values with trailing equal sign and add field name trim if length greater than 500 (Log Analytics quota limit)</releaseNotes>
+    <releaseNotes>Add configurable priority (threadPriority) of the background worker thread and fixed issue to avoid high CPU usage.</releaseNotes>
     <dependencies>
       <dependency id="log4net" version="2.0.5" />
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
