@@ -51,7 +51,7 @@ namespace Log4ALA
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
         public const string DEFAULT_LOGGER_FIELD_NAME = "Logger";
         public const string DEFAULT_LEVEL_FIELD_NAME = "Level";
-        public const string DEFAULT_THREAD_PRIORITY = "Normal";
+        public const string DEFAULT_THREAD_PRIORITY = "Lowest";
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
