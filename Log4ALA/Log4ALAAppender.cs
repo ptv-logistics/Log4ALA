@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace Log4ALA
 {
@@ -173,6 +174,11 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - coreFieldNames:[{CoreFieldNames}]", true);
 
                 ThreadPriority = string.IsNullOrWhiteSpace(configSettings.ALAThreadPriority) ? ThreadPriority : configSettings.ALAThreadPriority;
+                ThreadPriority priority;
+                if (!Enum.TryParse(ThreadPriority, out priority))
+                {
+                    throw new Exception($"the Log4ALAAppender wrong threadPriority value [{ThreadPriority}] possible values -> Lowest/BelowNormal/Normal/AboveNormal/Highest");
+                }
                 log.Inf($"[{this.Name}] - threadPriority:[{ThreadPriority}]", true);
 
                 HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? HttpDataCollectorRetry : configSettings.ALAHttpDataCollectorRetry;
