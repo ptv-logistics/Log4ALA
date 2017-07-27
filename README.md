@@ -252,6 +252,11 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
      <maxFieldNameLength value="500"/>
 	  -->
 
+     <!-- optional priority of the background worker thread which collects and send the log messages to Azure Log Analytics
+          possible values Lowest/BelowNormal/Normal/AboveNormal/Highest  (default Normal)
+     <threadPriority value="Normal"/>
+	  -->
+
   </appender>
   
   <!--
