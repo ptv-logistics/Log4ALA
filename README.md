@@ -113,7 +113,8 @@ batchNumItems or batchWaitInSec (described further down).
 2. Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
 3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
 4. Field names greater than 500 chars will be truncated (the value could be configured with maxFieldNameLength).
-5. Configurable core field names
+5. Configurable core field names (the value could be configured with coreFieldNames)
+6. Configurable background worker thread priority (the value could be configured with threadPriority)
 
 
 ## General Configuration 
