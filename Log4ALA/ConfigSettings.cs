@@ -30,6 +30,7 @@ namespace Log4ALA
         private const string ALA_CORE_FIELD_NAMES_PROP = "coreFieldNames";
         private const string ALA_MAX_FIELD_NAME_LENGTH_PROP = "maxFieldNameLength";
         private const string ALA_THREAD_PRIORITY_PROP = "threadPriority";
+        private const string ALA_QUEUE_READ_TIMEOUT_PROP = "queueReadTimeout";
 
 
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
@@ -46,6 +47,7 @@ namespace Log4ALA
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 500;
+        public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
 
         public const string DEFAULT_DATE_FIELD_NAME = "DateValue";
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
@@ -280,6 +282,14 @@ namespace Log4ALA
             get
             {
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_THREAD_PRIORITY_PROP}");
+            }
+        }
+        public int? ALAQueueReadTimeout
+        {
+            get
+            {
+                string aLAQueueReadTimeout = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_QUEUE_READ_TIMEOUT_PROP}");
+                return (string.IsNullOrWhiteSpace(aLAQueueReadTimeout) ? (int?)null : int.Parse(aLAQueueReadTimeout));
             }
         }
 

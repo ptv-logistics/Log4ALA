@@ -14,7 +14,6 @@ namespace Log4ALA
     {
         // Error message displayed when queue overflow occurs. 
         protected const String QueueOverflowMessage = "\n\nAzure Log Analytics buffer queue overflow. Message dropped.\n\n";
-          
         public const int BatchSizeMax = 31457280; //30 mb quota limit per post
 
         protected readonly BlockingCollection<string> Queue;
@@ -84,6 +83,8 @@ namespace Log4ALA
             {
                 OpenConnection();
 
+                int qReadTimeout = (int)appender.QueueReadTimeout;
+
                 // Send data in queue.
                 while (true)
                 {
@@ -104,18 +105,15 @@ namespace Log4ALA
                     {
                         try
                         {
-                            if (Queue.Count > 0)
-                            {
-                                line = Queue.Take();
-                                if (!string.IsNullOrWhiteSpace(line))
-                                {
-                                    byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
-                                    buffer.Append(line);
-                                    buffer.Append(",");
-                                    ++numItems;
-                                    line = string.Empty;
-                                }
+                            if (Queue.TryTake(out line, qReadTimeout))
+                            {
+                                byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
+
+                                buffer.Append(line);
+                                buffer.Append(",");
+                                ++numItems;
+                                line = string.Empty;
                             }
                         }
                         catch (Exception ee)

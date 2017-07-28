@@ -77,6 +77,8 @@ namespace Log4ALA
         }
 
         public string ThreadPriority { get; set; } = ConfigSettings.DEFAULT_THREAD_PRIORITY;
+        public int? QueueReadTimeout { get; set; } = ConfigSettings.DEFAULT_QUEUE_READ_TIMEOUT;
+
 
 
 
@@ -214,6 +216,9 @@ namespace Log4ALA
                 {
                     BatchNumItems = 0;
                 }
+
+                QueueReadTimeout = configSettings.ALAQueueReadTimeout == null ? QueueReadTimeout : configSettings.ALAQueueReadTimeout;
+                log.Inf($"[{this.Name}] - queueReadTimeout:[{QueueReadTimeout}]", true);
 
                 log.Inf($"[{this.Name}] - batchNumItems:[{BatchNumItems}]", true);
 
