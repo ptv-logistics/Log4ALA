@@ -32,6 +32,7 @@ namespace Log4ALA
 
         public QueueLogger(Log4ALAAppender appender)
         {
+            this.appender = appender;
             Queue = new BlockingCollection<string>(appender.LoggingQueueSize != null && appender.LoggingQueueSize > 0 ? (int)appender.LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
             SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
 
@@ -39,7 +40,6 @@ namespace Log4ALA
             WorkerThread.Name = $"Azure Log Analytics Log4net Appender ({appender.Name})";
             WorkerThread.IsBackground = true;
             WorkerThread.Priority = (ThreadPriority)Enum.Parse(typeof(ThreadPriority), appender.ThreadPriority);
-            this.appender = appender;
             if (ConfigSettings.IsLogQueueSizeInterval)
             {
                 CreateLogQueueSizeTimer();
@@ -81,7 +81,7 @@ namespace Log4ALA
         {
             try
             {
-                OpenConnection();
+                Connect(true);
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
 
@@ -160,7 +160,7 @@ namespace Log4ALA
             }
         }
 
-        protected void ReopenConnection()
+        protected void Connect(bool init = false)
         {
             CloseConnection();
 
@@ -174,7 +174,7 @@ namespace Log4ALA
                     OpenConnection();
                     try
                     {
-                        appender.log.Inf($"[{appender.Name}] - successfully reconnected to AlaClient", true);
+                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to AlaClient", true);
                     }
                     catch (Exception)
                     {
@@ -185,7 +185,7 @@ namespace Log4ALA
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    string errMessage = $"[{appender.Name}] - Unable to connect to AlaClient => [{ex.Message}]";
+                    string errMessage = $"[{appender.Name}] - Unable to {(init ? "connect" : "reconnect")} to AlaClient => [{ex.Message}] retry [{(retryCount + 1)}]";
                     appender.log.Err(errMessage);
                     appender.extraLog.Err(errMessage);
                 }
@@ -254,9 +254,14 @@ namespace Log4ALA
             }
         }
 
-        public void interruptWorker()
+        public void AbortWorker()
         {
-            WorkerThread.Interrupt();
+            if(WorkerThread != null)
+            {
+                System.Console.WriteLine("QueueLogger.AbortWorker() called...");
+                WorkerThread.Abort();
+                System.Console.WriteLine("QueueLogger.AbortWorker() succeeded.");
+            }
         }
 
 
@@ -326,7 +331,7 @@ namespace Log4ALA
                 {
                     // Reopen the lost connection.
                     appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex.Message}]");
-                    ReopenConnection();
+                    Connect();
                     continue;
                 }
 

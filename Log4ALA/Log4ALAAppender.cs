@@ -354,7 +354,9 @@ namespace Log4ALA
         {
             if (queueLogger != null)
             {
-                queueLogger.interruptWorker();
+                System.Console.WriteLine("LogManager.Shutdown() - now the log4net system will be shutting down...");
+                queueLogger.AbortWorker();
+                System.Console.WriteLine("LogManager.Shutdown() - log4net system shutdown succeeded.");
             }
         }
 
