@@ -43,7 +43,7 @@
   </Target>
 
   <Target Name="BuildSolutions">
-    <MSBuild Projects="$(BuildSolutionDir)\Log4ALA.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="$(BuildSolutionDir)\Log4ALA_Nuget.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
 
   <Target Name="UpdateVersion">
@@ -110,7 +110,7 @@
   <Target Name="NuGetRestore">
 
  
-    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)"
+    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)\Log4ALA_Nuget.sln"
             LogStandardErrorAsError="true" />
 
 
