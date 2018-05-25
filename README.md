@@ -308,8 +308,5 @@ click *Usage* then scroll over to the right and you can see the Performance dash
 
 ## Supported Frameworks
 
-* .Net 4.5 Full Framework
-* .Net 4.5.1 Full Framework
-* .Net 4.5.2 Full Framework
-* .Net 4.6 Full Framework
-* .Net 4.6.1 Full Framework
+* .NETFramework 4.5
+* .NETStandard 2.0
