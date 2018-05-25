@@ -1,4 +1,4 @@
-﻿#if !NETSTANDARD2_0
+﻿#if !NETSTANDARD2_0 && !NETCOREAPP2_0
 using Microsoft.Azure;
 #else
 using Microsoft.Extensions.Configuration;
@@ -77,7 +77,7 @@ namespace Log4ALA
 
 
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
         private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")).Build();
 #endif
 
@@ -92,7 +92,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_WORKSPACE_ID_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_WORKSPACE_ID_PROP}"];
@@ -104,7 +104,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_SHAREDKEY_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_SHAREDKEY_PROP}"];
@@ -116,7 +116,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOGTYPE_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOGTYPE_PROP}"];
@@ -128,7 +128,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_AZURE_API_VERSION_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_AZURE_API_VERSION_PROP}"];
@@ -140,7 +140,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAHttpDataCollectorRetry = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_HTTP_DATACOLLECTOR_RETRY_PROP}");
 #else
                 string aLAHttpDataCollectorRetry = CloudConfigurationManager[$"{this.propPrefix}:{ALA_HTTP_DATACOLLECTOR_RETRY_PROP}"];
@@ -153,7 +153,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLALoggingQueueSize = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOGGING_QUEUE_SIZE_PROP}");
 #else
                 string aLALoggingQueueSize = CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOGGING_QUEUE_SIZE_PROP}"];
@@ -169,7 +169,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLALogMessageToFile = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOG_MESSAGE_TOFILE_PROP}");
 #else
                 string aLALogMessageToFile = CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOG_MESSAGE_TOFILE_PROP}"];
@@ -181,7 +181,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAAppendLogger = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APPEND_LOGGER_PROP}");
 #else
                 string aLAAppendLogger = CloudConfigurationManager[$"{this.propPrefix}:{ALA_APPEND_LOGGER_PROP}"];
@@ -194,7 +194,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAAppendLogLevel = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APPEND_LOG_LEVEL_PROP}");
 #else
                 string aLAAppendLogLevel = CloudConfigurationManager[$"{this.propPrefix}:{ALA_APPEND_LOG_LEVEL_PROP}"];
@@ -207,7 +207,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_ERR_LOGGER_NAME_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_ERR_LOGGER_NAME_PROP}"];
@@ -219,7 +219,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_ERR_APPENDER_FILE_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_ERR_APPENDER_FILE_PROP}"];
@@ -231,7 +231,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INFO_APPENDER_FILE_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_INFO_APPENDER_FILE_PROP}"];
@@ -243,7 +243,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string queueSizeLogInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_PROP);
 #else
                 string queueSizeLogInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_PROP];
@@ -256,7 +256,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string isLogQueueSizeInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP);
 #else
                 string isLogQueueSizeInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP];
@@ -269,7 +269,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAKeyValueDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_VALUE_DETECTION_PROP}");
 #else
                 string aLAKeyValueDetection = CloudConfigurationManager[$"{this.propPrefix}:{ALA_KEY_VALUE_DETECTION_PROP}"];
@@ -282,7 +282,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAJsonDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_JSON_DETECTION_PROP}");
 #else
                 string aLAJsonDetection = CloudConfigurationManager[$"{this.propPrefix}:{ALA_JSON_DETECTION_PROP}"];
@@ -295,7 +295,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLABatchSizeInBytes = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_SIZE_BYTES_PROP}");
 #else
                 string aLABatchSizeInBytes = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_SIZE_BYTES_PROP}"];
@@ -308,7 +308,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLABatchNumItems = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_NUM_ITEMS_PROP}");
 #else
                 string aLABatchNumItems = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_NUM_ITEMS_PROP}"];
@@ -321,7 +321,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLABatchWaitInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_SECONDS_PROP}");
 #else
                 string aLABatchWaitInSec = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_WAIT_SECONDS_PROP}"];
@@ -334,7 +334,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLABatchWaitMaxInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_MAX_SECONDS_PROP}");
 #else
                 string aLABatchWaitMaxInSec = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_WAIT_MAX_SECONDS_PROP}"];
@@ -347,7 +347,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAMaxFieldByteLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_BYTE_LENGTH_PROP}");
 #else
                 string aLAMaxFieldByteLength = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MAX_FIELD_BYTE_LENGTH_PROP}"];
@@ -360,7 +360,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAMaxFieldNameLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_NAME_LENGTH_PROP}");
 #else
                 string aLAMaxFieldNameLength = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MAX_FIELD_NAME_LENGTH_PROP}"];
@@ -373,7 +373,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_CORE_FIELD_NAMES_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_CORE_FIELD_NAMES_PROP}"];
@@ -385,7 +385,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_THREAD_PRIORITY_PROP}");
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_THREAD_PRIORITY_PROP}"];
@@ -396,7 +396,7 @@ namespace Log4ALA
         {
             get
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAQueueReadTimeout = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_QUEUE_READ_TIMEOUT_PROP}");
 #else
                 string aLAQueueReadTimeout = CloudConfigurationManager[$"{this.propPrefix}:{ALA_QUEUE_READ_TIMEOUT_PROP}"];

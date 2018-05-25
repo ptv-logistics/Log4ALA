@@ -52,7 +52,7 @@ namespace Log4ALA
         public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
         public int? MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
         private static ILoggerRepository REPOSITORY = log4net.LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
 #endif
 
@@ -105,14 +105,14 @@ namespace Log4ALA
 
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
                 {
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
                     XmlConfigurator.Configure(REPOSITORY, stream);
 #else
                     XmlConfigurator.Configure(stream);
 #endif
                 }
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
                 log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
 #else
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
@@ -148,7 +148,7 @@ namespace Log4ALA
 
                 if (!string.IsNullOrWhiteSpace(configSettings.ALAErrLoggerName))
                 {
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
                     extraLog = LogManager.GetLogger(REPOSITORY.Name, configSettings.ALAErrLoggerName);
 #else
                     extraLog = LogManager.GetLogger(configSettings.ALAErrLoggerName);
@@ -157,7 +157,7 @@ namespace Log4ALA
                 }
                 else if (!string.IsNullOrWhiteSpace(ErrLoggerName))
                 {
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
                     extraLog = LogManager.GetLogger(REPOSITORY.Name, ErrLoggerName);
 #else
                     extraLog = LogManager.GetLogger(ErrLoggerName);
@@ -279,7 +279,7 @@ namespace Log4ALA
 
             try
             {
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETCOREAPP2_0
                 var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository(REPOSITORY.Name).GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
 #else
                 var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository().GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
