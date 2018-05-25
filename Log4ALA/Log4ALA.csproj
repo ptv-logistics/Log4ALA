@@ -67,9 +67,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="internalLog4net.config">
+    <Content Include="internalLog4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Content>
   </ItemGroup>
  
 </Project>
