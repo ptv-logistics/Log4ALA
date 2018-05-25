@@ -259,3 +259,11 @@ Log4ALAPTV.sln
 
 
 
+/NuGet/Log4ALA.Core/lib/netstandard2.0/Log4ALA.deps.json
+/NuGet/Log4ALA.Core/lib/netstandard2.0/Log4ALA.dll
+/NuGet/Log4ALA.Core/lib/netstandard2.0/Log4ALA.xml
+/NuGet/Log4ALA/lib/net45/Log4ALA.dll
+/NuGet/Log4ALA/lib/net45/Log4ALA.xml
+/NuGet/Log4ALA/lib/netstandard2.0/Log4ALA.deps.json
+/NuGet/Log4ALA/lib/netstandard2.0/Log4ALA.dll
+/NuGet/Log4ALA/lib/netstandard2.0/Log4ALA.xml
