@@ -15,7 +15,6 @@ namespace Log4ALATest.Core
 #if NETCOREAPP2_0
         private static ILoggerRepository REPOSITORY = log4net.LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
 #endif
-        //private static ILog alaLogger1 = LogManager.GetLogger("Log4ALALogger_1");
 
 
 #if NETCOREAPP2_0
@@ -23,7 +22,6 @@ namespace Log4ALATest.Core
 #else
         private static ILog alaLogger2 = LogManager.GetLogger("Log4ALALogger_2");
 #endif
-        //private static ILog alaLogger3 = LogManager.GetLogger("Log4ALALogger_3");
 
         static void Main(string[] args)
         {
@@ -39,12 +37,7 @@ namespace Log4ALATest.Core
             }
 
 
-            System.Console.WriteLine("done2");
-
-
-
-
-            System.Console.WriteLine("done4");
+            System.Console.WriteLine("done");
 
   
 
