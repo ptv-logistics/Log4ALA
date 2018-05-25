@@ -2,6 +2,7 @@
 using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
+using log4net.Repository;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -51,6 +52,11 @@ namespace Log4ALA
         public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
         public int? MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
 
+#if NETSTANDARD2_0
+        private static ILoggerRepository REPOSITORY = log4net.LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
+#endif
+
+
 
         public CoreFieldNames coreFields;
 
@@ -99,10 +105,18 @@ namespace Log4ALA
 
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
                 {
+#if NETSTANDARD2_0
+                    XmlConfigurator.Configure(REPOSITORY, stream);
+#else
                     XmlConfigurator.Configure(stream);
+#endif
                 }
 
+#if NETSTANDARD2_0
+                log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
+#else
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
+#endif
 
                 string setErrAppFileNameMessage, setInfoAppFileNameMessage;
                 bool isErrFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAErrAppenderFile) ? ErrAppenderFile : configSettings.ALAErrAppenderFile, ConfigSettings.LOG_ERR_APPENDER, out setErrAppFileNameMessage);
@@ -134,12 +148,20 @@ namespace Log4ALA
 
                 if (!string.IsNullOrWhiteSpace(configSettings.ALAErrLoggerName))
                 {
+#if NETSTANDARD2_0
+                    extraLog = LogManager.GetLogger(REPOSITORY.Name, configSettings.ALAErrLoggerName);
+#else
                     extraLog = LogManager.GetLogger(configSettings.ALAErrLoggerName);
+#endif
                     log.Inf($"[{this.Name}] - errLoggerName:[{configSettings.ALAErrLoggerName}]", true);
                 }
                 else if (!string.IsNullOrWhiteSpace(ErrLoggerName))
                 {
+#if NETSTANDARD2_0
+                    extraLog = LogManager.GetLogger(REPOSITORY.Name, ErrLoggerName);
+#else
                     extraLog = LogManager.GetLogger(ErrLoggerName);
+#endif
                     log.Inf($"[{this.Name}] - errLoggerName:[{ErrLoggerName}]", true);
                 }
 
@@ -257,7 +279,11 @@ namespace Log4ALA
 
             try
             {
+#if NETSTANDARD2_0
+                var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository(REPOSITORY.Name).GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
+#else
                 var appender = (log4net.Appender.RollingFileAppender)LogManager.GetRepository().GetAppenders().Where(ap => ap.Name.Equals(internalAppenderName)).FirstOrDefault();
+#endif
 
 
                 if (!string.IsNullOrWhiteSpace(appenderFile))

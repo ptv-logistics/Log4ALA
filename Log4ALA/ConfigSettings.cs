@@ -1,4 +1,9 @@
-﻿using Microsoft.Azure;
+﻿#if !NETSTANDARD2_0
+using Microsoft.Azure;
+#else
+using Microsoft.Extensions.Configuration;
+using System.IO;
+#endif
 using System;
 
 namespace Log4ALA
@@ -70,6 +75,13 @@ namespace Log4ALA
 
         private string propPrefix = string.Empty;
 
+
+
+#if NETSTANDARD2_0
+        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")).Build();
+#endif
+
+
         public ConfigSettings(string propPrefix)
         {
             this.propPrefix = propPrefix;
@@ -80,7 +92,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_WORKSPACE_ID_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_WORKSPACE_ID_PROP}"];
+#endif
             }
         }
 
@@ -88,7 +104,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_SHAREDKEY_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_SHAREDKEY_PROP}"];
+#endif
             }
         }
 
@@ -96,7 +116,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOGTYPE_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOGTYPE_PROP}"];
+#endif
             }
         }
 
@@ -104,7 +128,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_AZURE_API_VERSION_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_AZURE_API_VERSION_PROP}"];
+#endif
             }
         }
 
@@ -112,7 +140,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAHttpDataCollectorRetry = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_HTTP_DATACOLLECTOR_RETRY_PROP}");
+#else
+                string aLAHttpDataCollectorRetry = CloudConfigurationManager[$"{this.propPrefix}:{ALA_HTTP_DATACOLLECTOR_RETRY_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAHttpDataCollectorRetry) ? (int?)null : int.Parse(aLAHttpDataCollectorRetry));
             }
         }
@@ -121,7 +153,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLALoggingQueueSize = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOGGING_QUEUE_SIZE_PROP}");
+#else
+                string aLALoggingQueueSize = CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOGGING_QUEUE_SIZE_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLALoggingQueueSize) ? (int?)null : int.Parse(aLALoggingQueueSize));
             }
         }
@@ -133,7 +169,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLALogMessageToFile = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOG_MESSAGE_TOFILE_PROP}");
+#else
+                string aLALogMessageToFile = CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOG_MESSAGE_TOFILE_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLALogMessageToFile) ? (bool?)null : Boolean.Parse(aLALogMessageToFile));
             }
         }
@@ -141,7 +181,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAAppendLogger = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APPEND_LOGGER_PROP}");
+#else
+                string aLAAppendLogger = CloudConfigurationManager[$"{this.propPrefix}:{ALA_APPEND_LOGGER_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAAppendLogger) ? (bool?)null : Boolean.Parse(aLAAppendLogger));
             }
         }
@@ -150,7 +194,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAAppendLogLevel = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APPEND_LOG_LEVEL_PROP}");
+#else
+                string aLAAppendLogLevel = CloudConfigurationManager[$"{this.propPrefix}:{ALA_APPEND_LOG_LEVEL_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAAppendLogLevel) ? (bool?)null : Boolean.Parse(aLAAppendLogLevel));
             }
         }
@@ -159,7 +207,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_ERR_LOGGER_NAME_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_ERR_LOGGER_NAME_PROP}"];
+#endif
             }
         }
 
@@ -167,7 +219,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_ERR_APPENDER_FILE_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_ERR_APPENDER_FILE_PROP}"];
+#endif
             }
         }
 
@@ -175,7 +231,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INFO_APPENDER_FILE_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_INFO_APPENDER_FILE_PROP}"];
+#endif
             }
         }
 
@@ -183,7 +243,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string queueSizeLogInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_PROP);
+#else
+                string queueSizeLogInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_PROP];
+#endif
                 return int.Parse((string.IsNullOrWhiteSpace(queueSizeLogInterval) ? DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES : queueSizeLogInterval));
             }
         }
@@ -192,7 +256,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string isLogQueueSizeInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP);
+#else
+                string isLogQueueSizeInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP];
+#endif
                 return (string.IsNullOrWhiteSpace(isLogQueueSizeInterval) ? false : Boolean.Parse(isLogQueueSizeInterval));
             }
         }
@@ -201,7 +269,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAKeyValueDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_VALUE_DETECTION_PROP}");
+#else
+                string aLAKeyValueDetection = CloudConfigurationManager[$"{this.propPrefix}:{ALA_KEY_VALUE_DETECTION_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAKeyValueDetection) ? (bool?)null : Boolean.Parse(aLAKeyValueDetection));
             }
         }
@@ -210,7 +282,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAJsonDetection = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_JSON_DETECTION_PROP}");
+#else
+                string aLAJsonDetection = CloudConfigurationManager[$"{this.propPrefix}:{ALA_JSON_DETECTION_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAJsonDetection) ? (bool?)null : Boolean.Parse(aLAJsonDetection));
             }
         }
@@ -219,7 +295,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLABatchSizeInBytes = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_SIZE_BYTES_PROP}");
+#else
+                string aLABatchSizeInBytes = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_SIZE_BYTES_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLABatchSizeInBytes) ? (int?)null : int.Parse(aLABatchSizeInBytes));
             }
         }
@@ -228,7 +308,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLABatchNumItems = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_NUM_ITEMS_PROP}");
+#else
+                string aLABatchNumItems = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_NUM_ITEMS_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLABatchNumItems) ? (int?)null : int.Parse(aLABatchNumItems));
             }
         }
@@ -237,7 +321,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLABatchWaitInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_SECONDS_PROP}");
+#else
+                string aLABatchWaitInSec = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_WAIT_SECONDS_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLABatchWaitInSec) ? (int?)null : int.Parse(aLABatchWaitInSec));
             }
         }
@@ -246,7 +334,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLABatchWaitMaxInSec = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_BATCH_WAIT_MAX_SECONDS_PROP}");
+#else
+                string aLABatchWaitMaxInSec = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_WAIT_MAX_SECONDS_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLABatchWaitMaxInSec) ? (int?)null : int.Parse(aLABatchWaitMaxInSec));
             }
         }
@@ -255,7 +347,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAMaxFieldByteLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_BYTE_LENGTH_PROP}");
+#else
+                string aLAMaxFieldByteLength = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MAX_FIELD_BYTE_LENGTH_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAMaxFieldByteLength) ? (int?)null : int.Parse(aLAMaxFieldByteLength));
             }
         }
@@ -264,7 +360,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAMaxFieldNameLength = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MAX_FIELD_NAME_LENGTH_PROP}");
+#else
+                string aLAMaxFieldNameLength = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MAX_FIELD_NAME_LENGTH_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAMaxFieldNameLength) ? (int?)null : int.Parse(aLAMaxFieldNameLength));
             }
         }
@@ -273,7 +373,11 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_CORE_FIELD_NAMES_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_CORE_FIELD_NAMES_PROP}"];
+#endif
             }
         }
 
@@ -281,14 +385,22 @@ namespace Log4ALA
         {
             get
             {
+#if !NETSTANDARD2_0
                 return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_THREAD_PRIORITY_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_THREAD_PRIORITY_PROP}"];
+#endif
             }
         }
         public int? ALAQueueReadTimeout
         {
             get
             {
+#if !NETSTANDARD2_0
                 string aLAQueueReadTimeout = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_QUEUE_READ_TIMEOUT_PROP}");
+#else
+                string aLAQueueReadTimeout = CloudConfigurationManager[$"{this.propPrefix}:{ALA_QUEUE_READ_TIMEOUT_PROP}"];
+#endif
                 return (string.IsNullOrWhiteSpace(aLAQueueReadTimeout) ? (int?)null : int.Parse(aLAQueueReadTimeout));
             }
         }
