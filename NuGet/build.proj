@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
+    <MinorVersion Condition="$(MinorVersion) == ''">0</MinorVersion>
+    <PatchVersion Condition="$(PatchVersion) == ''">6</PatchVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BuildSolutionDir>$(MSBuildProjectDirectory.Replace("NuGet", ""))</BuildSolutionDir>
+    <SrcDir>$(BuildSolutionDir)Log4ALA</SrcDir>
+    <Configuration Condition="$(Configuration) == ''">Release</Configuration>
+    <NuGetPath>$(MSBuildProjectDirectory)\.nuget\nuget.exe</NuGetPath>
+    <NuGetPackageDir>$(BuildSolutionDir)NuGet</NuGetPackageDir>
+    <Version>$(MajorVersion).$(MinorVersion).$(PatchVersion)</Version>
+    <PackageVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DoBuildSolutionsDependsOn>
+      BeforeBuildSolutions;
+      BuildSolutions
+    </DoBuildSolutionsDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <NugetPackageFilesToDelete Include="$(NuGetPackageDir)\*.nupkg" />
+  </ItemGroup>
+
+  <Target Name="Default" DependsOnTargets="$(DoBuildSolutionsDependsOn)" />
+
+ 
+
+  <Target Name="BeforeBuildSolutions">
+    <Message Text="*****Before building solution*****" Importance="high" />
+    <CallTarget Targets="UpdateVersion" />
+  </Target>
+
+  <Target Name="BuildSolutions">
+    <MSBuild Projects="$(BuildSolutionDir)\Log4ALA.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="UpdateVersion">
+    <ItemGroup>
+      <!-- Add Version to AssemblyFileVersion -->
+      <RegexTransform Include="$(SrcDir)\**\AssemblyInfo.cs">
+        <Find>AssemblyFileVersion\(\"\d+\.\d+\.\d+\"\)</Find>
+        <ReplaceWith>AssemblyFileVersion("$(Version)")</ReplaceWith>
+      </RegexTransform>
+      <!--Update Min Dependency Version -->
+      <RegexTransform Include="$(NuGetPackageDir)\**\*.nuspec">
+        <Find>version="2\.[^"]*"</Find>
+        <ReplaceWith>version="$(PackageVersion)"</ReplaceWith>
+      </RegexTransform>
+    </ItemGroup>
+
+    <RegexTransform Items="@(RegexTransform)" />
+  </Target>
+  
+  
+  <Target Name="NuGetPack">
+    <Delete Files="@(NugetPackageFilesToDelete)" />
+
+    <ItemGroup>
+      <Log4ALAFiles Include="$(SrcDir)\bin\$(Configuration)\net45\Log4ALA.*"></Log4ALAFiles>
+      <Log4ALACoreLibFiles Include="$(SrcDir)\bin\$(Configuration)\netstandard2.0\Log4ALA.*"></Log4ALACoreLibFiles>
+    </ItemGroup>
+
+
+    <!-- ServiceStack.Interfaces -->
+
+    <!--<MSBuild Projects="$(SrcDir)/Log4ALA.csproj"
+             Targets="Build"
+             Properties="Version=$(PackageVersion);Configuration=$(Configuration)" />-->
+
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\net45" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\net45')" />
+    <Copy SourceFiles="%(Log4ALAFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\net45" />
+
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0')" />
+    <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" />
+
+    <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA\Log4ALA.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"
+            LogStandardErrorAsError="true" />
+
+    <!-- ServiceStack.Interfaces.Core -->
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0')" />
+    <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0" />
+
+    <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA.Core\Log4ALA.core.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"
+          LogStandardErrorAsError="true" />
+    
+  </Target>
+
+  <Target Name="NuGetPackTest">
+
+    <Delete Files="@(NugetPackageFilesToDelete)" />
+
+  </Target>
+
+  <Target Name="NuGetRestore">
+
+ 
+    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)"
+            LogStandardErrorAsError="true" />
+
+
+  </Target>
+
+  
+ 
+ 
+</Project>
