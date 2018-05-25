@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">-->
 <Project Sdk="Microsoft.NET.Sdk">
-
+<Import Project="$(MSBuildProjectDirectory)/build.tasks" />
   <PropertyGroup>
     <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
     <MinorVersion Condition="$(MinorVersion) == ''">0</MinorVersion>
-    <PatchVersion Condition="$(PatchVersion) == ''">6</PatchVersion>
+    <PatchVersion Condition="$(PatchVersion) == ''">7</PatchVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,7 +30,12 @@
 
   <Target Name="Default" DependsOnTargets="$(DoBuildSolutionsDependsOn)" />
 
- 
+  <Target Name="BuildAll">
+    <CallTarget Targets="NuGetRestore" />
+    <CallTarget Targets="Default" />
+    <CallTarget Targets="NuGetPack" />
+  </Target>
+
 
   <Target Name="BeforeBuildSolutions">
     <Message Text="*****Before building solution*****" Importance="high" />
@@ -46,13 +50,17 @@
     <ItemGroup>
       <!-- Add Version to AssemblyFileVersion -->
       <RegexTransform Include="$(SrcDir)\**\AssemblyInfo.cs">
+        <Find>AssemblyVersion\(\"\d+\.\d+\.\d+\"\)</Find>
+        <ReplaceWith>AssemblyVersion("$(Version)")</ReplaceWith>
+      </RegexTransform>
+      <RegexTransform Include="$(SrcDir)\**\AssemblyInfo.cs">
         <Find>AssemblyFileVersion\(\"\d+\.\d+\.\d+\"\)</Find>
         <ReplaceWith>AssemblyFileVersion("$(Version)")</ReplaceWith>
       </RegexTransform>
       <!--Update Min Dependency Version -->
       <RegexTransform Include="$(NuGetPackageDir)\**\*.nuspec">
-        <Find>version="2\.[^"]*"</Find>
-        <ReplaceWith>version="$(PackageVersion)"</ReplaceWith>
+        <Find>version>2\.[^"]*&lt;/version</Find>
+        <ReplaceWith>version>$(PackageVersion)&lt;/version</ReplaceWith>
       </RegexTransform>
     </ItemGroup>
 
