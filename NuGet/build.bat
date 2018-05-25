@@ -5,5 +5,5 @@ REM %MSBUILD% /p:Configuration=Release ..\Log4ALA.sln
 REM %MSBUILD% build.proj /target:NuGetPack /property:Configuration=Release;RELEASE=true
 REM PackageVersion=4.5.0;PatchVersion=0;PatchCoreVersion=0
 del *.nupkg
-%MSBUILD% build.proj /target:BuildAll /property:Configuration=Release;RELEASE=true;MajorVersion=2;MinorVersion=0;PatchVersion=8
+%MSBUILD% build.proj /target:BuildAll /property:Configuration=Release;RELEASE=true;MajorVersion=2;MinorVersion=0;PatchVersion=6
 pause
