@@ -77,5 +77,16 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
- 
+  
+  <ItemGroup>
+    <None Remove="log4net.config" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  
 </Project>

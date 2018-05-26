@@ -26,11 +26,25 @@
 
   <ItemGroup>
     <NugetPackageFilesToDelete Include="$(NuGetPackageDir)\*.nupkg" />
+    <BuildFilesToDelete Include="$(SrcDir)\bin\$(Configuration)\**\*.*" />
+    <NugetLibFilesToDelete Include="$(NuGetPackageDir)\Log4ALA\lib\**\*.*" />
+    <NugetContentFilesToDelete Include="$(NuGetPackageDir)\Log4ALA\contentFiles\**\*.*" />
+    <NugetContent2FilesToDelete Include="$(NuGetPackageDir)\Log4ALA\content\**\*.*" />
+    <NugetLibCoreFilesToDelete Include="$(NuGetPackageDir)\Log4ALA.Core\lib\**\*.*" />
+    <NugetContentCoreFilesToDelete Include="$(NuGetPackageDir)\Log4ALA.Core\contentFiles\**\*.*" />
+    <NugetContent2CoreFilesToDelete Include="$(NuGetPackageDir)\Log4ALA.Core\content\**\*.*" />
   </ItemGroup>
 
   <Target Name="Default" DependsOnTargets="$(DoBuildSolutionsDependsOn)" />
 
   <Target Name="BuildAll">
+    <Delete Files="@(BuildFilesToDelete)" />
+    <Delete Files="@(NugetLibFilesToDelete)" />
+    <Delete Files="@(NugetLibCoreFilesToDelete)" />
+    <Delete Files="@(NugetContentFilesToDelete)" />
+    <Delete Files="@(NugetContentCoreFilesToDelete)" />
+    <Delete Files="@(NugetContent2FilesToDelete)" />
+    <Delete Files="@(NugetContent2CoreFilesToDelete)" />
     <CallTarget Targets="NuGetRestore" />
     <CallTarget Targets="Default" />
     <CallTarget Targets="NuGetPack" />
@@ -43,7 +57,7 @@
   </Target>
 
   <Target Name="BuildSolutions">
-    <MSBuild Projects="$(BuildSolutionDir)\Log4ALA_Nuget.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="$(BuildSolutionDir)\Log4ALA.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
 
   <Target Name="UpdateVersion">
@@ -73,11 +87,14 @@
 
     <ItemGroup>
       <Log4ALAFiles Include="$(SrcDir)\bin\$(Configuration)\net45\Log4ALA.*"></Log4ALAFiles>
+      <Log4ALAConentFiles Include="$(SrcDir)\bin\$(Configuration)\net45\internalLog4net.*"></Log4ALAConentFiles>
+      <Log4ALAConent2Files Include="$(SrcDir)\bin\$(Configuration)\net45\log4net.config"></Log4ALAConent2Files>
       <Log4ALACoreLibFiles Include="$(SrcDir)\bin\$(Configuration)\netstandard2.0\Log4ALA.*"></Log4ALACoreLibFiles>
+      <Log4ALACoreContentFiles Include="$(SrcDir)\bin\$(Configuration)\netstandard2.0\internalLog4net.*"></Log4ALACoreContentFiles>
     </ItemGroup>
 
 
-    <!-- ServiceStack.Interfaces -->
+    <!-- Log4ALA -->
 
     <!--<MSBuild Projects="$(SrcDir)/Log4ALA.csproj"
              Targets="Build"
@@ -85,20 +102,25 @@
 
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\net45" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\net45')" />
     <Copy SourceFiles="%(Log4ALAFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\net45" />
-
+ 
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0')" />
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\contentFiles\any\any')" />
     <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" />
+    <Copy SourceFiles="%(Log4ALAConent2Files.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
+    <Copy SourceFiles="%(Log4ALACoreContentFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
 
     <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA\Log4ALA.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"
             LogStandardErrorAsError="true" />
 
-    <!-- ServiceStack.Interfaces.Core -->
+    <!-- Log4ALA.Core
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0')" />
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA.Core\contentFiles\any\any" Condition="!Exists('$(NuGetPackageDir)\Log4ALA.Core\contentFiles\any\any')" />
     <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA.Core\lib\netstandard2.0" />
+    <Copy SourceFiles="%(Log4ALACoreContentFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA.Core\contentFiles\any\any" />
 
     <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA.Core\Log4ALA.core.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"
           LogStandardErrorAsError="true" />
-    
+     -->
   </Target>
 
   <Target Name="NuGetPackTest">
@@ -110,7 +132,7 @@
   <Target Name="NuGetRestore">
 
  
-    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)\Log4ALA_Nuget.sln"
+    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)\Log4ALA.sln"
             LogStandardErrorAsError="true" />
 
 

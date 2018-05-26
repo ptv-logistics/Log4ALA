@@ -103,19 +103,18 @@ namespace Log4ALA
                 LogMessageToFile = configSettings.ALALogMessageToFile == null ? LogMessageToFile : (bool)configSettings.ALALogMessageToFile;
 
 
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
                 {
-#if NETSTANDARD2_0 || NETCOREAPP2_0
-                    XmlConfigurator.Configure(REPOSITORY, stream);
-#else
                     XmlConfigurator.Configure(stream);
-#endif
                 }
-
-#if NETSTANDARD2_0 || NETCOREAPP2_0
-                log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
-#else
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
+
+#else
+                var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+                XmlConfigurator.Configure(logRepository, new FileInfo("internalLog4net.config"));
+
+                log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
 #endif
 
                 string setErrAppFileNameMessage, setInfoAppFileNameMessage;
