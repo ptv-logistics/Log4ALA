@@ -5,11 +5,6 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
-  
-  <ItemGroup>
-    <None Remove="appsettings.json" />
-    <None Remove="internalLog4net.config.bak" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="appsettings.json">
