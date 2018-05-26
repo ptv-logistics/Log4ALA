@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -120,14 +120,14 @@ batchNumItems or batchWaitInSec (described further down).
 ## General Configuration 
 
 It's possible to configure multiple log4net Azure Log Analytics appender(s). The properties (e.g. workspaceId, SharedKey...) of each appender could be configured as 
-appender properties, appSettings in App.config/Web.config or as Azure Configuration Setting with fallback strategy AzureSetting=>appSetting=>appenderProperty.
+appender properties, appSettings in App.config/Web.config or as Azure Configuration Setting (Azure settings are excluded from netstandard2.0 and netcoreapp2.0) with fallback strategy AzureSetting=>appSetting=>appenderProperty.
 If the properties will be configured as appSetting in App.config/Web.config or as Azure Configuration Settings it's important to attach the appender name as prefix 
 to the property e.g. **YourAppenderName.workspaceId**
 
 
 ## Example App Configuration file
 
-This configuration is also available as a [App.config](https://github.com/ptv-logistics/Log4IoTHub/blob/master/Log4IoTHubTest/App.config):
+This configuration is also available as a [App.config](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALATest/App.config):
 
 
 ```xml
@@ -159,6 +159,43 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
   </appSettings>
 
 </configuration>
+``` 
+
+## Example AppSettings ASP.NET Core
+
+This configuration is also available as a [appsettings.json](https://github.com/ptv-logistics/Log4ALA.Core/blob/master/Log4ALATest/appsettings.json):
+
+
+```json
+{
+ 
+  "Log4ALAAppender_2": {
+
+    "workspaceId": "",
+    "SharedKey": "",
+    "logType": "",
+    "logMessageToFile": "true",
+    "jsonDetection": "true",
+    "batchWaitMaxInSec": "2",
+    "coreFieldNames": "{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"
+   },
+   "alaQueueSizeLogIntervalEnabled": "false",
+   "alaQueueSizeLogIntervalInSec": "100",
+   
+    "Logging": {
+      "IncludeScopes": false,
+      "Debug": {
+        "LogLevel": {
+          "Default": "Warning"
+        }
+      },
+      "Console": {
+        "LogLevel": {
+          "Default": "Warning"
+        }
+      }
+    }
+}
 ``` 
 
 ## Example Log4Net Configuration file
