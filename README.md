@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -163,7 +163,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 
 ## Example AppSettings ASP.NET Core
 
-This configuration is also available as a [appsettings.json](https://github.com/ptv-logistics/Log4ALA.Core/blob/master/Log4ALATest/appsettings.json):
+This configuration is also available as a [appsettings.json](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALATest.Core/appsettings.json):
 
 
 ```json
