@@ -4,7 +4,7 @@
   <PropertyGroup>
     <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
     <MinorVersion Condition="$(MinorVersion) == ''">1</MinorVersion>
-    <PatchVersion Condition="$(PatchVersion) == ''">0</PatchVersion>
+    <PatchVersion Condition="$(PatchVersion) == ''">1</PatchVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -106,7 +106,7 @@
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0')" />
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\contentFiles\any\any')" />
     <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" />
-    <Copy SourceFiles="%(Log4ALAConent2Files.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
+    <!--<Copy SourceFiles="%(Log4ALAConent2Files.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />-->
     <Copy SourceFiles="%(Log4ALACoreContentFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
 
     <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA\Log4ALA.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"

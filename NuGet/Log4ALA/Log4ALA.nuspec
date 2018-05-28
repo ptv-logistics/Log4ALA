@@ -3,7 +3,7 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
-    <releaseNotes>Added netstandard 2.0 support</releaseNotes>
+    <releaseNotes>Removed log4net.config from package content files</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.5" />
@@ -32,7 +32,6 @@
     </dependencies>
  	<!-- https://docs.microsoft.com/de-de/nuget/reference/nuspec#including-content-files -->
     <contentFiles>
-	  <files include="**/log4net.config" buildAction="Content" flatten="true" copyToOutput="true" />
 	  <files include="**/internalLog4net.config" buildAction="Content" flatten="true" copyToOutput="true" />
  	</contentFiles>
    </metadata>
