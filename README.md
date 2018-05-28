@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -345,5 +345,5 @@ click *Usage* then scroll over to the right and you can see the Performance dash
 
 ## Supported Frameworks
 
-* .NETFramework 4.5
+* .NETFramework >= 4.5
 * .NETStandard 2.0
