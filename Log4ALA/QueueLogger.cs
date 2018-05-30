@@ -294,7 +294,7 @@ namespace Log4ALA
                 //wait until the worker thread has flushed the locally queued log data
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
                 //the timeout of 20 seconds reached
-                manualResetEvent.WaitOne(TimeSpan.FromSeconds(20));
+                manualResetEvent.WaitOne(TimeSpan.FromSeconds(ConfigSettings.AbortWorkerManualResetEventTimeoutInSec));
                 WorkerThread.Abort();
                 System.Console.WriteLine("QueueLogger.AbortWorker() succeeded.");
             }

@@ -36,6 +36,7 @@ namespace Log4ALA
         private const string ALA_MAX_FIELD_NAME_LENGTH_PROP = "maxFieldNameLength";
         private const string ALA_THREAD_PRIORITY_PROP = "threadPriority";
         private const string ALA_QUEUE_READ_TIMEOUT_PROP = "queueReadTimeout";
+        private const string ABORT_WORKER_MANUAL_RESET_EVENT_TIMEOUT_SECONDS_PROP = "abortWorkerManualResetEventTimeoutInSec";
 
 
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
@@ -53,6 +54,7 @@ namespace Log4ALA
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 500;
         public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
+        public const string DEFAULT_ABORT_WORKER_MANUAL_RESET_EVENT_TIMEOUT_SECONDS = "20";
 
         public const string DEFAULT_DATE_FIELD_NAME = "DateValue";
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
@@ -402,6 +404,20 @@ namespace Log4ALA
                 string aLAQueueReadTimeout = CloudConfigurationManager[$"{this.propPrefix}:{ALA_QUEUE_READ_TIMEOUT_PROP}"];
 #endif
                 return (string.IsNullOrWhiteSpace(aLAQueueReadTimeout) ? (int?)null : int.Parse(aLAQueueReadTimeout));
+            }
+        }
+        
+
+        public static int AbortWorkerManualResetEventTimeoutInSec
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string abortWorkerManualResetEventTimeout = CloudConfigurationManager.GetSetting($"{ABORT_WORKER_MANUAL_RESET_EVENT_TIMEOUT_SECONDS_PROP}");
+#else
+                string abortWorkerManualResetEventTimeout = CloudConfigurationManager[$"{ABORT_WORKER_MANUAL_RESET_EVENT_TIMEOUT_SECONDS_PROP}"];
+#endif
+                return int.Parse((string.IsNullOrWhiteSpace(abortWorkerManualResetEventTimeout) ? DEFAULT_ABORT_WORKER_MANUAL_RESET_EVENT_TIMEOUT_SECONDS : abortWorkerManualResetEventTimeout));
             }
         }
 
