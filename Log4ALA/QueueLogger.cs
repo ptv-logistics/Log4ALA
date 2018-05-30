@@ -29,9 +29,15 @@ namespace Log4ALA
         private Timer logQueueSizeTimer = null;
 
         private AlaTcpClient alaClient = null;
+        private CancellationTokenSource tokenSource;
+        private CancellationToken cToken;
+        private ManualResetEvent manualResetEvent;
 
         public QueueLogger(Log4ALAAppender appender)
         {
+            this.tokenSource = new CancellationTokenSource();
+            this.cToken = tokenSource.Token;
+            this.manualResetEvent = new ManualResetEvent(false);
             this.appender = appender;
             Queue = new BlockingCollection<string>(appender.LoggingQueueSize != null && appender.LoggingQueueSize > 0 ? (int)appender.LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
             SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
@@ -81,6 +87,15 @@ namespace Log4ALA
         {
             try
             {
+
+                // Was cancellation already requested by AbortWorker?
+                if (this.cToken.IsCancellationRequested == true)
+                {
+                    appender.log.Inf($"[{appender.Name}] was cancelled before it got started.");
+                    cToken.ThrowIfCancellationRequested();
+                }
+
+
                 Connect(true);
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
@@ -106,7 +121,7 @@ namespace Log4ALA
                         try
                         {
 
-                            if (Queue.TryTake(out line, qReadTimeout))
+                            if (Queue.TryTake(out line, qReadTimeout, this.cToken))
                             {
                                 byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
@@ -122,6 +137,12 @@ namespace Log4ALA
                             appender.log.Err(errMessage);
                             continue;
                         }
+
+                        //stop loop if background worker thread was canceled by AbortWorker
+                        if (this.cToken.IsCancellationRequested == true)
+                        {
+                            break;
+                        }
                     }
 
                     if (buffer.ToString().Length <= 1)
@@ -135,7 +156,14 @@ namespace Log4ALA
 
                     HttpRequest($"{alaPayLoad}]");
 
+                    //stop loop if background worker thread was canceled by AbortWorker
+                    if (this.cToken.IsCancellationRequested == true)
+                    {
+                        break;
+                    }
+
                 }
+
             }
             catch (ThreadInterruptedException ex)
             {
@@ -259,6 +287,14 @@ namespace Log4ALA
             if(WorkerThread != null)
             {
                 System.Console.WriteLine("QueueLogger.AbortWorker() called...");
+
+                //cancel the background worker thread to trigger sending the queued data to ALA 
+                this.tokenSource.Cancel();
+
+                //wait until the worker thread has flushed the locally queued log data
+                //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
+                //the timeout of 20 seconds reached
+                manualResetEvent.WaitOne(TimeSpan.FromSeconds(20));
                 WorkerThread.Abort();
                 System.Console.WriteLine("QueueLogger.AbortWorker() succeeded.");
             }
@@ -333,6 +369,12 @@ namespace Log4ALA
                     appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex.Message}]");
                     Connect();
                     continue;
+                }
+
+                //unblock AbortWorker if AbortWorker has canceld the background worker thread
+                if (this.cToken.IsCancellationRequested == true)
+                {
+                    this.manualResetEvent.Set();
                 }
 
                 break;
