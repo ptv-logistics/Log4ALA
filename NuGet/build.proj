@@ -4,7 +4,7 @@
   <PropertyGroup>
     <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
     <MinorVersion Condition="$(MinorVersion) == ''">1</MinorVersion>
-    <PatchVersion Condition="$(PatchVersion) == ''">1</PatchVersion>
+    <PatchVersion Condition="$(PatchVersion) == ''">2</PatchVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -38,6 +38,7 @@
   <Target Name="Default" DependsOnTargets="$(DoBuildSolutionsDependsOn)" />
 
   <Target Name="BuildAll">
+    <CallTarget Targets="DownloadNuget" />
     <Delete Files="@(BuildFilesToDelete)" />
     <Delete Files="@(NugetLibFilesToDelete)" />
     <Delete Files="@(NugetLibCoreFilesToDelete)" />
@@ -80,6 +81,17 @@
 
     <RegexTransform Items="@(RegexTransform)" />
   </Target>
+  
+  <Target Name="DownloadNuget">
+	  <PropertyGroup>
+		<PowerShellExe Condition=" '$(PowerShellExe)'=='' "> 
+		  %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe
+		</PowerShellExe>
+	  </PropertyGroup>
+	  <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command=" $(windir)\system32\WindowsPowerShell\v1.0\powershell.exe -command 'Set-ExecutionPolicy unrestricted'" />
+      <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command=" $(windir)\system32\WindowsPowerShell\v1.0\powershell.exe -f .\downloadNuget.ps1 " />
+ </Target>
+  
   
   
   <Target Name="NuGetPack">
