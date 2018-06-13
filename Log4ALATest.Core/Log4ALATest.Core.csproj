@@ -20,4 +20,10 @@
     </Content>
   </ItemGroup>
 
+  
+
+  <ItemGroup>
+    <PackageReference Include="Log4ALA" Version="2.1.2" />
+  </ItemGroup>
+
 </Project>

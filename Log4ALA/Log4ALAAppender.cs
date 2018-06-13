@@ -260,7 +260,7 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
 
-                log.Inf($"[{this.Name}] - abortWorkerManualResetEventTimeoutInSec:[{ConfigSettings.AbortWorkerManualResetEventTimeoutInSec}]", true);
+                log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
                 
 
                 queueLogger = new QueueLogger(this);

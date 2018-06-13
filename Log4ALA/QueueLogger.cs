@@ -112,17 +112,12 @@ namespace Log4ALA
                     int numItems = 0;
                     buffer.Append('[');
                     stopwatch.Restart();
-                    while (
-                           (byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                    while (this.cToken.IsCancellationRequested != true &&
+                           ((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax)
+                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax))
                           )
                     {
-                        //stop loop if background worker thread was canceled by AbortWorker
-                        if (this.cToken.IsCancellationRequested == true)
-                        {
-                            break;
-                        }
 
                         try
                         {
@@ -131,7 +126,7 @@ namespace Log4ALA
                             {
                                 byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
-                                if(numItems >= 1)
+                                if (numItems >= 1)
                                 {
                                     buffer.Append(',');
                                 }
@@ -143,15 +138,9 @@ namespace Log4ALA
                         }
                         catch (Exception ee)
                         {
-                            if (this.cToken.IsCancellationRequested == true)
-                            {
-                                break;
-                            }
-                            else
-                            {
+                            if (this.cToken.IsCancellationRequested != true) {
                                 string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
                                 appender.log.Err(errMessage);
-                                continue;
                             }
                         }
 
@@ -300,19 +289,14 @@ namespace Log4ALA
         {
             if(WorkerThread != null)
             {
-
-                //cancel the background worker thread to trigger sending the queued data to ALA 
+                //controlled cancelation of the background worker thread to trigger sending 
+                //the queued data to ALA before abort the thread
                 this.tokenSource.Cancel();
 
                 //wait until the worker thread has flushed the locally queued log data
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
                 //the timeout of 20 seconds reached
-                manualResetEvent.WaitOne(TimeSpan.FromSeconds(ConfigSettings.AbortWorkerManualResetEventTimeoutInSec));
-
-                //Thread.Abort has been removed in .NET Core. it is now recommended to use CancellationToken like above
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                WorkerThread.Abort();
-#endif
+                manualResetEvent.WaitOne(TimeSpan.FromSeconds(ConfigSettings.AbortTimeoutSeconds));
             }
         }
 
