@@ -62,6 +62,8 @@ namespace Log4ALA
         public const string DEFAULT_LEVEL_FIELD_NAME = "Level";
         public const string DEFAULT_THREAD_PRIORITY = "Lowest";
 
+        public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
+
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
 
@@ -302,7 +304,7 @@ namespace Log4ALA
 #else
                 string aLABatchSizeInBytes = CloudConfigurationManager[$"{this.propPrefix}:{ALA_BATCH_SIZE_BYTES_PROP}"];
 #endif
-                return (string.IsNullOrWhiteSpace(aLABatchSizeInBytes) ? (int?)null : int.Parse(aLABatchSizeInBytes));
+                return (string.IsNullOrWhiteSpace(aLABatchSizeInBytes) ? (int?)null : ( int.Parse(aLABatchSizeInBytes) >= ConfigSettings.BATCH_SIZE_MAX ? ConfigSettings.BATCH_SIZE_MAX : int.Parse(aLABatchSizeInBytes)));
             }
         }
 

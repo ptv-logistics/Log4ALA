@@ -14,7 +14,6 @@ namespace Log4ALA
     {
         // Error message displayed when queue overflow occurs. 
         protected const String QueueOverflowMessage = "\n\nAzure Log Analytics buffer queue overflow. Message dropped.\n\n";
-        public const int BatchSizeMax = 31457280; //30 mb quota limit per post
 
         protected readonly BlockingCollection<string> Queue;
         protected readonly Thread WorkerThread;
@@ -99,7 +98,6 @@ namespace Log4ALA
                 Connect(true);
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
-                int? maxBatchSizeInBytesToCheck = appender.BatchSizeInBytes > BatchSizeMax ? BatchSizeMax : appender.BatchSizeInBytes;
 
                 // Send data in queue.
                 while (true)
@@ -114,9 +112,9 @@ namespace Log4ALA
                     buffer.Append('[');
                     stopwatch.Restart();
                     while (this.cToken.IsCancellationRequested != true &&
-                           ((byteLength < maxBatchSizeInBytesToCheck && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           (numItems < appender.BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax))
+                           ((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           (numItems < appender.BatchNumItems && byteLength < ConfigSettings.BATCH_SIZE_MAX && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < ConfigSettings.BATCH_SIZE_MAX))
                           )
                     {
 
