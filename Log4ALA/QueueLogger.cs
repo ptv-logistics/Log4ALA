@@ -99,6 +99,7 @@ namespace Log4ALA
                 Connect(true);
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
+                int? maxBatchSizeInBytesToCheck = appender.BatchSizeInBytes > BatchSizeMax ? BatchSizeMax : appender.BatchSizeInBytes;
 
                 // Send data in queue.
                 while (true)
@@ -113,7 +114,7 @@ namespace Log4ALA
                     buffer.Append('[');
                     stopwatch.Restart();
                     while (this.cToken.IsCancellationRequested != true &&
-                           ((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           ((byteLength < maxBatchSizeInBytesToCheck && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < BatchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax))
                           )
@@ -295,7 +296,7 @@ namespace Log4ALA
 
                 //wait until the worker thread has flushed the locally queued log data
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
-                //the timeout of 20 seconds reached
+                //the timeout of 10 seconds reached
                 manualResetEvent.WaitOne(TimeSpan.FromSeconds(ConfigSettings.AbortTimeoutSeconds));
             }
         }

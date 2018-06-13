@@ -54,7 +54,7 @@ namespace Log4ALA
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 500;
         public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
-        public const string DEFAULT_TIMEOUT_SECONDS = "20";
+        public const string DEFAULT_TIMEOUT_SECONDS = "10";
 
         public const string DEFAULT_DATE_FIELD_NAME = "DateValue";
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";

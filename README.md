@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -108,13 +108,15 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 
 ## Features
 
-1. You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, 
-batchNumItems or batchWaitInSec (described further down).
+1. You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, batchNumItems or batchWaitInSec (described further down). 
+If batchSizeInBytes will be choosed the collecting of the log data will be stopped and send to Azure Log Analyitcs if batchSizeInBytes will be reached or the duration is >= BatchWaitMaxInSec with default 60s or 
+batch size >= BatchSizeMax 30 mb this conditions applies also if you choose batchNumItems. In case of batchWaitInSec collecting will be stopped and send if batchWaitInSec will be reached or the batch size will be >= BatchSizeMax 30 mb.
 2. Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
 3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
 4. Field names greater than 500 chars will be truncated (the value could be configured with maxFieldNameLength).
 5. Configurable core field names (the value could be configured with coreFieldNames)
 6. Configurable background worker thread priority (the value could be configured with threadPriority)
+7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
 
 
 ## General Configuration 
@@ -229,7 +231,7 @@ This configuration is also available as a [appsettings.json](https://github.com/
     <!-- 
     optional debug setting which should only be used during development or on testsystem. Set 
 	logMessageToFile=true to inspect your messages (in log4ALA_info.log) which will be sent to the 
-	Azure Log Analytics Workspace.
+	Azure Log Analytics Workspace (default false).
     -->
     <!--<logMessageToFile value="true"/>-->
 
@@ -293,6 +295,11 @@ This configuration is also available as a [appsettings.json](https://github.com/
      <!-- optional priority of the background worker thread which collects and send the log messages to Azure Log Analytics
           possible values Lowest/BelowNormal/Normal/AboveNormal/Highest  (default Lowest)
      <threadPriority value="Lowest"/>
+	  -->
+
+     <!-- optional the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net
+	      process will be shutdown  (default 10 seconds)
+     <abortTimeoutSeconds value="10"/>
 	  -->
 
   </appender>
