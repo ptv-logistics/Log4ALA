@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
-    <releaseNotes>Fix issue "Queue is not flushed in OnClose"</releaseNotes>
+    <releaseNotes>Fix issue "Queue is not flushed in OnClose" and improve the efficiency of the log data buffering</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.5" />

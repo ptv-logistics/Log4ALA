@@ -110,7 +110,7 @@ namespace Log4ALA
                     string line = string.Empty;
                     int byteLength = 0;
                     int numItems = 0;
-                    buffer.Append("[");
+                    buffer.Append('[');
                     stopwatch.Restart();
                     while (
                            (byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
@@ -118,6 +118,12 @@ namespace Log4ALA
                            ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < BatchSizeMax)
                           )
                     {
+                        //stop loop if background worker thread was canceled by AbortWorker
+                        if (this.cToken.IsCancellationRequested == true)
+                        {
+                            break;
+                        }
+
                         try
                         {
 
@@ -125,36 +131,44 @@ namespace Log4ALA
                             {
                                 byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
+                                if(numItems >= 1)
+                                {
+                                    buffer.Append(',');
+                                }
+
                                 buffer.Append(line);
-                                buffer.Append(",");
                                 ++numItems;
                                 line = string.Empty;
                             }
                         }
                         catch (Exception ee)
                         {
-                            string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
-                            appender.log.Err(errMessage);
-                            continue;
+                            if (this.cToken.IsCancellationRequested == true)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
+                                appender.log.Err(errMessage);
+                                continue;
+                            }
                         }
 
-                        //stop loop if background worker thread was canceled by AbortWorker
-                        if (this.cToken.IsCancellationRequested == true)
-                        {
-                            break;
-                        }
                     }
 
-                    if (buffer.ToString().Length <= 1)
+                    buffer.Append(']');
+
+                    var alaPayLoad = buffer.ToString();
+
+                    if (alaPayLoad.Length <= 1)
                     {
-                        string errMessage = $"[{appender.Name}] - write batch to ALA the buffer collection process exceeds time out of {appender.BatchWaitMaxInSec} seconds";
-                        appender.log.Inf(errMessage, appender.LogMessageToFile);
+                        string infoMessage = $"[{appender.Name}] -  {nameof(appender.BatchWaitMaxInSec)} exceeded time out of {appender.BatchWaitMaxInSec} seconds there is no data to write to Azure Log Analytics at the moment";
+                        appender.log.Inf(infoMessage, appender.LogMessageToFile);
                         continue;
                     }
 
-                    string alaPayLoad = buffer.ToString().TrimEnd(",".ToCharArray()); //StringBuilderCache.GetStringAndRelease(buffer).TrimEnd(",".ToCharArray());
-
-                    HttpRequest($"{alaPayLoad}]");
+                    HttpRequest(alaPayLoad);
 
                     //stop loop if background worker thread was canceled by AbortWorker
                     if (this.cToken.IsCancellationRequested == true)
@@ -286,7 +300,6 @@ namespace Log4ALA
         {
             if(WorkerThread != null)
             {
-                System.Console.WriteLine("QueueLogger.AbortWorker() called...");
 
                 //cancel the background worker thread to trigger sending the queued data to ALA 
                 this.tokenSource.Cancel();
@@ -295,8 +308,11 @@ namespace Log4ALA
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
                 //the timeout of 20 seconds reached
                 manualResetEvent.WaitOne(TimeSpan.FromSeconds(ConfigSettings.AbortWorkerManualResetEventTimeoutInSec));
+
+                //Thread.Abort has been removed in .NET Core. it is now recommended to use CancellationToken like above
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 WorkerThread.Abort();
-                System.Console.WriteLine("QueueLogger.AbortWorker() succeeded.");
+#endif
             }
         }
 
