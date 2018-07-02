@@ -117,8 +117,7 @@ namespace Log4ALA
                     buffer.Append('[');
                     stopwatch.Restart();
 
-                    while (!Queue.IsCompleted ||
-                           ((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                    while (((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < ConfigSettings.BATCH_SIZE_MAX && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < ConfigSettings.BATCH_SIZE_MAX))
                           )
@@ -159,7 +158,7 @@ namespace Log4ALA
 
                     var alaPayLoad = buffer.ToString();
 
-                    if (alaPayLoad.Length <= 1)
+                    if (alaPayLoad.Length <= 1 || alaPayLoad.Equals("[]"))
                     {
                         string infoMessage = $"[{appender.Name}] -  {nameof(appender.BatchWaitMaxInSec)} exceeded time out of {appender.BatchWaitMaxInSec} seconds there is no data to write to Azure Log Analytics at the moment";
                         appender.log.Inf(infoMessage, appender.LogMessageToFile);
@@ -378,7 +377,10 @@ namespace Log4ALA
                 catch (Exception ex)
                 {
                     // Reopen the lost connection.
-                    appender.log.War($"[{appender.Name}] - reopen lost connection. [{ex.Message}]");
+                    string errMessage = $"[{appender.Name}] - reopen lost connection. [{ex.Message}]";
+                    appender.log.War(errMessage);
+                    System.Console.WriteLine(errMessage);
+
                     Connect();
                     continue;
                 }
