@@ -199,14 +199,14 @@ This configuration is also available as a [appsettings.json](https://github.com/
 }
 ``` 
 
-it's also possible to override all Log4ALA configuration settings which is normally done by appsetings.json
-programmatically during runtime by setting the depending environment variable with dotnetcore appsettings notation e.g.:
+it's also possible to override all Log4ALA appsettings.json configuration settings during runtime by setting the depending environment 
+variable with dotnetcore appsettings notation e.g.:
 
 ```csharp
-        // path = D:\home\LogFiles\Log4Net if your ASP.NET Core App will be deployid as Azure App Service
-        var path = Path.Combine(System.Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Log4Net");
-        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
-        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
+ // path = D:\home\LogFiles\Log4Net if your ASP.NET Core App will be deployid as Azure App Service
+ var path = Path.Combine(System.Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Log4Net");
+ System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
+ System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
 ``` 
 
 or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
