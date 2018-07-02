@@ -99,6 +99,11 @@ namespace Log4ALA
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
 
+                var batchSizeInBytesOrig = appender.BatchSizeInBytes;
+                var batchWaitMaxInSecOrig = appender.BatchWaitMaxInSec;
+                var batchNumItemsOrig = appender.BatchNumItems;
+                var batchWaitInSecOrig = appender.BatchWaitInSec;
+
                 // Send data in queue.
                 while (true)
                 {
@@ -111,17 +116,16 @@ namespace Log4ALA
                     int numItems = 0;
                     buffer.Append('[');
                     stopwatch.Restart();
-                    while (this.cToken.IsCancellationRequested != true &&
+
+                    while (!Queue.IsCompleted ||
                            ((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < ConfigSettings.BATCH_SIZE_MAX && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < ConfigSettings.BATCH_SIZE_MAX))
                           )
                     {
-
                         try
                         {
-
-                            if (Queue.TryTake(out line, qReadTimeout, this.cToken))
+                            if (Queue.TryTake(out line, qReadTimeout))
                             {
                                 byteLength += System.Text.Encoding.Unicode.GetByteCount(line);
 
@@ -133,10 +137,16 @@ namespace Log4ALA
                                 buffer.Append(line);
                                 ++numItems;
                                 line = string.Empty;
+
                             }
                         }
                         catch (Exception ee)
                         {
+                            if (Queue.IsCompleted)
+                            {
+                                break;
+                            }
+
                             if (this.cToken.IsCancellationRequested != true) {
                                 string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
                                 appender.log.Err(errMessage);
@@ -170,6 +180,7 @@ namespace Log4ALA
             catch (ThreadInterruptedException ex)
             {
                 string errMessage = $"[{appender.Name}] - Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}";
+                System.Console.WriteLine(errMessage);
                 appender.log.Err(errMessage);
                 appender.extraLog.Err(errMessage);
             }
@@ -275,7 +286,7 @@ namespace Log4ALA
 
 
             // Try to append data to queue.
-            if (!Queue.TryAdd(line))
+            if (!Queue.IsCompleted && !Queue.TryAdd(line))
             {
                 if (!Queue.TryAdd(line))
                 {
@@ -292,6 +303,8 @@ namespace Log4ALA
                 //the queued data to ALA before abort the thread
                 this.tokenSource.Cancel();
 
+                Queue.CompleteAdding();
+  
                 //wait until the worker thread has flushed the locally queued log data
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
                 //the timeout of 10 seconds reached
@@ -351,9 +364,9 @@ namespace Log4ALA
                     }
                     alaClient.Put();
 
-                    //appender.log.Inf(headerBuilder.ToString(), appender.logMessageToFile);
                     try
                     {
+                        //no loggings in case of LogManager.Shutdown() -> AbortWorker;
                         appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
                     }
                     catch
