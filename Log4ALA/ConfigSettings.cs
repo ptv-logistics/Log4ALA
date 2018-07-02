@@ -82,7 +82,10 @@ namespace Log4ALA
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
-        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")).Build();
+        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables().Build());
 #endif
 
 

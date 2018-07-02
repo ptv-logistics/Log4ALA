@@ -111,9 +111,10 @@ namespace Log4ALA
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
 
 #else
-                var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-                XmlConfigurator.Configure(logRepository, new FileInfo("internalLog4net.config"));
-
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
+                {
+                    XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), stream);
+                }
                 log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
 #endif
 
@@ -127,6 +128,7 @@ namespace Log4ALA
                 }
                 else
                 {
+                    System.Console.WriteLine(setErrAppFileNameMessage);
                     log.Err(setErrAppFileNameMessage);
                     extraLog.Err(setErrAppFileNameMessage);
                 }
@@ -137,6 +139,7 @@ namespace Log4ALA
                 }
                 else
                 {
+                    System.Console.WriteLine(setInfoAppFileNameMessage);
                     log.Err(setInfoAppFileNameMessage);
                     extraLog.Err(setInfoAppFileNameMessage);
                 }
@@ -270,6 +273,7 @@ namespace Log4ALA
             {
                 queueLogger = null;
                 string message = $"[{this.Name}] - Unable to activate Log4ALAAppender: [{ex.Message}]";
+                System.Console.WriteLine(message);
                 log.Err(message);
                 extraLog.Err(message);
             }

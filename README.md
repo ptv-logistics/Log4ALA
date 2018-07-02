@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -167,7 +167,6 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 
 This configuration is also available as a [appsettings.json](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALATest.Core/appsettings.json):
 
-
 ```json
 {
  
@@ -199,6 +198,22 @@ This configuration is also available as a [appsettings.json](https://github.com/
     }
 }
 ``` 
+
+it's also possible to override all Log4ALA configuration settings which is normally done by appsetings.json
+programmatically during runtime by setting the depending environment variable with dotnetcore appsettings notation e.g.:
+
+```csharp
+        // path = D:\home\LogFiles\Log4Net if your ASP.NET Core App will be deployid as Azure App Service
+        var path = Path.Combine(System.Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Log4Net");
+        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
+        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
+``` 
+
+or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
+The order how the settings will be overwritten or extended is:
+
+appsettings.json =>  appsettings.{env.EnvironmentName}.json =>  System.Environment.SetEnvironmentVariable(...)
+
 
 ## Example Log4Net Configuration file
 
