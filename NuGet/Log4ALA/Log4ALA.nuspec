@@ -14,7 +14,7 @@
     <releaseNotes>
       Fix issue with ASP.Net Core 2.0 when using Microsoft.Extensions.Logging.Log4Net.AspNetCore which will ignore and fail loading the internalLog4net.config
       and therefore leads to stop logging internal error/info logfiles. The reason is that internalLog4net.config will be installed as project content file
-      during the nuget package installation. To solve this problem we now include internalLog4net.config as EmbeddedResource as by dependent .NET Framework >= 4.5 dependent installations. 
+      during the nuget package installation. To solve this problem we now include internalLog4net.config as EmbeddedResource as by dependent .NET Framework >= 4.5 installations. 
       Now for .NET Standard 2.0 package installations it's also possible to override all Log4ALA configuration settings 
       normally done in appsetings.json programmatically during runtime by setting the depending environment variable with dotnetcore appsettings notation see 
       https://github.com/ptv-logistics/Log4ALA section "Example AppSettings ASP.NET Core".
