@@ -12,17 +12,12 @@
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
     <releaseNotes>
-      Fix problems with ASP.Net Core 2.0 when using Microsoft.Extensions.Logging.Log4Net.AspNetCore which will ignore and fail loading the internalLog4net.config
+      Fix issue with ASP.Net Core 2.0 when using Microsoft.Extensions.Logging.Log4Net.AspNetCore which will ignore and fail loading the internalLog4net.config
       and therefore leads to stop logging internal error/info logfiles. The reason is that internalLog4net.config will be installed as project content file
-      during the nuget package installation. To solve this problem we now include internalLog4net.config as EmbeddedResource file also in case of .NET Standard 2.0 
-      as .NET Framework >= 4.5 dependent installations. Now for .NET Standard 2.0 package installations it's also possible to override all Log4ALA configuration settings 
-      normally done in appsetings.json programmatically during runtime by setting the depending environment variable with dotnetcore appsettings notation e.g.:
-        // path = D:\home\LogFiles\Log4Net if your ASP.NET Core App will be deployid as Azure App Service
-        var path = Path.Combine(System.Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Log4Net");
-        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
-        System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
-      or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable) for ASP.NET Core Apps. The order how the settings will be overwritten or extended is:
-      appsettings.json =>  appsettings.{env.EnvironmentName}.json =>  System.Environment.SetEnvironmentVariable(...)
+      during the nuget package installation. To solve this problem we now include internalLog4net.config as EmbeddedResource as by dependent .NET Framework >= 4.5 dependent installations. 
+      Now for .NET Standard 2.0 package installations it's also possible to override all Log4ALA configuration settings 
+      normally done in appsetings.json programmatically during runtime by setting the depending environment variable with dotnetcore appsettings notation see 
+      https://github.com/ptv-logistics/Log4ALA section "Example AppSettings ASP.NET Core".
     </releaseNotes>
     <dependencies>
       <group targetFramework="net45">
