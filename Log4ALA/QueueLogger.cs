@@ -138,6 +138,12 @@ namespace Log4ALA
                                 line = string.Empty;
 
                             }
+
+                            if (Queue.IsCompleted)
+                            {
+                                break;
+                            }
+
                         }
                         catch (Exception ee)
                         {
