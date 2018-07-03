@@ -87,7 +87,7 @@ namespace Log4ALA
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("APPSETTINGS_SUFFIX")}.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("APPSETTINGS_SUFFIX")}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables().Build());
 #endif
 
