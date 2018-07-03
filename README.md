@@ -210,10 +210,16 @@ variable with dotnetcore appsettings notation e.g.:
 ``` 
 
 or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
-The order how the settings will be overwritten or extended is:
+The order of the appsettings loading strategy how the settings will be overwritten or extended is:
 
-appsettings.json =>  appsettings.{env.EnvironmentName}.json =>  System.Environment.SetEnvironmentVariable(...)
-
+```csharp
+.AddJsonFile("appsettings.shared_lnk.json", optional: true, reloadOnChange: true)
+.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
+.AddJsonFile($"appsettings.{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
+.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("APPSETTINGS_SUFFIX")}.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables().Build());
+``` 
 
 ## Example Log4Net Configuration file
 
