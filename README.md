@@ -220,7 +220,7 @@ inheritance: "<--"
 Pitfall:
 1. don't forget to restart VS if you add or change any environment variable e.g. with 
 Control Panel > System > Advanced system settings > Environment Variables... > New System Variable because without a restart the new environment variable couldn't be loaded in debug mode.
-2. don't forget to set the VS project file property "Copy to Output Directory: Copy if newer|Copy alway" of newly added appsetings.*.properties (not required for AspNetCore)
+2. don't forget to set the VS project file property "Copy to Output Directory: Copy if newer or Copy alway" of newly added appsetings.*.properties (not required for AspNetCore)
 
 
 
