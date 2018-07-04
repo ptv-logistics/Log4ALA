@@ -85,12 +85,28 @@ namespace Log4ALA
         private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.shared_lnk.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{EnvVars["ASPNETCORE_ENVIRONMENT"]}.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("APPSETTINGS_SUFFIX")}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{EnvVars["APPSETTINGS_SUFFIX"]}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables().Build());
 #endif
 
+
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+        private static IConfiguration envVars = null;
+        public static IConfiguration EnvVars
+        {
+            get
+            {
+                if(envVars != null)
+                {
+                    return envVars;
+                }
+                envVars = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+                return envVars;
+            }
+        }
+#endif
 
         public ConfigSettings(string propPrefix)
         {

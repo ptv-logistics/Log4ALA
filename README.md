@@ -212,14 +212,18 @@ variable with dotnetcore appsettings notation e.g.:
 or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
 The order of the appsettings loading strategy how the settings will be overwritten or extended is:
 
-```csharp
-.AddJsonFile("appsettings.shared_lnk.json", optional: true, reloadOnChange: true)
-.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
-.AddJsonFile($"appsettings.{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
-.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("APPSETTINGS_SUFFIX")}.json", optional: true, reloadOnChange: true)
-.AddEnvironmentVariables().Build());
-``` 
+appsettings.shared_lnk.json <-- appsettings.json <-- appsettings.{EnvVars["ASPNETCORE_ENVIRONMENT"]}.json <-- appsettings.{System.Environment.UserName.ToLower()}.json 
+<-- appsettings.{EnvVars["APPSETTINGS_SUFFIX"]}.json <-- EnvironmentVariables
+
+inheritance: "<--"
+
+Pitfall:
+1. don't forget to restart VS if you add or change any environment variable e.g. with 
+Control Panel > System > Advanced system settings > Environment Variables... > New System Variable because without a restart the new environment variable couldn't be loaded in debug mode.
+2. don't forget to set the VS project file property "Copy to Output Directory: Copy if newer|Copy alway" of newly added appsetings.*.properties (not required for AspNetCore)
+
+
+
 
 ## Example Log4Net Configuration file
 
