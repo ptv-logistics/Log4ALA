@@ -17,6 +17,7 @@ namespace Log4ALA
         private const string ALA_HTTP_DATACOLLECTOR_RETRY_PROP = "httpDataCollectorRetry";
         private const string ALA_LOGGING_QUEUE_SIZE_PROP = "loggingQueueSize";
         private const string ALA_LOG_MESSAGE_TOFILE_PROP = "logMessageToFile";
+        private const string ALA_DISABLE_INFO_APPENDER_FILE_PROP = "disableInfoLogFile";
         private const string ALA_APPEND_LOGGER_PROP = "appendLogger";
         private const string ALA_APPEND_LOG_LEVEL_PROP = "appendLogLevel";
         private const string ALA_ERR_LOGGER_NAME_PROP = "errLoggerName";
@@ -39,16 +40,18 @@ namespace Log4ALA
         private const string ABORT_TIMEOUT_SECONDS_PROP = "abortTimeoutSeconds";
 
 
+
         public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
         public const int DEFAULT_BATCH_WAIT_MAX_SECONDS = 60;
         public const string DEFAULT_AZURE_API_VERSION = "2016-04-01";
-        public const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES = "2";
+        public const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS = "120";
         public const int DEFAULT_BATCH_SIZE_BYTES = 0;
         public const int DEFAULT_BATCH_NUM_ITEMS = 1;
         public const int DEFAULT_BATCH_WAIT_SECONDS = 0;
         public const bool DEFAULT_APPEND_LOGGER = true;
         public const bool DEFAULT_APPEND_LOGLEVEL = true;
         public const bool DEFAULT_LOG_MESSAGE_TOFILE = false;
+        public const bool DEFAULT_DISABLE_INFO_APPENDER_FILE = false;
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
@@ -82,30 +85,61 @@ namespace Log4ALA
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
-        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(CurrentDir)
             .AddJsonFile("appsettings.shared_lnk.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{EnvVars["ASPNETCORE_ENVIRONMENT"]}.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{EnvVars["APPSETTINGS_SUFFIX"]}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.env_{AspNetCoreEnvironment}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.user_{System.Environment.UserName.ToLower()}.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.env_{AppsettingsSuffix}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables().Build());
 #endif
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
-        private static IConfiguration envVars = null;
-        public static IConfiguration EnvVars
+        private static IConfiguration EnvVars
         {
             get
             {
-                if(envVars != null)
-                {
-                    return envVars;
-                }
-                envVars = new ConfigurationBuilder().AddEnvironmentVariables().Build();
-                return envVars;
+                return new ConfigurationBuilder().AddEnvironmentVariables().Build();
             }
         }
+
+        private static string aspNetCoreEnvironment = null;
+        public static string AspNetCoreEnvironment
+        {
+            get
+            {
+                if (aspNetCoreEnvironment != null)
+                {
+                    return aspNetCoreEnvironment;
+                }
+                aspNetCoreEnvironment = EnvVars["ASPNETCORE_ENVIRONMENT"];
+                return aspNetCoreEnvironment;
+            }
+        }
+
+        private static string appsettingsSuffix = null;
+        public static string AppsettingsSuffix
+        {
+            get
+            {
+                if (appsettingsSuffix != null)
+                {
+                    return appsettingsSuffix;
+                }
+                appsettingsSuffix = EnvVars["APPSETTINGS_SUFFIX"];
+                return appsettingsSuffix;
+            }
+        }
+
+        public static string CurrentDir
+        {
+            get
+            {
+                 return Directory.GetCurrentDirectory();
+            }
+        }
+
 #endif
 
         public ConfigSettings(string propPrefix)
@@ -203,6 +237,19 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLALogMessageToFile) ? (bool?)null : Boolean.Parse(aLALogMessageToFile));
             }
         }
+        public bool? ALADisableInfoAppenderFile
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLADisableInfoAppenderFile = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DISABLE_INFO_APPENDER_FILE_PROP}");
+#else
+                string aLADisableInfoAppenderFile = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DISABLE_INFO_APPENDER_FILE_PROP}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile) ? (bool?)null : Boolean.Parse(aLADisableInfoAppenderFile));
+            }
+        }
+
         public bool? ALAAppendLogger
         {
             get
@@ -274,7 +321,7 @@ namespace Log4ALA
 #else
                 string queueSizeLogInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_PROP];
 #endif
-                return int.Parse((string.IsNullOrWhiteSpace(queueSizeLogInterval) ? DEFAULT_QUEUE_SIZE_LOG_INTERVAL_MINUTES : queueSizeLogInterval));
+                return int.Parse((string.IsNullOrWhiteSpace(queueSizeLogInterval) ? DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS : queueSizeLogInterval));
             }
         }
 

@@ -212,8 +212,8 @@ variable with dotnetcore appsettings notation e.g.:
 or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
 The order of the appsettings loading strategy how the settings will be overwritten or extended is:
 
-appsettings.shared_lnk.json <-- appsettings.json <-- appsettings.{EnvVars["ASPNETCORE_ENVIRONMENT"]}.json <-- appsettings.{System.Environment.UserName.ToLower()}.json 
-<-- appsettings.{EnvVars["APPSETTINGS_SUFFIX"]}.json <-- EnvironmentVariables
+appsettings.shared_lnk.json <-- appsettings.json <-- appsettings.env_{EnvVars["ASPNETCORE_ENVIRONMENT"]}.json <-- appsettings.user_{System.Environment.UserName.ToLower()}.json 
+<-- appsettings.env_{EnvVars["APPSETTINGS_SUFFIX"]}.json <-- EnvironmentVariables
 
 inheritance: "<--"
 
@@ -252,6 +252,11 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!--<azureApiVersion value="2016-04-01" />-->
     <!-- optional max retries if the HTTP Data Collector API request failed (default 6 retries) -->
     <!--<httpDataCollectorRetry value="6" />-->
+
+    <!-- 
+    optional setting to avoid info log file if true (log4ALA_info.log or defined with infoAppenderFile) e.g on production system (default false).
+    -->
+    <!--<disableInfoLogFile value="true"/>-->
 
     <!-- 
     optional debug setting which should only be used during development or on testsystem. Set 

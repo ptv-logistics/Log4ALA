@@ -32,6 +32,7 @@ namespace Log4ALA
         public string AzureApiVersion { get; set; } = ConfigSettings.DEFAULT_AZURE_API_VERSION;
         public int? HttpDataCollectorRetry { get; set; } = ConfigSettings.DEFAULT_HTTP_DATA_COLLECTOR_RETRY;
         public bool LogMessageToFile { get; set; } = ConfigSettings.DEFAULT_LOG_MESSAGE_TOFILE;
+        public bool DisableInfoLogFile { get; set; } = ConfigSettings.DEFAULT_DISABLE_INFO_APPENDER_FILE;
         public bool? AppendLogger { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGGER;
         public bool? AppendLogLevel { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGLEVEL;
 
@@ -101,26 +102,39 @@ namespace Log4ALA
                 configSettings = new ConfigSettings(this.Name);
 
                 LogMessageToFile = configSettings.ALALogMessageToFile == null ? LogMessageToFile : (bool)configSettings.ALALogMessageToFile;
+                DisableInfoLogFile = configSettings.ALADisableInfoAppenderFile == null ? DisableInfoLogFile : (bool)configSettings.ALADisableInfoAppenderFile;
 
+                string internalLog4NetConfig = "Log4ALA.internalLog4net.config";
+                if (DisableInfoLogFile)
+                {
+                    internalLog4NetConfig = "Log4ALA.internalLog4netOnlyErr.config";
+                }
 
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(internalLog4NetConfig))
                 {
                     XmlConfigurator.Configure(stream);
                 }
+                 
                 log = LogManager.GetLogger("Log4ALAInternalLogger");
 
 #else
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Log4ALA.internalLog4net.config"))
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(internalLog4NetConfig))
                 {
                     XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), stream);
                 }
+
                 log = LogManager.GetLogger(REPOSITORY.Name, "Log4ALAInternalLogger");
 #endif
 
-                string setErrAppFileNameMessage, setInfoAppFileNameMessage;
+                string setErrAppFileNameMessage, setInfoAppFileNameMessage = null;
                 bool isErrFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAErrAppenderFile) ? ErrAppenderFile : configSettings.ALAErrAppenderFile, ConfigSettings.LOG_ERR_APPENDER, out setErrAppFileNameMessage);
-                bool isInfoFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAInfoAppenderFile) ? InfoAppenderFile : configSettings.ALAInfoAppenderFile, ConfigSettings.LOG_INFO_APPENDER, out setInfoAppFileNameMessage);
+
+                bool isInfoFile = false;
+                if (!DisableInfoLogFile)
+                {
+                    isInfoFile = SetAppenderFileNameIfAvailable(string.IsNullOrWhiteSpace(configSettings.ALAInfoAppenderFile) ? InfoAppenderFile : configSettings.ALAInfoAppenderFile, ConfigSettings.LOG_INFO_APPENDER, out setInfoAppFileNameMessage);
+                }
 
                 if (isErrFile)
                 {
@@ -139,15 +153,14 @@ namespace Log4ALA
                 }
                 else
                 {
-                    System.Console.WriteLine(setInfoAppFileNameMessage);
-                    log.Err(setInfoAppFileNameMessage);
-                    extraLog.Err(setInfoAppFileNameMessage);
+                    if (!DisableInfoLogFile)
+                    {
+                        System.Console.WriteLine(setInfoAppFileNameMessage);
+                        log.Err(setInfoAppFileNameMessage);
+                        extraLog.Err(setInfoAppFileNameMessage);
+                    }
                 }
-
-                log.Inf($"[{this.Name}] - loggerName:[{this.Name}]", true);
-                log.Inf($"[{this.Name}] - logMessageToFile:[{LogMessageToFile}]", true);
-
-
+ 
                 if (!string.IsNullOrWhiteSpace(configSettings.ALAErrLoggerName))
                 {
 #if NETSTANDARD2_0 || NETCOREAPP2_0
@@ -264,7 +277,12 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
 
                 log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
-                
+
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+                log.Inf($"[{this.Name}] - appsettings directory:[{ConfigSettings.CurrentDir}]", true);
+                log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
+                log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
+#endif
 
                 queueLogger = new QueueLogger(this);
 
