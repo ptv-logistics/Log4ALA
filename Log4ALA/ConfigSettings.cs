@@ -3,6 +3,8 @@ using Microsoft.Azure;
 #else
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 #endif
 using System;
 
@@ -136,7 +138,7 @@ namespace Log4ALA
         {
             get
             {
-                 return Directory.GetCurrentDirectory();
+                 return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             }
         }
 
@@ -491,6 +493,11 @@ namespace Log4ALA
                 return int.Parse((string.IsNullOrWhiteSpace(abortTimeout) ? DEFAULT_TIMEOUT_SECONDS : abortTimeout));
             }
         }
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+        public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        public static bool IsMacOS() => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool IsLinux() => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+#endif
 
     }
 }

@@ -282,6 +282,13 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - appsettings directory:[{ConfigSettings.CurrentDir}]", true);
                 log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
                 log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
+
+                if(ConfigSettings.IsLinux() || ConfigSettings.IsMacOS())
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.CurrentDir}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]");
+                }
 #endif
 
                 queueLogger = new QueueLogger(this);
