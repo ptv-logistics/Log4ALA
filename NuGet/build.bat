@@ -4,5 +4,5 @@ REM %MSBUILD% build.proj /target:NuGetRestore
 REM %MSBUILD% /p:Configuration=Release ..\Log4ALA.sln
 REM %MSBUILD% build.proj /target:NuGetPack /property:Configuration=Release;RELEASE=true
 REM PackageVersion=4.5.0;PatchVersion=0;PatchCoreVersion=0
-%MSBUILD% build.proj /target:BuildAll /property:Configuration=Release;RELEASE=true;MajorVersion=2;MinorVersion=3;PatchVersion=1
+%MSBUILD% build.proj /target:BuildAll /property:Configuration=Release;RELEASE=true;MajorVersion=2;MinorVersion=3;PatchVersion=2
 pause

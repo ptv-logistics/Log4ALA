@@ -99,11 +99,6 @@ namespace Log4ALA
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
 
-                var batchSizeInBytesOrig = appender.BatchSizeInBytes;
-                var batchWaitMaxInSecOrig = appender.BatchWaitMaxInSec;
-                var batchNumItemsOrig = appender.BatchNumItems;
-                var batchWaitInSecOrig = appender.BatchWaitInSec;
-
                 // Send data in queue.
                 while (true)
                 {
@@ -185,7 +180,6 @@ namespace Log4ALA
             catch (ThreadInterruptedException ex)
             {
                 string errMessage = $"[{appender.Name}] - Azure Log Analytics HTTP Data Collector API client was interrupted. {ex}";
-                System.Console.WriteLine(errMessage);
                 appender.log.Err(errMessage);
                 appender.extraLog.Err(errMessage);
             }
@@ -295,7 +289,7 @@ namespace Log4ALA
             {
                 if (!Queue.TryAdd(line))
                 {
-                    appender.log.War($"[{appender.Name}] - QueueOverflowMessage");
+                    appender.log.War($"[{appender.Name}] - QueueOverflowMessage", appender.LogMessageToFile);
                 }
             }
         }
@@ -384,8 +378,7 @@ namespace Log4ALA
                 {
                     // Reopen the lost connection.
                     string errMessage = $"[{appender.Name}] - reopen lost connection. [{ex.Message}]";
-                    appender.log.War(errMessage);
-                    System.Console.WriteLine(errMessage);
+                    appender.log.War(errMessage, appender.LogMessageToFile);
 
                     Connect();
                     continue;

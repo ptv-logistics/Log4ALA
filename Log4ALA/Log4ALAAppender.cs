@@ -180,7 +180,18 @@ namespace Log4ALA
                     log.Inf($"[{this.Name}] - errLoggerName:[{ErrLoggerName}]", true);
                 }
 
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+                log.Inf($"[{this.Name}] - appsettings directory:[{ConfigSettings.ContentRootPath}]", true);
+                log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
+                log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
 
+                if(ConfigSettings.IsLinux() || ConfigSettings.IsMacOS())
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.ContentRootPath}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]");
+                }
+#endif
                 if (string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
                 {
                     throw new Exception($"the Log4ALAAppender property workspaceId [{WorkspaceId}] shouldn't be empty");
@@ -277,19 +288,6 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
 
                 log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
-
-#if NETSTANDARD2_0 || NETCOREAPP2_0
-                log.Inf($"[{this.Name}] - appsettings directory:[{ConfigSettings.CurrentDir}]", true);
-                log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
-                log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
-
-                if(ConfigSettings.IsLinux() || ConfigSettings.IsMacOS())
-                {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.CurrentDir}]");
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]");
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]");
-                }
-#endif
 
                 queueLogger = new QueueLogger(this);
 
@@ -411,9 +409,7 @@ namespace Log4ALA
         {
             if (queueLogger != null)
             {
-                //System.Console.WriteLine("LogManager.Shutdown() - now the log4net system will be shutting down...");
                 queueLogger.AbortWorker();
-                //System.Console.WriteLine("LogManager.Shutdown() - log4net system shutdown succeeded.");
             }
         }
 
@@ -458,9 +454,9 @@ namespace Log4ALA
             }
         }
 
-        public static void War(this ILog log, string logMessage)
+        public static void War(this ILog log, string logMessage, bool logMessage2File = false)
         {
-            if (log != null)
+            if (logMessage2File && log != null)
             {
                 log.Warn(logMessage);
             }

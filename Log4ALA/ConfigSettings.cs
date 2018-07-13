@@ -87,7 +87,7 @@ namespace Log4ALA
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
-        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(CurrentDir)
+        private static IConfigurationRoot CloudConfigurationManager = (new ConfigurationBuilder().SetBasePath(ContentRootPath)
             .AddJsonFile("appsettings.shared_lnk.json", optional: true, reloadOnChange: true)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.env_{AspNetCoreEnvironment}.json", optional: true, reloadOnChange: true)
@@ -134,11 +134,11 @@ namespace Log4ALA
             }
         }
 
-        public static string CurrentDir
+        public static string ContentRootPath
         {
             get
             {
-                 return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                 return IsWindows() ? Directory.GetCurrentDirectory() : Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             }
         }
 
