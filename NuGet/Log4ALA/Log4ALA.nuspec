@@ -3,7 +3,7 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.3.2</version>
+    <version>2.3.3</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
@@ -12,7 +12,7 @@
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
     <releaseNotes>
-      Fix issue to differ get absolute path between Windows and Linux OS for reading appsettings files if running as ASP.NET Core app and removed unnecessary Console.WriteLine() output.
+      Add new property enableDebugConsoleLog to enable a kind of verbose/debug logging on console and in the log4ALA_error.log.
     </releaseNotes>
     <dependencies>
       <group targetFramework="net45">

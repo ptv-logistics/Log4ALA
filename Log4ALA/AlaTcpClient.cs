@@ -18,18 +18,24 @@ namespace Log4ALA
         private string workSpaceID;
 
         // Creates AlaClient instance. 
-        public AlaTcpClient(string sharedKey, string workSpaceId)
+        public AlaTcpClient(string sharedKey, string workSpaceId, bool debugConsoleLog = false, string logAppenderName = null)
         {
+            appenderName = logAppenderName;
+            debConsoleLog = debugConsoleLog;
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
             serverAddr = $"{workSpaceID}.{AlaApiUrl}";
-            ConfigureServiceEndpoint(serverAddr, true, true);
+            //will be ingored under dotnetcore https://github.com/dotnet/corefx/issues/10727
+            ConfigureServiceEndpoint(serverAddr, true, true, false, debConsoleLog, appenderName);
         }
 
         private int tcpPort = 443;
         private TcpClient client = null;
         private SslStream sslStream = null;
         private String serverAddr;
+        private bool debConsoleLog = false;
+        private string appenderName;
+
 
         private Stream ActiveStream
         {
@@ -41,65 +47,89 @@ namespace Log4ALA
 
         public void Connect()
         {
-            client = new TcpClient(serverAddr, tcpPort);
-            client.NoDelay = true;
+            try
+            {
+                client = new TcpClient(serverAddr, tcpPort);
+                client.NoDelay = true;
 
-            sslStream = new SslStream(client.GetStream());
-            sslStream.AuthenticateAsClient(serverAddr);
+                sslStream = new SslStream(client.GetStream());
+                sslStream.AuthenticateAsClient(serverAddr);
+            }
+            catch (Exception ex)
+            {
+
+                if(debConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Connect] - [{ex.StackTrace}]");
+                }
+            }
 
         }
 
         public string Write(byte[] buffer, int offset, int count, bool isHeader = false)
         {
-            ActiveStream.Write(buffer, offset, count);
-
-            if (isHeader)
-            {
-                return "isHeader";
-            }
-
-            Flush();
 
             string result = string.Empty;
 
-            // receive data
-            using (var memory = new MemoryStream())
+            try
             {
-                ActiveStream.CopyTo(memory);
-                memory.Position = 0;
-                var data = memory.ToArray();
+                ActiveStream.Write(buffer, offset, count);
 
-                if (data != null && data.Length > 0)
+                if (isHeader)
                 {
+                    return "isHeader";
+                }
 
-                    var index = BinaryMatch(data, Encoding.ASCII.GetBytes("\r\n\r\n")) + 4;
-                    var headers = Encoding.ASCII.GetString(data, 0, index);
-                    memory.Position = index;
+                Flush();
 
-                    if (headers.IndexOf("Content-Encoding: gzip") > 0)
+
+                // receive data
+                using (var memory = new MemoryStream())
+                {
+                    ActiveStream.CopyTo(memory);
+                    memory.Position = 0;
+                    var data = memory.ToArray();
+
+                    if (data != null && data.Length > 0)
                     {
-                        using (GZipStream decompressionStream = new GZipStream(memory, CompressionMode.Decompress))
-                        using (var decompressedMemory = new MemoryStream())
+
+                        var index = BinaryMatch(data, Encoding.ASCII.GetBytes("\r\n\r\n")) + 4;
+                        var headers = Encoding.ASCII.GetString(data, 0, index);
+                        memory.Position = index;
+
+                        if (headers.IndexOf("Content-Encoding: gzip") > 0)
                         {
-                            decompressionStream.CopyTo(decompressedMemory);
-                            decompressedMemory.Position = 0;
-                            result = Encoding.UTF8.GetString(decompressedMemory.ToArray());
+                            using (GZipStream decompressionStream = new GZipStream(memory, CompressionMode.Decompress))
+                            using (var decompressedMemory = new MemoryStream())
+                            {
+                                decompressionStream.CopyTo(decompressedMemory);
+                                decompressedMemory.Position = 0;
+                                result = Encoding.UTF8.GetString(decompressedMemory.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            result = Encoding.UTF8.GetString(data, index, data.Length - index);
+                            //result = Encoding.GetEncoding("gbk").GetString(data, index, data.Length - index);
                         }
                     }
                     else
                     {
-                        result = Encoding.UTF8.GetString(data, index, data.Length - index);
-                        //result = Encoding.GetEncoding("gbk").GetString(data, index, data.Length - index);
+                        result = "couldn't read response from stream";
                     }
                 }
-                else
+            }
+            catch (Exception e)
+            {
+                result = $"couldn't read response from stream: [{e.Message}]";
+
+                if (debConsoleLog)
                 {
-                    result = "couldn't read response from stream";
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Write] - [{e.StackTrace}]");
                 }
             }
 
             return result;
-
         }
 
         private static int BinaryMatch(byte[] input, byte[] pattern)
@@ -126,8 +156,20 @@ namespace Log4ALA
 
         public void Flush()
         {
-            ActiveStream.Flush();
+            try
+            {
+                ActiveStream.Flush();
+            }
+            catch (Exception ex)
+            {
+                if (debConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Flush] - [{ex.StackTrace}]");
+                }
+            }
+
         }
+
 
         public void Close()
         {
@@ -140,30 +182,25 @@ namespace Log4ALA
                         ActiveStream.Dispose();
                     }
                     client.Close();
+                    if (client != null)
+                    {
+                        client = null;
+                    }
                 }
-                catch
+                catch(Exception ex)
                 {
+                    if (debConsoleLog)
+                    {
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Close] - [{ex.StackTrace}]");
+                    }
                 }
             }
         }
-        public void Put()
-        {
-            if (client != null)
-            {
-                try
-                {
-                    Close();
-                    Connect();
-                }
-                catch
-                {
-                }
-            }
-        }
+     
 
         private static ConcurrentDictionary<string, ServicePoint> ServiceEndpointConfigruations = new ConcurrentDictionary<string, ServicePoint>();
 
-        public static void ConfigureServiceEndpoint(string seURL, bool useNagle = false, bool isSSL = false, bool isChanged = false)
+        public static void ConfigureServiceEndpoint(string seURL, bool useNagle = false, bool isSSL = false, bool isChanged = false, bool debConsoleLog = false, string appenderName = null)
         {
             if (!ServiceEndpointConfigruations.ContainsKey(seURL) || isChanged)
             {
@@ -180,6 +217,12 @@ namespace Log4ALA
                 instanceServicePoint.UseNagleAlgorithm = useNagle;
                 //instanceServicePoint.ReceiveBufferSize = 45000192;
                 instanceServicePoint.ConnectionLimit = 100 * (Environment.ProcessorCount > 0 ? Environment.ProcessorCount : 1);
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                if (debConsoleLog)
+                {
+                   System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|TRACE|[{nameof(AlaTcpClient)}.ConfigureServiceEndpoint] instanceServicePoint.ConnectionLimit - [{instanceServicePoint.ConnectionLimit}]");
+                }
+#endif
                 //set to 0 to force ServicePoint connections to close after servicing a request
                 instanceServicePoint.ConnectionLeaseTimeout = 0;
                 ServiceEndpointConfigruations.AddOrUpdate(seURL, instanceServicePoint, (key, oldValue) => instanceServicePoint);

@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -158,6 +158,19 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_2.logType" value=""/>
     <add key="Log4ALAAppender_2.logMessageToFile" value="true"/>
 
+    <!--Log4ALA common settings-->
+    <add key="alaQueueSizeLogIntervalEnabled" value="false"/>
+    <add key="alaQueueSizeLogIntervalInSec" value="100"/>
+	<!-- 
+    optional setting to avoid info log file if true (log4ALA_info.log or defined with infoAppenderFile) e.g on production system (default false).
+    -->
+    <add key="disableInfoLogFile" value="false"/>
+    <!-- 
+    optional setting to enable verbose/debug logging on console and in the log4ALA_error.log (default false).
+    -->
+    <add key="enableDebugConsoleLog" value="false"/>
+
+
   </appSettings>
 
 </configuration>
@@ -175,13 +188,15 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "workspaceId": "",
     "SharedKey": "",
     "logType": "",
-    "logMessageToFile": "true",
-    "jsonDetection": "true",
+    "logMessageToFile": true,
+    "jsonDetection": true,
     "batchWaitMaxInSec": "2",
     "coreFieldNames": "{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"
    },
-   "alaQueueSizeLogIntervalEnabled": "false",
+   "alaQueueSizeLogIntervalEnabled": false,
    "alaQueueSizeLogIntervalInSec": "100",
+   "disableInfoLogFile": false,
+   "enableDebugConsoleLog": false,
    
     "Logging": {
       "IncludeScopes": false,
@@ -252,12 +267,7 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!--<azureApiVersion value="2016-04-01" />-->
     <!-- optional max retries if the HTTP Data Collector API request failed (default 6 retries) -->
     <!--<httpDataCollectorRetry value="6" />-->
-
-    <!-- 
-    optional setting to avoid info log file if true (log4ALA_info.log or defined with infoAppenderFile) e.g on production system (default false).
-    -->
-    <!--<disableInfoLogFile value="true"/>-->
-
+	 
     <!-- 
     optional debug setting which should only be used during development or on testsystem. Set 
 	logMessageToFile=true to inspect your messages (in log4ALA_info.log) which will be sent to the 

@@ -2,7 +2,9 @@
 using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
+#if NETSTANDARD2_0 || NETCOREAPP2_0
 using log4net.Repository;
+#endif
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -185,7 +187,7 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
                 log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
 
-                if(ConfigSettings.IsLinux() || ConfigSettings.IsMacOS())
+                if(ConfigSettings.ALAEnableDebugConsoleLog)
                 {
                     System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.ContentRootPath}]");
                     System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]");
@@ -284,10 +286,14 @@ namespace Log4ALA
                 JsonDetection = configSettings.ALAJsonDetection == null ? JsonDetection : (bool)configSettings.ALAJsonDetection;
                 log.Inf($"[{this.Name}] - jsonDetecton:[{JsonDetection}]", true);
 
-                log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
-                log.Inf($"[{this.Name}] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
-
                 log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
+                log.Inf($"[{this.Name}] - logMessageToFile:[{LogMessageToFile}]", true);
+
+                log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
+                log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
+                log.Inf($"[CommonConfiguration] - disableInfoLogFile:[{DisableInfoLogFile}]", true);
+                log.Inf($"[CommonConfiguration] - enableDebugConsoleLog:[{ConfigSettings.ALAEnableDebugConsoleLog}]", true);
+
 
                 queueLogger = new QueueLogger(this);
 

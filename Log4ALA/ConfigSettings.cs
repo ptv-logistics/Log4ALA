@@ -20,6 +20,7 @@ namespace Log4ALA
         private const string ALA_LOGGING_QUEUE_SIZE_PROP = "loggingQueueSize";
         private const string ALA_LOG_MESSAGE_TOFILE_PROP = "logMessageToFile";
         private const string ALA_DISABLE_INFO_APPENDER_FILE_PROP = "disableInfoLogFile";
+        private const string ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP = "enableDebugConsoleLog";
         private const string ALA_APPEND_LOGGER_PROP = "appendLogger";
         private const string ALA_APPEND_LOG_LEVEL_PROP = "appendLogLevel";
         private const string ALA_ERR_LOGGER_NAME_PROP = "errLoggerName";
@@ -54,6 +55,7 @@ namespace Log4ALA
         public const bool DEFAULT_APPEND_LOGLEVEL = true;
         public const bool DEFAULT_LOG_MESSAGE_TOFILE = false;
         public const bool DEFAULT_DISABLE_INFO_APPENDER_FILE = false;
+        public const bool DEFAULT_ENABLE_DEBUG_CONSOLE_LOG = false;
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
@@ -245,12 +247,35 @@ namespace Log4ALA
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLADisableInfoAppenderFile = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DISABLE_INFO_APPENDER_FILE_PROP}");
+                if (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile))
+                {
+                    aLADisableInfoAppenderFile = CloudConfigurationManager.GetSetting(ALA_DISABLE_INFO_APPENDER_FILE_PROP);
+                }
 #else
                 string aLADisableInfoAppenderFile = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DISABLE_INFO_APPENDER_FILE_PROP}"];
+                if (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile))
+                {
+                    aLADisableInfoAppenderFile = CloudConfigurationManager[ALA_DISABLE_INFO_APPENDER_FILE_PROP];
+                }
+
 #endif
                 return (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile) ? (bool?)null : Boolean.Parse(aLADisableInfoAppenderFile));
             }
         }
+
+        public static bool ALAEnableDebugConsoleLog
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAEnableDebugConsoleLog = CloudConfigurationManager.GetSetting(ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP);
+#else
+                string aLAEnableDebugConsoleLog = CloudConfigurationManager[ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAEnableDebugConsoleLog) ? ConfigSettings.DEFAULT_ENABLE_DEBUG_CONSOLE_LOG : Boolean.Parse(aLAEnableDebugConsoleLog));
+            }
+        }
+        
 
         public bool? ALAAppendLogger
         {

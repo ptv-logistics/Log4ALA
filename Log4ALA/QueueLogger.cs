@@ -214,7 +214,7 @@ namespace Log4ALA
                     OpenConnection();
                     try
                     {
-                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to AlaClient", true);
+                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to AlaClient", init ? true : appender.LogMessageToFile);
                     }
                     catch (Exception)
                     {
@@ -225,9 +225,13 @@ namespace Log4ALA
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    string errMessage = $"[{appender.Name}] - Unable to {(init ? "connect" : "reconnect")} to AlaClient => [{ex.Message}] retry [{(retryCount + 1)}]";
-                    appender.log.Err(errMessage);
-                    appender.extraLog.Err(errMessage);
+                    string errMessage = $"Unable to {(init ? "connect" : "reconnect")} to AlaClient => [{ex.Message}] retry [{(retryCount + 1)}]";
+                    if(ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.Connect] - [{errMessage}]");
+                    }
+                    appender.log.Err($"[{appender.Name}] - {errMessage}");
+                    appender.extraLog.Err($"[{appender.Name}] - {errMessage}");
                 }
 
                 rootDelay *= 2;
@@ -244,8 +248,12 @@ namespace Log4ALA
                 }
                 catch (Exception ex)
                 {
-                    string errMessage = $"[{appender.Name}] - Thread sleep exception => [{ex}]";
-                    appender.log.Err(errMessage);
+                    string errMessage = $"Thread sleep exception => [{ex.StackTrace}]";
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.Connect] - [{errMessage}]");
+                    }
+                    appender.log.Err($"[{appender.Name}] - {errMessage}");
                     throw new ThreadInterruptedException();
                 }
             }
@@ -255,24 +263,43 @@ namespace Log4ALA
         {
             try
             {
-                // Create AlaClient instance providing all needed parameters.
-                alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
+                if (alaClient == null)
+                {
+                    // Create AlaClient instance providing all needed parameters.
+                    alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId, ConfigSettings.ALAEnableDebugConsoleLog, appender.Name); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
+                }
 
                 alaClient.Connect();
 
             }
             catch (Exception ex)
             {
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.OpenConnection] - [{ex.StackTrace}]");
+                }
                 throw new IOException($"An error occurred while init AlaTcpClient.", ex);
             }
         }
 
         protected virtual void CloseConnection()
         {
-            if (alaClient != null)
+            try
             {
-                alaClient.Close();
+                if (alaClient != null)
+                {
+                    alaClient.Close();
+                }
+
             }
+            catch (Exception ex)
+            {
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CloseConnection] - [{ex.StackTrace}]");
+                }
+            }
+
         }
 
         public virtual void AddLine(string line)
@@ -317,11 +344,26 @@ namespace Log4ALA
 
         private void HttpRequest(string log)
         {
+            bool isSendALAHeaderErr = false;
+            bool isSendALADataErr = false;
 
             while (true)
             {
                 try
                 {
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                        if (isSendALAHeaderErr)
+                        {
+                            appender.log.Err($"[{appender.Name}] - retry sending Azure Log Analytics header...");
+                        }
+
+                        if (isSendALADataErr)
+                        {
+                            appender.log.Err($"[{appender.Name}] - retry sending Azure Log Analytics data...");
+                        }
+                    }
+
                     headerBuilder.Clear();
 
                     string result = string.Empty;
@@ -349,7 +391,17 @@ namespace Log4ALA
                     var header = Encoding.ASCII.GetBytes(headerBuilder.ToString());
 
                     // Send http headers
-                    alaClient.Write(header, 0, header.Length, true);
+                    string headerRes = alaClient.Write(header, 0, header.Length, true);
+                    if (!headerRes.Equals("isHeader"))
+                    {
+                        isSendALAHeaderErr = true;
+                        string errMessage = $"send Azure Log Analytics header failed - {headerRes}";
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            appender.log.Err($"[{appender.Name}] - {errMessage}");
+                        }
+                        throw new Exception(errMessage);
+                    }
 
                     // Send payload data
                     string httpResultBody = alaClient.Write(content, 0, content.Length);
@@ -357,12 +409,14 @@ namespace Log4ALA
 
                     if (!string.IsNullOrWhiteSpace(httpResultBody))
                     {
-                        string errMessage = httpResultBody;
-                        appender.log.Err(errMessage);
+                        isSendALADataErr = true;
+                        string errMessage = $"send Azure Log Analytics data failed - {httpResultBody}";
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            appender.log.Err($"[{appender.Name}] - {errMessage}");
+                        }
                         throw new Exception(errMessage);
                     }
-                    alaClient.Put();
-
                     try
                     {
                         //no loggings in case of LogManager.Shutdown() -> AbortWorker;
@@ -373,13 +427,32 @@ namespace Log4ALA
                         //continue
                     }
 
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                        if (isSendALAHeaderErr)
+                        {
+                            appender.log.Err($"[{appender.Name}] - retry sending Azure Log Analytics header succeeded");
+                        }
+
+                        if (isSendALADataErr)
+                        {
+                            appender.log.Err($"[{appender.Name}] - retry sending Azure Log Analytics data succeeded");
+                        }
+                    }
+
+                    isSendALAHeaderErr = false;
+                    isSendALADataErr = false;
+
                 }
                 catch (Exception ex)
                 {
                     // Reopen the lost connection.
-                    string errMessage = $"[{appender.Name}] - reopen lost connection. [{ex.Message}]";
-                    appender.log.War(errMessage, appender.LogMessageToFile);
-
+                    string errMessage = $"reopen lost connection and retry...";
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                         appender.log.Err($"[{appender.Name}] - {errMessage}");
+                         System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.HttpRequest] - [{errMessage}]");
+                    }
                     Connect();
                     continue;
                 }

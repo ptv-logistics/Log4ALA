@@ -5,6 +5,10 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="log4net.config" />
+  </ItemGroup>
+
   
 
   <ItemGroup>
@@ -15,11 +19,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
   
 
   <ItemGroup>
-    <PackageReference Include="Log4ALA" Version="2.*" />
+    <PackageReference Include="Log4ALA" Version="2.3.3" />
   </ItemGroup>
 
+  
+
+  <ItemGroup>
+    <None Update="appsettings.buildsys.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
