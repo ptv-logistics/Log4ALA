@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -387,8 +387,8 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 
 ## Issues
 
-Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the OMS Portal
-click *Usage* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/)
+Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the 
+Azure Portal and select the depending Log Analytics Workspace/Usage and estimated costs and then click *Usage details* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/)
 
 ## Supported Frameworks
 
