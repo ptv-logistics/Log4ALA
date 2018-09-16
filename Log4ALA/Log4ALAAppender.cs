@@ -55,6 +55,10 @@ namespace Log4ALA
         public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
         public int? MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
 
+        public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
+        public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
+
+
 #if NETSTANDARD2_0 || NETCOREAPP2_0
         private static ILoggerRepository REPOSITORY = log4net.LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
 #endif
@@ -288,6 +292,13 @@ namespace Log4ALA
 
                 log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
                 log.Inf($"[{this.Name}] - logMessageToFile:[{LogMessageToFile}]", true);
+
+                KeyValueSeparator = string.IsNullOrWhiteSpace(configSettings.ALAKeyValueSeparator) ? KeyValueSeparator : configSettings.ALAKeyValueSeparator;
+                log.Inf($"[{this.Name}] - keyValueSeparator:[{KeyValueSeparator}]", true);
+
+                KeyValuePairSeparator = string.IsNullOrWhiteSpace(configSettings.ALAKeyValuePairSeparator) ? KeyValuePairSeparator : configSettings.ALAKeyValuePairSeparator;
+                log.Inf($"[{this.Name}] - keyValuePairSeparator:[{KeyValuePairSeparator}]", true);
+
 
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);

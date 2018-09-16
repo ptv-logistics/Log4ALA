@@ -41,6 +41,8 @@ namespace Log4ALA
         private const string ALA_THREAD_PRIORITY_PROP = "threadPriority";
         private const string ALA_QUEUE_READ_TIMEOUT_PROP = "queueReadTimeout";
         private const string ABORT_TIMEOUT_SECONDS_PROP = "abortTimeoutSeconds";
+        private const string ALA_KEY_VALUE_SEPARATOR_PROP = "keyValueSeparator";
+        private const string ALA_KEY_VALUE_PAIR_SEPARATOR_PROP = "keyValuePairSeparator";
 
 
 
@@ -68,6 +70,9 @@ namespace Log4ALA
         public const string DEFAULT_LOGGER_FIELD_NAME = "Logger";
         public const string DEFAULT_LEVEL_FIELD_NAME = "Level";
         public const string DEFAULT_THREAD_PRIORITY = "Lowest";
+
+        public const string DEFAULT_KEY_VALUE_SEPARATOR = "=";
+        public const string DEFAULT_KEY_VALUE_PAIR_SEPARATOR = ",";
 
         public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
 
@@ -518,6 +523,30 @@ namespace Log4ALA
                 return int.Parse((string.IsNullOrWhiteSpace(abortTimeout) ? DEFAULT_TIMEOUT_SECONDS : abortTimeout));
             }
         }
+
+        public string ALAKeyValueSeparator
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_VALUE_SEPARATOR_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_KEY_VALUE_SEPARATOR_PROP}"];
+#endif
+            }
+        }
+        public string ALAKeyValuePairSeparator
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_VALUE_PAIR_SEPARATOR_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_KEY_VALUE_PAIR_SEPARATOR_PROP}"];
+#endif
+            }
+        }
+
 #if NETSTANDARD2_0 || NETCOREAPP2_0
         public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         public static bool IsMacOS() => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);

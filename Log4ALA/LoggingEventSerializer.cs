@@ -15,6 +15,7 @@ using System.Text;
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Log4ALA
 {
@@ -102,14 +103,15 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
+        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
-                string[] le1Sp = message.Split(';');
 
-                //remove empty objects
-                le1Sp = le1Sp.Where(ll => !string.IsNullOrWhiteSpace((ll))).Select(l => l.Trim()).ToArray();
+                string[] stringKeyValuePairSeparators = new string[] { KeyValuePairSeparator };
+                string[] stringKeyValueSeparators = new string[] { KeyValueSeparator };
+
+                string[] le1Sp = message.Split(stringKeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries);
 
                 StringBuilder misc = new StringBuilder();
 
@@ -117,28 +119,28 @@ namespace Log4ALA
 
                 foreach (var le1p in le1Sp)
                 {
-                    if (le1p.Count(c => c == '=') > 1)
+                    if (Regex.Matches(le1p, Regex.Escape(KeyValueSeparator)).Count > 1)
                     {
                         string[] le1pSP = le1p.Split(' ');
                         //remove whitespaces
                         le1pSP = le1pSP.Select(l => l.Trim()).ToArray();
                         foreach (var le1pp in le1pSP)
                         {
-                            if (le1pp.Count(c => c == '=') == 1)
+                            if (Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 1)
                             {
-                                string[] le1ppSP = le1pp.Split('=');
+                                string[] le1ppSP = le1pp.Split(stringKeyValueSeparators, StringSplitOptions.None);
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
                                     CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
                                 }
                             }
-                            else if(le1pp.Count(c => c == '=') == 2) {
-                                string[] le1ppSP = le1pp.Split('=');
-                                if(le1ppSP.Length == 3 && !string.IsNullOrWhiteSpace(le1ppSP[0]) && !string.IsNullOrWhiteSpace(le1ppSP[1]) && 
-                                    string.IsNullOrWhiteSpace(le1ppSP[2]) && le1pp.Trim().EndsWith("=") && 
-                                    $"{le1ppSP[1].Trim()}=".IsBase64())
+                            else if(Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 2) {
+                                string[] le1ppSP = le1pp.Split(stringKeyValueSeparators, StringSplitOptions.None);
+                                if (le1ppSP.Length == 3 && !string.IsNullOrWhiteSpace(le1ppSP[0]) && !string.IsNullOrWhiteSpace(le1ppSP[1]) && 
+                                    string.IsNullOrWhiteSpace(le1ppSP[2]) && le1pp.Trim().EndsWith(KeyValueSeparator) && 
+                                    $"{le1ppSP[1].Trim()}{KeyValueSeparator}".IsBase64())
                                 {
-                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}=".TypeConvert(maxByteLength), maxFieldNameLength);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}{KeyValueSeparator}".TypeConvert(maxByteLength), maxFieldNameLength);
 
                                 }
                             }
@@ -151,9 +153,9 @@ namespace Log4ALA
                     }
                     else
                     {
-                        if (le1p.Count(c => c == '=') == 1)
+                        if (Regex.Matches(le1p, Regex.Escape(KeyValueSeparator)).Count == 1)
                         {
-                            string[] le1ppSP = le1p.Split('=');
+                            string[] le1ppSP = le1p.Split(stringKeyValueSeparators, StringSplitOptions.None);
 
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
