@@ -72,7 +72,7 @@ namespace Log4ALA
         public const string DEFAULT_THREAD_PRIORITY = "Lowest";
 
         public const string DEFAULT_KEY_VALUE_SEPARATOR = "=";
-        public const string DEFAULT_KEY_VALUE_PAIR_SEPARATOR = ",";
+        public const string DEFAULT_KEY_VALUE_PAIR_SEPARATOR = ";";
 
         public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
 
