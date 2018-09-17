@@ -107,9 +107,10 @@ namespace Log4ALA
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
-                string[] le1Sp;
+                string[] le1Sp = null;
                 string[] stringKeyValuePairSeparators = null;
                 string[] stringKeyValueSeparators = null;
+
 
                 if (KeyValuePairSeparator.Length <= 0 || string.IsNullOrWhiteSpace(KeyValuePairSeparator))
                 {
@@ -120,6 +121,7 @@ namespace Log4ALA
                 {
                     KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
                 }
+
 
 
                 if (KeyValuePairSeparator.Length == 1)
@@ -153,7 +155,7 @@ namespace Log4ALA
                             if (Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 1)
                             {
                                 string[] le1ppSP;
-                                if (stringKeyValueSeparators.Length == 1)
+                                if (KeyValueSeparator.Length == 1)
                                 {
                                     le1ppSP = le1pp.Split(Convert.ToChar(KeyValueSeparator));
                                 }
@@ -169,7 +171,7 @@ namespace Log4ALA
                             }
                             else if(Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 2) {
                                 string[] le1ppSP;
-                                if (stringKeyValueSeparators.Length == 1)
+                                if (KeyValueSeparator.Length == 1)
                                 {
                                     le1ppSP = le1pp.Split(Convert.ToChar(KeyValueSeparator));
                                 }
@@ -198,7 +200,7 @@ namespace Log4ALA
                         if (Regex.Matches(le1p, Regex.Escape(KeyValueSeparator)).Count == 1)
                         {
                             string[] le1ppSP;
-                            if (stringKeyValueSeparators.Length == 1)
+                            if (KeyValueSeparator.Length == 1)
                             {
                                 le1ppSP = le1p.Split(Convert.ToChar(KeyValueSeparator));
                             }
