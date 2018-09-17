@@ -44,7 +44,7 @@ namespace Log4ALA
 
 
             var valObjects = new ExpandoObject() as IDictionary<string, Object>;
-            if ((bool)appender.JsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ValidateJSON((string)loggingEvent.MessageObject))
+            if ((bool)appender.JsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ((string)loggingEvent.MessageObject).IsValidJson())
             {
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
                 foreach (var val in values)
@@ -57,7 +57,7 @@ namespace Log4ALA
             }
             else
             {
-                if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
+                if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !((string)loggingEvent.MessageObject).IsValidJson())
                 {
                     ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
@@ -272,18 +272,7 @@ namespace Log4ALA
             return sb.ToString();
         }
 
-        public bool ValidateJSON(string s)
-        {
-            try
-            {
-                JToken.Parse(s);
-                return true;
-            }
-            catch (JsonReaderException ex)
-            {
-                return false;
-            }
-        }
+       
 
     }
 
@@ -348,6 +337,28 @@ namespace Log4ALA
             return convertedValue;
         }
 
+        public static bool IsValidJson(this string stringValue)
+        {
+            if (!string.IsNullOrWhiteSpace(stringValue))
+            {
+                var value = stringValue.Trim();
+                if ((value.StartsWith("{") && value.EndsWith("}")) || //For object
+                    (value.StartsWith("[") && value.EndsWith("]"))) //For array
+                {
+                    try
+                    {
+                        var obj = JToken.Parse(value);
+                        return true;
+                    }
+                    catch (JsonReaderException)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }
 
     }
 }
