@@ -59,7 +59,7 @@ namespace Log4ALA
             {
                 if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !ValidateJSON((string)loggingEvent.MessageObject))
                 {
-                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength);
+                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
                 else
                 {
