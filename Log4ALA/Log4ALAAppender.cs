@@ -58,6 +58,9 @@ namespace Log4ALA
         public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
         public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
 
+        public string[] KeyValueSeparators { get; set; } = null;
+        public string[] KeyValuePairSeparators { get; set; } = null;
+
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
         private static ILoggerRepository REPOSITORY = log4net.LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
@@ -276,7 +279,6 @@ namespace Log4ALA
 
                 log.Inf($"[{this.Name}] - batchNumItems:[{BatchNumItems}]", true);
 
-                serializer = new LoggingEventSerializer();
 
                 AppendLogger = configSettings.ALAAppendLogger == null ? AppendLogger : (bool)configSettings.ALAAppendLogger;
                 log.Inf($"[{this.Name}] - appendLogger:[{AppendLogger}]", true);
@@ -296,15 +298,25 @@ namespace Log4ALA
                 KeyValueSeparator = string.IsNullOrWhiteSpace(configSettings.ALAKeyValueSeparator) ? KeyValueSeparator : configSettings.ALAKeyValueSeparator;
                 log.Inf($"[{this.Name}] - keyValueSeparator:[{KeyValueSeparator}]", true);
 
+                if(KeyValueSeparator.Length > 1 && KeyValueSeparators == null)
+                {
+                    KeyValueSeparators = new string[] { KeyValueSeparator };
+                }
+  
                 KeyValuePairSeparator = string.IsNullOrWhiteSpace(configSettings.ALAKeyValuePairSeparator) ? KeyValuePairSeparator : configSettings.ALAKeyValuePairSeparator;
                 log.Inf($"[{this.Name}] - keyValuePairSeparator:[{KeyValuePairSeparator}]", true);
 
+                if (KeyValuePairSeparator.Length > 1 && KeyValuePairSeparators == null)
+                {
+                    KeyValuePairSeparators = new string[] { KeyValuePairSeparator };
+                }
 
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
                 log.Inf($"[CommonConfiguration] - disableInfoLogFile:[{DisableInfoLogFile}]", true);
                 log.Inf($"[CommonConfiguration] - enableDebugConsoleLog:[{ConfigSettings.ALAEnableDebugConsoleLog}]", true);
 
+                serializer = new LoggingEventSerializer(this);
 
                 queueLogger = new QueueLogger(this);
 
@@ -384,7 +396,7 @@ namespace Log4ALA
             {
                 if (queueLogger != null)
                 {
-                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent }, this);
+                    var content = serializer.SerializeLoggingEvents(new[] { loggingEvent });
                     queueLogger.AddLine(content);
                 }
             }

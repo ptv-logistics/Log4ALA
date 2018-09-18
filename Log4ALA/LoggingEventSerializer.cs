@@ -23,19 +23,26 @@ namespace Log4ALA
     {
         public static char[] AllowedCharPlus = new char[] { '_' };
 
-        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents, Log4ALAAppender appender)
+        private Log4ALAAppender appender;
+
+        public LoggingEventSerializer(Log4ALAAppender appender)
+        {
+            this.appender = appender;
+        }
+
+        public string SerializeLoggingEvents(IEnumerable<LoggingEvent> loggingEvents)
         {
             var sb = new StringBuilder();
 
             foreach (var loggingEvent in loggingEvents)
             {
-                sb.AppendLine(SerializeLoggingEvent(loggingEvent, appender));
+                sb.AppendLine(SerializeLoggingEvent(loggingEvent));
             }
 
             return sb.ToString();
         }
 
-        private string SerializeLoggingEvent(LoggingEvent loggingEvent, Log4ALAAppender appender)
+        private string SerializeLoggingEvent(LoggingEvent loggingEvent)
         {
 
             IDictionary<string, Object> payload = new ExpandoObject() as IDictionary<string, Object>;
@@ -103,42 +110,23 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private static void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
+        private void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
                 string[] le1Sp = null;
-                string[] stringKeyValuePairSeparators = null;
-                string[] stringKeyValueSeparators = null;
-
-
-                if (KeyValuePairSeparator.Length <= 0 || string.IsNullOrWhiteSpace(KeyValuePairSeparator))
-                {
-                    KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
-                }
-
-                if (KeyValueSeparator.Length <= 0 || string.IsNullOrWhiteSpace(KeyValueSeparator))
-                {
-                    KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
-                }
-
-
 
                 if (KeyValuePairSeparator.Length == 1)
                 {
-                   
                     le1Sp = message.Split(Convert.ToChar(KeyValuePairSeparator));
                     //remove empty objects
                     le1Sp = le1Sp.Where(ll => !string.IsNullOrWhiteSpace((ll))).Select(l => l.Trim()).ToArray();
-
                 }
                 else
                 {
-                    stringKeyValuePairSeparators = new string[] { KeyValuePairSeparator };
-                    stringKeyValueSeparators = new string[] { KeyValueSeparator };
-
-                    le1Sp = message.Split(stringKeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries);
+                    le1Sp = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries);
                 }
+
                 StringBuilder misc = new StringBuilder();
 
                 ConcurrentDictionary<string, int> duplicates = new ConcurrentDictionary<string, int>();
@@ -161,7 +149,7 @@ namespace Log4ALA
                                 }
                                 else
                                 {
-                                    le1ppSP = le1pp.Split(stringKeyValueSeparators, StringSplitOptions.None);
+                                    le1ppSP = le1pp.Split(appender.KeyValueSeparators, StringSplitOptions.None);
                                 }
 
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
@@ -177,7 +165,7 @@ namespace Log4ALA
                                 }
                                 else
                                 {
-                                    le1ppSP = le1pp.Split(stringKeyValueSeparators, StringSplitOptions.None);
+                                    le1ppSP = le1pp.Split(appender.KeyValueSeparators, StringSplitOptions.None);
                                 }
 
                                 if (le1ppSP.Length == 3 && !string.IsNullOrWhiteSpace(le1ppSP[0]) && !string.IsNullOrWhiteSpace(le1ppSP[1]) && 
@@ -206,7 +194,7 @@ namespace Log4ALA
                             }
                             else
                             {
-                                le1ppSP = le1p.Split(stringKeyValueSeparators, StringSplitOptions.None);
+                                le1ppSP = le1p.Split(appender.KeyValueSeparators, StringSplitOptions.None);
                             }
 
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
