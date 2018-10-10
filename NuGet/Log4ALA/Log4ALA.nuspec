@@ -3,7 +3,7 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.3.3</version>
+    <version>2.3.4</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
@@ -11,9 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
-    <releaseNotes>
-      Add new property enableDebugConsoleLog to enable a kind of verbose/debug logging on console and in the log4ALA_error.log.
-    </releaseNotes>
+    <releaseNotes>Optimize json detection (now the detection will only be done if the log message really contains a json string to increase the performance by avoiding unnecessary exception flooding during the json check) and add new properties keyValueSeparator and keyValuePairSeparator to configure any other single char or multiple chars as separator for the keyValue detection in the log message (https://github.com/ptv-logistics/Log4ALA#features under bullet point 9). </releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.5" />

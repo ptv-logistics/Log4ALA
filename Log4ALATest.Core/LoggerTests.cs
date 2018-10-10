@@ -21,18 +21,18 @@ namespace Log4ALATest.Core
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
 
-            ////Log messages with semicolon separated key=value strings...the keys will then be mapped to Azure Log Analytic properties/columns.
+            ////Log messages with [;] separated key[=]value strings...the keys will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 3; i++)
             {
-                alaLogger2.Info($"id=log-{i}; message=netstandard2-test-{i}");
+                alaLogger2.Info($" message[=]netstandard2-test-{i}[;] id[=]log{i}[;] intTest[=]{i}[;] doubleTest[=]{i}={5}");
             }
 
 
             System.Console.WriteLine("done");
 
-  
 
             System.Threading.Thread.Sleep(new TimeSpan(1, 5, 0));
+
 
         }
     }

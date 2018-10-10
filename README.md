@@ -68,10 +68,23 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
+
+
+			//log message if separators are changed from defaults = and ; to [=] and [;]
+			//Log4ALAAppender_3.keyValueSeparator="[=]"
+			//and
+			//Log4ALAAppender_3.keyValuePairSeparator="[;]"
+            for (int i = 0; i < 10; i++)
+            {
+                alaLogger3.Info($"id[=]log={i}[;]message[=]test={i}");
+            }
+
+
+            System.Console.WriteLine("done5");
 
             System.Threading.Thread.Sleep(new TimeSpan(0, 5, 0));
         }
@@ -111,12 +124,21 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 1. You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, batchNumItems or batchWaitInSec (described further down). 
 If batchSizeInBytes will be choosed the collecting of the log data will be stopped and send to Azure Log Analyitcs if batchSizeInBytes will be reached or the duration is >= BatchWaitMaxInSec with default 60s or 
 batch size >= BatchSizeMax 30 mb this conditions applies also if you choose batchNumItems. In case of batchWaitInSec collecting will be stopped and send if batchWaitInSec will be reached or the batch size will be >= BatchSizeMax 30 mb.
-2. Auto detection/convertion of numeric, boolean, and dateTime string values to the Azure Log Analytics type _d, _b and _t.
+2. Auto detection/convertion of numeric, boolean, and dateTime string values to the [ Azure Log Analytics type _s, _g, _d, _b and _t](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api#record-type-and-properties)().
 3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
 4. Field names greater than 500 chars will be truncated (the value could be configured with maxFieldNameLength).
-5. Configurable core field names (the value could be configured with coreFieldNames)
-6. Configurable background worker thread priority (the value could be configured with threadPriority)
+5. Configurable core field names (the value could be configured with coreFieldNames).
+6. Configurable background worker thread priority (the value could be configured with threadPriority).
 7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
+8. Configurable detection of json strings (e.g. "{\"id\":\"log-1\", \"message\":\"test-1\"}") or key value (e.g. "") in the log messages with the properties jsonDetection (default true) and keyValueDetection (default true). Azure Log Analytics creates 
+custom fields/ record types for each incoming json property or key name.
+9. Configurable keyValue detection with keyValueSeparator and keyValuePairSeparator properties. To configure any other single char or multiple chars as separator for the keyValue detection in the log message.
+To avoid format conflicts e.g. with the semicolon separated key=value log message "Err=throws xy exception;Id=123" normally you will get two custom fields/records in Azure Log Analytics 
+Err_s:"throws xy exception" and Id_d:123 but if you like to use one of the default keyValueSeparator "=" or the default keyValuePairSeparator ";" chars in the value itself e.g. "Err=throws exception = exception
+name;Id=123" you will run into a format conflict normally you expect to get Err_s:"throws exception = exception name" but for the Err key in the log message you will get Err_s:"throws" and MiscMsg_s:"exception
+exception name" and Id_d:123 as custom fields in Azure Log Analytics because of the keyValue separator char "=" contained in the value itself. To avoid this behaviour e.g. set the properties keyValueSeparator 
+to "[=]" and keyValuePairSeparator to "[;]" and now your log message should look like "Err[=]throws exception = exception name[;]Id[=]123".
+
 
 
 ## General Configuration 
@@ -158,6 +180,12 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_2.logType" value=""/>
     <add key="Log4ALAAppender_2.logMessageToFile" value="true"/>
 
+    <!-- optional log message key value separator e.g. "key=value" (default =) -->
+    <add key="Log4ALAAppender_3.keyValueSeparator" value="[=]"/>
+    <!-- optional log message key value pair separator e.g "key1=value1;key2=value2"  (default ;) -->
+    <add key="Log4ALAAppender_3.keyValuePairSeparator" value="[;]"/>
+
+
     <!--Log4ALA common settings-->
     <add key="alaQueueSizeLogIntervalEnabled" value="false"/>
     <add key="alaQueueSizeLogIntervalInSec" value="100"/>
@@ -191,7 +219,9 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "logMessageToFile": true,
     "jsonDetection": true,
     "batchWaitMaxInSec": "2",
-    "coreFieldNames": "{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"
+    "coreFieldNames": "{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}",
+	"keyValueSeparator": "[=]",
+    "keyValuePairSeparator": "[;]"
    },
    "alaQueueSizeLogIntervalEnabled": false,
    "alaQueueSizeLogIntervalInSec": "100",
@@ -340,6 +370,14 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
      <!-- optional the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net
 	      process will be shutdown  (default 10 seconds)
      <abortTimeoutSeconds value="10"/>
+	  -->
+
+     <!-- optional log message key value separator e.g. "key=value" (default =)
+     <keyValueSeparator value="[=]"/>
+	  -->
+
+     <!-- optional log message key value pair separator e.g "key1=value1;key2=value2"  (default ;)
+     <keyValuePairSeparator value="[;]"/>
 	  -->
 
   </appender>
