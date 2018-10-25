@@ -223,7 +223,7 @@ namespace Log4ALA
         private static void CreateAlaField(IDictionary<string, object> payload, ConcurrentDictionary<string, int> duplicates, string key, object value, int maxFieldNameLength)
         {
 
-            key = key.TrimFieldName(maxFieldNameLength);
+            key = key.TrimFieldName(maxFieldNameLength).Trim();
 
             if (!payload.ContainsKey(key))
             {

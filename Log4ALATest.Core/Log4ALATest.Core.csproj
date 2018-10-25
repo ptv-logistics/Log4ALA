@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +23,7 @@
   
 
   <ItemGroup>
-    <PackageReference Include="Log4ALA" Version="2.3.4" />
+    <PackageReference Include="Log4ALA" Version="2.3.5" />
   </ItemGroup>
 
   
