@@ -32,11 +32,11 @@ namespace Log4ALA
         public string SharedKey { get; set; }
         public string LogType { get; set; }
         public string AzureApiVersion { get; set; } = ConfigSettings.DEFAULT_AZURE_API_VERSION;
-        public int? HttpDataCollectorRetry { get; set; } = ConfigSettings.DEFAULT_HTTP_DATA_COLLECTOR_RETRY;
+        public int HttpDataCollectorRetry { get; set; } = ConfigSettings.DEFAULT_HTTP_DATA_COLLECTOR_RETRY;
         public bool LogMessageToFile { get; set; } = ConfigSettings.DEFAULT_LOG_MESSAGE_TOFILE;
         public bool DisableInfoLogFile { get; set; } = ConfigSettings.DEFAULT_DISABLE_INFO_APPENDER_FILE;
-        public bool? AppendLogger { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGGER;
-        public bool? AppendLogLevel { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGLEVEL;
+        public bool AppendLogger { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGGER;
+        public bool AppendLogLevel { get; set; } = ConfigSettings.DEFAULT_APPEND_LOGLEVEL;
 
         public string ErrLoggerName { get; set; }
 
@@ -44,16 +44,16 @@ namespace Log4ALA
         public string InfoAppenderFile { get; set; }
 
         // Size of the internal event queue. 
-        public int? LoggingQueueSize { get; set; } = ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE;
-        public bool? KeyValueDetection { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_DETECTION;
-        public bool? JsonDetection { get; set; } = ConfigSettings.DEFAULT_JSON_DETECTION;
-        public int? BatchSizeInBytes { get; set; } = ConfigSettings.DEFAULT_BATCH_SIZE_BYTES;
+        public int LoggingQueueSize { get; set; } = ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE;
+        public bool KeyValueDetection { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_DETECTION;
+        public bool JsonDetection { get; set; } = ConfigSettings.DEFAULT_JSON_DETECTION;
+        public int BatchSizeInBytes { get; set; } = ConfigSettings.DEFAULT_BATCH_SIZE_BYTES;
 
-        public int? BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
-        public int? BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
-        public int? BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
-        public int? MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
-        public int? MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
+        public int BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
+        public int BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
+        public int BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
+        public int MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+        public int MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
 
         public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
         public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
@@ -240,21 +240,21 @@ namespace Log4ALA
                 }
                 log.Inf($"[{this.Name}] - threadPriority:[{ThreadPriority}]", true);
 
-                HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? HttpDataCollectorRetry : configSettings.ALAHttpDataCollectorRetry;
+                HttpDataCollectorRetry = configSettings.ALAHttpDataCollectorRetry == null ? HttpDataCollectorRetry : (int)configSettings.ALAHttpDataCollectorRetry;
                 log.Inf($"[{this.Name}] - httpDataCollectorRetry:[{HttpDataCollectorRetry}]", true);
 
-                BatchSizeInBytes = configSettings.ALABatchSizeInBytes == null ? BatchSizeInBytes : configSettings.ALABatchSizeInBytes;
+                BatchSizeInBytes = configSettings.ALABatchSizeInBytes == null ? BatchSizeInBytes : (int)configSettings.ALABatchSizeInBytes;
                 log.Inf($"[{this.Name}] - batchSizeInBytes:[{BatchSizeInBytes}]", true);
 
-                BatchNumItems = configSettings.ALABatchNumItems == null ? BatchNumItems : configSettings.ALABatchNumItems;
+                BatchNumItems = configSettings.ALABatchNumItems == null ? BatchNumItems : (int)configSettings.ALABatchNumItems;
 
-                BatchWaitInSec = configSettings.ALABatchWaitInSec == null ? BatchWaitInSec : configSettings.ALABatchWaitInSec;
+                BatchWaitInSec = configSettings.ALABatchWaitInSec == null ? BatchWaitInSec : (int)configSettings.ALABatchWaitInSec;
                 log.Inf($"[{this.Name}] - batchWaitInSec:[{BatchWaitInSec}]", true);
 
-                BatchWaitMaxInSec = configSettings.ALABatchWaitMaxInSec == null ? BatchWaitMaxInSec : configSettings.ALABatchWaitMaxInSec;
+                BatchWaitMaxInSec = configSettings.ALABatchWaitMaxInSec == null ? BatchWaitMaxInSec : (int)configSettings.ALABatchWaitMaxInSec;
                 log.Inf($"[{this.Name}] - batchWaitMaxInSec:[{BatchWaitMaxInSec}]", true);
 
-                MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? MaxFieldByteLength : configSettings.ALAMaxFieldByteLength;
+                MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? MaxFieldByteLength : (int)configSettings.ALAMaxFieldByteLength;
                 if(MaxFieldByteLength > ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH)
                 {
                     MaxFieldByteLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
@@ -262,7 +262,7 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
 
 
-                MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? MaxFieldNameLength : configSettings.ALAMaxFieldNameLength;
+                MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? MaxFieldNameLength : (int)configSettings.ALAMaxFieldNameLength;
                 if (MaxFieldNameLength > ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
                 {
                     MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
