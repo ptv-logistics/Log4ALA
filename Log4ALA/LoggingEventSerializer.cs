@@ -72,6 +72,7 @@ namespace Log4ALA
                 {
                     if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
                     {
+
                         payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
                     }
                     else
