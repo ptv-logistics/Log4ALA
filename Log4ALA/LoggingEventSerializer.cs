@@ -51,7 +51,7 @@ namespace Log4ALA
 
 
             var valObjects = new ExpandoObject() as IDictionary<string, Object>;
-            if ((bool)appender.JsonDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ((string)loggingEvent.MessageObject).IsValidJson())
+            if ((bool)appender.JsonDetection && loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ((string)loggingEvent.MessageObject).IsValidJson())
             {
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
                 foreach (var val in values)
@@ -68,16 +68,17 @@ namespace Log4ALA
                 {
                     ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
+                else if ((bool)appender.KeyValueDetection && loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat && !string.IsNullOrWhiteSpace(loggingEvent.RenderedMessage) && !(loggingEvent.RenderedMessage).IsValidJson())
+                {
+                    ConvertKeyValueMessage(payload, loggingEvent.RenderedMessage, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
+                }
+                else if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
+                {
+                    payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
+                }
                 else
                 {
-                    if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
-                    {
-                        payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
-                    }
-                    else
-                    {
-                        payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.MessageObject);
-                    }
+                    payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.MessageObject);
                 }
             }
 
