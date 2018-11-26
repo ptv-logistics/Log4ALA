@@ -70,7 +70,14 @@ namespace Log4ALA
                 }
                 else
                 {
-                    payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.MessageObject);
+                    if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
+                    {
+                        payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
+                    }
+                    else
+                    {
+                        payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.MessageObject);
+                    }
                 }
             }
 
