@@ -43,6 +43,7 @@ namespace Log4ALA
         private const string ABORT_TIMEOUT_SECONDS_PROP = "abortTimeoutSeconds";
         private const string ALA_KEY_VALUE_SEPARATOR_PROP = "keyValueSeparator";
         private const string ALA_KEY_VALUE_PAIR_SEPARATOR_PROP = "keyValuePairSeparator";
+        private const string ALA_DEBUG_HTTP_REQ_URI_PROP = "debugHTTPReqURI";
 
 
 
@@ -61,7 +62,7 @@ namespace Log4ALA
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
-        public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 500;
+        public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 100;
         public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
         public const string DEFAULT_TIMEOUT_SECONDS = "10";
 
@@ -268,16 +269,25 @@ namespace Log4ALA
             }
         }
 
+
+        private static bool? alaEnableDebugConsoleLog = null;
         public static bool ALAEnableDebugConsoleLog
         {
             get
             {
+                if(alaEnableDebugConsoleLog.HasValue)
+                {
+                    return alaEnableDebugConsoleLog.Value;
+                }
+
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAEnableDebugConsoleLog = CloudConfigurationManager.GetSetting(ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP);
 #else
                 string aLAEnableDebugConsoleLog = CloudConfigurationManager[ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP];
 #endif
-                return (string.IsNullOrWhiteSpace(aLAEnableDebugConsoleLog) ? ConfigSettings.DEFAULT_ENABLE_DEBUG_CONSOLE_LOG : Boolean.Parse(aLAEnableDebugConsoleLog));
+                alaEnableDebugConsoleLog = (string.IsNullOrWhiteSpace(aLAEnableDebugConsoleLog) ? ConfigSettings.DEFAULT_ENABLE_DEBUG_CONSOLE_LOG : Boolean.Parse(aLAEnableDebugConsoleLog));
+
+                return alaEnableDebugConsoleLog.Value;
             }
         }
         
@@ -344,29 +354,45 @@ namespace Log4ALA
             }
         }
 
+        private static int? logQueueSizeInterval = null;
         public static int LogQueueSizeInterval
         {
             get
             {
+                if (logQueueSizeInterval.HasValue)
+                {
+                    return logQueueSizeInterval.Value;
+                }
+
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string queueSizeLogInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_PROP);
 #else
                 string queueSizeLogInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_PROP];
 #endif
-                return int.Parse((string.IsNullOrWhiteSpace(queueSizeLogInterval) ? DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS : queueSizeLogInterval));
+                logQueueSizeInterval = int.Parse((string.IsNullOrWhiteSpace(queueSizeLogInterval) ? DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS : queueSizeLogInterval));
+
+                return logQueueSizeInterval.Value;
             }
         }
 
+        private static bool? isLogQSizeInterval = null;
         public static bool IsLogQueueSizeInterval
         {
             get
             {
+                if (isLogQSizeInterval.HasValue)
+                {
+                    return isLogQSizeInterval.Value;
+                }
+
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string isLogQueueSizeInterval = CloudConfigurationManager.GetSetting(QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP);
 #else
                 string isLogQueueSizeInterval = CloudConfigurationManager[QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP];
 #endif
-                return (string.IsNullOrWhiteSpace(isLogQueueSizeInterval) ? false : Boolean.Parse(isLogQueueSizeInterval));
+                isLogQSizeInterval = (string.IsNullOrWhiteSpace(isLogQueueSizeInterval) ? false : Boolean.Parse(isLogQueueSizeInterval));
+
+                return isLogQSizeInterval.Value;
             }
         }
 
@@ -483,6 +509,26 @@ namespace Log4ALA
 #else
                 return CloudConfigurationManager[$"{this.propPrefix}:{ALA_CORE_FIELD_NAMES_PROP}"];
 #endif
+            }
+        }
+        public string ALADebugHttpReqUri
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLADebugHttpReqUri = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DEBUG_HTTP_REQ_URI_PROP}");
+                if (string.IsNullOrWhiteSpace(aLADebugHttpReqUri))
+                {
+                    aLADebugHttpReqUri = CloudConfigurationManager.GetSetting($"{ALA_DEBUG_HTTP_REQ_URI_PROP}");
+                }
+#else
+                string aLADebugHttpReqUri = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DEBUG_HTTP_REQ_URI_PROP}"];
+                if (string.IsNullOrWhiteSpace(aLADebugHttpReqUri))
+                {
+                    aLADebugHttpReqUri = CloudConfigurationManager[ALA_DEBUG_HTTP_REQ_URI_PROP];
+                }
+#endif
+                return string.IsNullOrWhiteSpace(aLADebugHttpReqUri) ? null : aLADebugHttpReqUri;
             }
         }
 
