@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{{i}}\", \"message\":\"test-{{i}}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -126,7 +126,7 @@ If batchSizeInBytes will be choosed the collecting of the log data will be stopp
 batch size >= BatchSizeMax 30 mb this conditions applies also if you choose batchNumItems. In case of batchWaitInSec collecting will be stopped and send if batchWaitInSec will be reached or the batch size will be >= BatchSizeMax 30 mb.
 2. Auto detection/convertion of numeric, boolean, and dateTime string values to the [ Azure Log Analytics type _s, _g, _d, _b and _t](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api#record-type-and-properties)().
 3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
-4. Field names greater than 500 chars will be truncated (the value could be configured with maxFieldNameLength).
+4. Field names greater than 100 chars will be truncated (the value could be configured with maxFieldNameLength).
 5. Configurable core field names (the value could be configured with coreFieldNames).
 6. Configurable background worker thread priority (the value could be configured with threadPriority).
 7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
@@ -138,6 +138,9 @@ Err_s:"throws xy exception" and Id_d:123 but if you like to use one of the defau
 name;Id=123" you will run into a format conflict normally you expect to get Err_s:"throws exception = exception name" but for the Err key in the log message you will get Err_s:"throws" and MiscMsg_s:"exception
 exception name" and Id_d:123 as custom fields in Azure Log Analytics because of the keyValue separator char "=" contained in the value itself. To avoid this behaviour e.g. set the properties keyValueSeparator 
 to "[=]" and keyValuePairSeparator to "[;]" and now your log message should look like "Err[=]throws exception = exception name[;]Id[=]123".
+10. Disable the MiscMessageFieldName of the coreFieldNames property (default is MiscMessageFieldName="MiscMsg") as custom field prefix with the property disableAnonymousPropsPrefix (true/false default is false) in case of using anonymous types as log message e.g. with 
+alaLogger2.Info(new { Id=$"log-{i}", Message=$"test-{i}", Num=i, IsEnabled=true }) wich will lead to the following Azure Log Analytics Custom Fields: MiscMsg_Id_s, MiscMsg_Message_s, MiscMsg_Num_d, MiscMsg_IsEnabled_b to 
+log without prefix set disableAnonymousPropsPrefix=true and you will get the custom fields Id_s, Message_s, Num_d, IsEnabled_b without MiscMsg_ prefix.
 
 
 
@@ -358,8 +361,8 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 	 <coreFieldNames value="{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}"/>
 	  -->
      
-	 <!-- optional trim field values to the max allowed field name length of 500  (default 500)
-     <maxFieldNameLength value="500"/>
+	 <!-- optional trim field values to the max allowed field name length of 100  (default 100)
+     <maxFieldNameLength value="100"/>
 	  -->
 
      <!-- optional priority of the background worker thread which collects and send the log messages to Azure Log Analytics
@@ -378,6 +381,11 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 
      <!-- optional log message key value pair separator e.g "key1=value1;key2=value2"  (default ;)
      <keyValuePairSeparator value="[;]"/>
+	  -->
+
+	 <!-- optional property disableAnonymousPropsPrefix (true/false default is false) to disable the MiscMessageFieldName 
+	 (default is MiscMsg) as prefix in case of logging with anonymous types
+     <disableAnonymousPropsPrefix value="false"/>
 	  -->
 
   </appender>
@@ -425,8 +433,9 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 
 ## Issues
 
+[Data ingestion time in Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-ingestion-time)
 Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the 
-Azure Portal and select the depending Log Analytics Workspace/Usage and estimated costs and then click *Usage details* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/)
+Azure Portal and select the depending Log Analytics Workspace/Usage and estimated costs and then click *Usage details* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/).
 
 ## Supported Frameworks
 

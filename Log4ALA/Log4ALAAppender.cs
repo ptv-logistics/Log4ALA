@@ -58,6 +58,9 @@ namespace Log4ALA
         public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
         public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
 
+        public bool DisableAnonymousPropsPrefix { get; set; } = ConfigSettings.DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX;
+
+
         public string[] KeyValueSeparators { get; set; } = null;
         public string[] KeyValuePairSeparators { get; set; } = null;
 
@@ -95,8 +98,7 @@ namespace Log4ALA
         public string ThreadPriority { get; set; } = ConfigSettings.DEFAULT_THREAD_PRIORITY;
         public int? QueueReadTimeout { get; set; } = ConfigSettings.DEFAULT_QUEUE_READ_TIMEOUT;
 
-
-
+        public string DebugHTTPReqURI { get; set; } = null;
 
         public Log4ALAAppender()
         {
@@ -232,6 +234,11 @@ namespace Log4ALA
                 CoreFieldNames = string.IsNullOrWhiteSpace(configSettings.ALACoreFieldNames) ? CoreFieldNames : configSettings.ALACoreFieldNames;
                 log.Inf($"[{this.Name}] - coreFieldNames:[{CoreFieldNames}]", true);
 
+                DebugHTTPReqURI = string.IsNullOrWhiteSpace(configSettings.ALADebugHttpReqUri) ? DebugHTTPReqURI : configSettings.ALADebugHttpReqUri;
+
+                DisableAnonymousPropsPrefix = configSettings.ALADisableAnonymousPropsPrefix == null ? DisableAnonymousPropsPrefix : (bool)configSettings.ALADisableAnonymousPropsPrefix;
+
+
                 ThreadPriority = string.IsNullOrWhiteSpace(configSettings.ALAThreadPriority) ? ThreadPriority : configSettings.ALAThreadPriority;
                 ThreadPriority priority;
                 if (!Enum.TryParse(ThreadPriority, out priority))
@@ -265,7 +272,7 @@ namespace Log4ALA
                 MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? MaxFieldNameLength : (int)configSettings.ALAMaxFieldNameLength;
                 if (MaxFieldNameLength > ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
                 {
-                    MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
+                    MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
                 }
                 log.Inf($"[{this.Name}] - maxFieldNameLength:[{MaxFieldNameLength}]", true);
 
@@ -310,11 +317,25 @@ namespace Log4ALA
                 {
                     KeyValuePairSeparators = new string[] { KeyValuePairSeparator };
                 }
+                
+
+                string configDisableInfoLogFile = configSettings.ALADisableInfoAppenderFileCommon ? "CommonConfiguration" : this.Name;
+                log.Inf($"[{configDisableInfoLogFile}] - disableInfoLogFile:[{DisableInfoLogFile}]", true);
+
+                string configDisableAnonymousPropsPrefix = configSettings.ALADisableAnonymousPropsPrefixCommon ? "CommonConfiguration" : this.Name;
+                log.Inf($"[{configDisableAnonymousPropsPrefix}] - disableAnonymousPropsPrefix:[{DisableAnonymousPropsPrefix}]", true);
+
+                if (!string.IsNullOrWhiteSpace(DebugHTTPReqURI))
+                {
+                    string configDebugHTTPReqURI = configSettings.ALADebugHttpReqUriCommon ? "CommonConfiguration" : this.Name;
+                    log.Inf($"[{configDebugHTTPReqURI}] - debugHTTPReqURI:[{DebugHTTPReqURI}]", true);
+                }
 
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
-                log.Inf($"[CommonConfiguration] - disableInfoLogFile:[{DisableInfoLogFile}]", true);
                 log.Inf($"[CommonConfiguration] - enableDebugConsoleLog:[{ConfigSettings.ALAEnableDebugConsoleLog}]", true);
+
+
 
                 serializer = new LoggingEventSerializer(this);
 

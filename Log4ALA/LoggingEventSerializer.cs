@@ -16,6 +16,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace Log4ALA
 {
@@ -64,7 +65,7 @@ namespace Log4ALA
             }
             else
             {
-                if ((bool)appender.KeyValueDetection && typeof(System.String).IsInstanceOfType(loggingEvent.MessageObject) && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !((string)loggingEvent.MessageObject).IsValidJson())
+                if ((bool)appender.KeyValueDetection && loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !((string)loggingEvent.MessageObject).IsValidJson())
                 {
                     ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
@@ -75,6 +76,14 @@ namespace Log4ALA
                 else if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
                 {
                     payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
+                }
+                else if (appender.DisableAnonymousPropsPrefix && loggingEvent.MessageObject != null && loggingEvent.MessageObject.IsAnonymousType())
+                {
+                    var anonymous = loggingEvent.MessageObject;
+                    foreach (PropertyInfo propertyInfo in anonymous.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        payload.Add(propertyInfo.Name.TrimFieldName((int)appender.MaxFieldNameLength), propertyInfo.GetValue(anonymous, null));
+                    }
                 }
                 else
                 {
@@ -356,5 +365,17 @@ namespace Log4ALA
             return false;
         }
 
+    }
+
+    static class ObjectExtensions
+    {
+        public static bool IsAnonymousType(this object instance)
+        {
+
+            if (instance == null)
+                return false;
+
+            return instance.GetType().Namespace == null;
+        }
     }
 }

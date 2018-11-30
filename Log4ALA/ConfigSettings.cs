@@ -44,6 +44,7 @@ namespace Log4ALA
         private const string ALA_KEY_VALUE_SEPARATOR_PROP = "keyValueSeparator";
         private const string ALA_KEY_VALUE_PAIR_SEPARATOR_PROP = "keyValuePairSeparator";
         private const string ALA_DEBUG_HTTP_REQ_URI_PROP = "debugHTTPReqURI";
+        private const string ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP = "disableAnonymousPropsPrefix";
 
 
 
@@ -74,6 +75,9 @@ namespace Log4ALA
 
         public const string DEFAULT_KEY_VALUE_SEPARATOR = "=";
         public const string DEFAULT_KEY_VALUE_PAIR_SEPARATOR = ";";
+
+        public const bool DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX = false;
+
 
         public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
 
@@ -247,6 +251,9 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLALogMessageToFile) ? (bool?)null : Boolean.Parse(aLALogMessageToFile));
             }
         }
+
+        public bool ALADisableInfoAppenderFileCommon { get; set; } = false;
+
         public bool? ALADisableInfoAppenderFile
         {
             get
@@ -255,12 +262,14 @@ namespace Log4ALA
                 string aLADisableInfoAppenderFile = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DISABLE_INFO_APPENDER_FILE_PROP}");
                 if (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile))
                 {
+                    ALADisableInfoAppenderFileCommon = true;
                     aLADisableInfoAppenderFile = CloudConfigurationManager.GetSetting(ALA_DISABLE_INFO_APPENDER_FILE_PROP);
                 }
 #else
                 string aLADisableInfoAppenderFile = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DISABLE_INFO_APPENDER_FILE_PROP}"];
                 if (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile))
                 {
+                    ALADisableInfoAppenderFileCommon = true;
                     aLADisableInfoAppenderFile = CloudConfigurationManager[ALA_DISABLE_INFO_APPENDER_FILE_PROP];
                 }
 
@@ -268,7 +277,6 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLADisableInfoAppenderFile) ? (bool?)null : Boolean.Parse(aLADisableInfoAppenderFile));
             }
         }
-
 
         private static bool? alaEnableDebugConsoleLog = null;
         public static bool ALAEnableDebugConsoleLog
@@ -511,6 +519,9 @@ namespace Log4ALA
 #endif
             }
         }
+
+        public bool ALADebugHttpReqUriCommon { get; set; } = false;
+
         public string ALADebugHttpReqUri
         {
             get
@@ -519,12 +530,14 @@ namespace Log4ALA
                 string aLADebugHttpReqUri = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DEBUG_HTTP_REQ_URI_PROP}");
                 if (string.IsNullOrWhiteSpace(aLADebugHttpReqUri))
                 {
+                    ALADebugHttpReqUriCommon = true;
                     aLADebugHttpReqUri = CloudConfigurationManager.GetSetting($"{ALA_DEBUG_HTTP_REQ_URI_PROP}");
                 }
 #else
                 string aLADebugHttpReqUri = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DEBUG_HTTP_REQ_URI_PROP}"];
                 if (string.IsNullOrWhiteSpace(aLADebugHttpReqUri))
                 {
+                    ALADebugHttpReqUriCommon = true;
                     aLADebugHttpReqUri = CloudConfigurationManager[ALA_DEBUG_HTTP_REQ_URI_PROP];
                 }
 #endif
@@ -592,6 +605,32 @@ namespace Log4ALA
 #endif
             }
         }
+
+        public bool ALADisableAnonymousPropsPrefixCommon { get; set; } = false;
+        public bool? ALADisableAnonymousPropsPrefix
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLADisableAnonymousPropsPrefix = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP}");
+                if (string.IsNullOrWhiteSpace(aLADisableAnonymousPropsPrefix))
+                {
+                    ALADisableAnonymousPropsPrefixCommon = true;
+                    aLADisableAnonymousPropsPrefix = CloudConfigurationManager.GetSetting(ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP);
+                }
+#else
+                string aLADisableAnonymousPropsPrefix = CloudConfigurationManager[$"{this.propPrefix}:{ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP}"];
+                if (string.IsNullOrWhiteSpace(aLADisableAnonymousPropsPrefix))
+                {
+                    ALADisableAnonymousPropsPrefixCommon = true;
+                    aLADisableAnonymousPropsPrefix = CloudConfigurationManager[ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP];
+                }
+
+#endif
+                return (string.IsNullOrWhiteSpace(aLADisableAnonymousPropsPrefix) ? DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX : Boolean.Parse(aLADisableAnonymousPropsPrefix));
+            }
+        }
+
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
         public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

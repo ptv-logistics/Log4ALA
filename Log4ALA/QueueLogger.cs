@@ -4,9 +4,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Log4ALA
 {
@@ -265,8 +267,29 @@ namespace Log4ALA
             {
                 if (alaClient == null)
                 {
+                    int port = 443;
+                    bool ssl = true;
+                    string debugHost = null;
+                    if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
+                    {
+                        var uri = new Uri(appender.DebugHTTPReqURI);
+
+                        if (!string.IsNullOrWhiteSpace(uri.Host))
+                        {
+                            debugHost = uri.Host;
+                        }
+
+                        port = 80;
+                        if (uri.Port > 0)
+                        {
+                            port = uri.Port;
+                        }
+
+                        ssl = port == 443 ? true : false;
+                    }
+
                     // Create AlaClient instance providing all needed parameters.
-                    alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId, ConfigSettings.ALAEnableDebugConsoleLog, appender.Name); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
+                    alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId, ConfigSettings.ALAEnableDebugConsoleLog, appender.Name, port, ssl, debugHost); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
                 }
 
                 alaClient.Connect();
@@ -374,8 +397,26 @@ namespace Log4ALA
                     var rfcDate = DateTime.Now.ToUniversalTime().ToString("r");
                     var signature = HashSignature("POST", content.Length, "application/json", rfcDate, "/api/logs");
 
+                    // for http debugging please install httpbin (https://github.com/requests/httpbin) locally as docker container:
+                    //
+                    //      docker pull kennethreitz/httpbin
+                    //
+                    // and start with:
+                    //
+                    //      docker run -p 80:80 kennethreitz / httpbin
+                    //
+                    // and replacefor alaServerAddr with http://localhost/anything by setting the property debugHTTPReqURI=http://localhost/anything to inspect the http request 
+                    // which will then be logged into log4ALA_info.log instead of sending to Azure Log Analytics data collector API.
+
                     string alaServerAddr = $"{appender.WorkspaceId}.ods.opinsights.azure.com";
                     string alaServerContext = $"/api/logs?api-version={appender.AzureApiVersion}";
+
+                    if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI)){
+                        string[] uriSplit = appender.DebugHTTPReqURI.Split('/');
+                        alaServerAddr = uriSplit[2];
+                        alaServerContext = $"/{uriSplit[3]}{alaServerContext}";
+                    }
+
 
                     // Send request headers
                     headerBuilder.AppendLine($"POST {alaServerContext} HTTP/1.1");
@@ -388,39 +429,92 @@ namespace Log4ALA
                     headerBuilder.AppendLine($"time-generated-field: {appender.coreFields.DateFieldName}");
                     headerBuilder.AppendLine("Connection: close");
                     headerBuilder.AppendLine();
-                    var header = Encoding.ASCII.GetBytes(headerBuilder.ToString());
+                    var header = utf8Encoding.GetBytes(headerBuilder.ToString());
 
-                    // Send http headers
-                    string headerRes = alaClient.Write(header, 0, header.Length, true);
-                    if (!headerRes.Equals("isHeader"))
+  
+                    string httpResultBody;
+                    if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
                     {
-                        isSendALAHeaderErr = true;
-                        string errMessage = $"send Azure Log Analytics header failed - {headerRes}";
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
-                        {
-                            appender.log.Err($"[{appender.Name}] - {errMessage}");
-                        }
-                        throw new Exception(errMessage);
-                    }
+                        headerBuilder.Append(log);
+                        string reqStr = headerBuilder.ToString();
+                        var req = utf8Encoding.GetBytes(reqStr);
+                        StringBuilder responseBuilder = new StringBuilder();
 
-                    // Send payload data
-                    string httpResultBody = alaClient.Write(content, 0, content.Length);
+
+                        using (Stream networkStream = alaClient.ActiveStream)
+                        {
+  
+                            networkStream.Write(req, 0, req.Length);
+                            networkStream.Flush();
+
+
+                            #if NET45 || NET451
+                            Task.Run(() =>
+                            #else
+                            Task.Factory.StartNew(() =>
+                            #endif
+                            {
+   
+                                var bufout = new byte[req.Length];
+                                int readlen = 0;
+                                do
+                                {
+                                    readlen = networkStream.Read(bufout, 0, bufout.Length);
+                                    responseBuilder.Append(System.Text.Encoding.UTF8.GetString(bufout, 0, readlen));
+                                } while (readlen != 0);
+                            }).Wait();
+
+
+                        }
+                        httpResultBody = responseBuilder.ToString();
+
+                    }
+                    else
+                    {
+                        // Send http headers
+                        string headerRes = alaClient.Write(header, 0, header.Length, true);
+
+                        if (!headerRes.Equals("isHeader"))
+                        {
+                            isSendALAHeaderErr = true;
+                            string errMessage = $"send Azure Log Analytics header failed - {headerRes}";
+                            if (ConfigSettings.ALAEnableDebugConsoleLog)
+                            {
+                                appender.log.Err($"[{appender.Name}] - {errMessage}");
+                            }
+                            throw new Exception(errMessage);
+                        }
+
+                        // Send payload data
+                        httpResultBody = alaClient.Write(content, 0, content.Length);
+                    }
 
 
                     if (!string.IsNullOrWhiteSpace(httpResultBody))
                     {
-                        isSendALADataErr = true;
-                        string errMessage = $"send Azure Log Analytics data failed - {httpResultBody}";
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        if (string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
                         {
-                            appender.log.Err($"[{appender.Name}] - {errMessage}");
+                            isSendALADataErr = true;
+                            string errMessage = $"send Azure Log Analytics data failed - {httpResultBody}";
+                            if (ConfigSettings.ALAEnableDebugConsoleLog)
+                            {
+                                appender.log.Err($"[{appender.Name}] - {errMessage}");
+                            }
+                            throw new Exception(errMessage);
                         }
-                        throw new Exception(errMessage);
+                        else
+                        {
+                            //appender.log.Inf($"[{appender.Name}] - http request: \n{headerBuilder.ToString()}{log}", appender.LogMessageToFile);
+                            appender.log.Inf($"[{appender.Name}] - http debug response from [{appender.DebugHTTPReqURI}]: \n{httpResultBody}", appender.LogMessageToFile);
+                        }
                     }
                     try
                     {
-                        //no loggings in case of LogManager.Shutdown() -> AbortWorker;
-                        appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
+                        if (string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
+                        {
+                            //no loggings in case of LogManager.Shutdown() -> AbortWorker;
+                            appender.log.Inf($"[{appender.Name}] - {log}", appender.LogMessageToFile);
+                        }
                     }
                     catch
                     {

@@ -18,30 +18,39 @@ namespace Log4ALA
         private string workSpaceID;
 
         // Creates AlaClient instance. 
-        public AlaTcpClient(string sharedKey, string workSpaceId, bool debugConsoleLog = false, string logAppenderName = null)
+        public AlaTcpClient(string sharedKey, string workSpaceId, bool debugConsoleLog = false, string logAppenderName = null, int port = 443, bool ssl = true, string debugHost = null)
         {
-            appenderName = logAppenderName;
-            debConsoleLog = debugConsoleLog;
+            m_appenderName = logAppenderName;
+            m_debConsoleLog = debugConsoleLog;
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
-            serverAddr = $"{workSpaceID}.{AlaApiUrl}";
+            m_serverAddr = $"{workSpaceID}.{AlaApiUrl}";
+            if (!string.IsNullOrWhiteSpace(debugHost))
+            {
+                m_serverAddr = debugHost;
+            }
+
+            m_tcpPort = port;
+            m_useSsl = ssl;
             //will be ingored under dotnetcore https://github.com/dotnet/corefx/issues/10727
-            ConfigureServiceEndpoint(serverAddr, true, true, false, debConsoleLog, appenderName);
+            ConfigureServiceEndpoint(m_serverAddr, true, true, false, m_debConsoleLog, m_appenderName);
         }
 
-        private int tcpPort = 443;
-        private TcpClient client = null;
-        private SslStream sslStream = null;
-        private String serverAddr;
-        private bool debConsoleLog = false;
-        private string appenderName;
+        private bool m_useSsl = true;
+        private int m_tcpPort = 443;
+        private TcpClient m_client = null;
+        private NetworkStream m_stream = null;
+        private SslStream m_sslStream = null;
+        private String m_serverAddr;
+        private bool m_debConsoleLog = false;
+        private string m_appenderName;
 
 
-        private Stream ActiveStream
+        public Stream ActiveStream
         {
             get
             {
-                return sslStream;
+                return m_useSsl ? m_sslStream : (Stream)m_stream;
             }
         }
 
@@ -49,18 +58,24 @@ namespace Log4ALA
         {
             try
             {
-                client = new TcpClient(serverAddr, tcpPort);
-                client.NoDelay = true;
+                m_client = new TcpClient(m_serverAddr, m_tcpPort);
+                m_client.NoDelay = true;
+                m_client.ReceiveTimeout = 10000;
 
-                sslStream = new SslStream(client.GetStream());
-                sslStream.AuthenticateAsClient(serverAddr);
+                m_stream = m_client.GetStream();
+
+                if (m_useSsl)
+                {
+                    m_sslStream = new SslStream(m_stream);
+                    m_sslStream.AuthenticateAsClient(m_serverAddr);
+                }
             }
             catch (Exception ex)
             {
 
-                if(debConsoleLog)
+                if(m_debConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Connect] - [{ex.StackTrace}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{m_appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Connect] - [{ex.StackTrace}]");
                 }
             }
 
@@ -123,9 +138,9 @@ namespace Log4ALA
             {
                 result = $"couldn't read response from stream: [{e.Message}]";
 
-                if (debConsoleLog)
+                if (m_debConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Write] - [{e.StackTrace}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{m_appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Write] - [{e.StackTrace}]");
                 }
             }
 
@@ -162,9 +177,9 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                if (debConsoleLog)
+                if (m_debConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Flush] - [{ex.StackTrace}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{m_appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Flush] - [{ex.StackTrace}]");
                 }
             }
 
@@ -173,7 +188,7 @@ namespace Log4ALA
 
         public void Close()
         {
-            if (client != null)
+            if (m_client != null)
             {
                 try
                 {
@@ -181,17 +196,17 @@ namespace Log4ALA
                     {
                         ActiveStream.Dispose();
                     }
-                    client.Close();
-                    if (client != null)
+                    m_client.Close();
+                    if (m_client != null)
                     {
-                        client = null;
+                        m_client = null;
                     }
                 }
                 catch(Exception ex)
                 {
-                    if (debConsoleLog)
+                    if (m_debConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Close] - [{ex.StackTrace}]");
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{m_appenderName}]|ERROR|[{nameof(AlaTcpClient)}.Close] - [{ex.StackTrace}]");
                     }
                 }
             }
