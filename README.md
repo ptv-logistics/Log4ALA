@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -130,7 +130,7 @@ batch size >= BatchSizeMax 30 mb this conditions applies also if you choose batc
 5. Configurable core field names (the value could be configured with coreFieldNames).
 6. Configurable background worker thread priority (the value could be configured with threadPriority).
 7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
-8. Configurable detection of json strings (e.g. "{\"id\":\"log-1\", \"message\":\"test-1\"}") or key value (e.g. "") in the log messages with the properties jsonDetection (default true) and keyValueDetection (default true). Azure Log Analytics creates 
+8. Configurable detection of json strings (e.g. "{\"id\":\"log-1\", \"message\":\"test-1\"}") or key value (e.g. "message=test-1") in the log messages with the properties jsonDetection (default true) and keyValueDetection (default true). Azure Log Analytics creates 
 custom fields/ record types for each incoming json property or key name.
 9. Configurable keyValue detection with keyValueSeparator and keyValuePairSeparator properties. To configure any other single char or multiple chars as separator for the keyValue detection in the log message.
 To avoid format conflicts e.g. with the semicolon separated key=value log message "Err=throws xy exception;Id=123" normally you will get two custom fields/records in Azure Log Analytics 
