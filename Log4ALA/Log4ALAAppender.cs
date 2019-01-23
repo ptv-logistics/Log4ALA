@@ -258,6 +258,9 @@ namespace Log4ALA
                 BatchWaitInSec = configSettings.ALABatchWaitInSec == null ? BatchWaitInSec : (int)configSettings.ALABatchWaitInSec;
                 log.Inf($"[{this.Name}] - batchWaitInSec:[{BatchWaitInSec}]", true);
 
+                LoggingQueueSize = configSettings.ALALoggingQueueSize == null ? LoggingQueueSize : (int)configSettings.ALALoggingQueueSize;
+                log.Inf($"[{this.Name}] - loggingQueueSize:[{LoggingQueueSize}]", true);
+
                 BatchWaitMaxInSec = configSettings.ALABatchWaitMaxInSec == null ? BatchWaitMaxInSec : (int)configSettings.ALABatchWaitMaxInSec;
                 log.Inf($"[{this.Name}] - batchWaitMaxInSec:[{BatchWaitMaxInSec}]", true);
 
