@@ -289,7 +289,7 @@ namespace Log4ALA
                     }
 
                     // Create AlaClient instance providing all needed parameters.
-                    alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId, ConfigSettings.ALAEnableDebugConsoleLog, appender.Name, port, ssl, debugHost); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
+                    alaClient = new AlaTcpClient(appender.SharedKey, appender.WorkspaceId, ConfigSettings.ALAEnableDebugConsoleLog, appender.Name, port, ssl, debugHost, appender.LogAnalyticsDNS); //, (bool)appender.UseSocketPool, (int)appender.MinSocketConn, (int)appender.MaxSocketConn);
                 }
 
                 alaClient.Connect();

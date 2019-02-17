@@ -3,7 +3,7 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
@@ -11,24 +11,29 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2018 PTV Group</copyright>
-    <releaseNotes>Fix issue #9 "DEFAULT_MAX_FIELD_NAME_LENGTH should default to lower than 500" decrease DEFAULT_MAX_FIELD_NAME_LENGTH to 100. And fix issue with logging of formatted message strings e.g. with Log.InfoFormat("this is a {0}", "text"). Fix of issue #12 "Application Output is too chatty". Add new property disableAnonymousPropsPrefix (true/false default is false) to disable the MiscMessageFieldName (default is MiscMsg) as prefix in case of logging with anonymous types (https://github.com/ptv-logistics/Log4ALA#features under bullet point 10).</releaseNotes>
+    <releaseNotes>Added support to pass throug the timestamp field (wich will be used as Log Analytics TimeGenerated field) with the property "enablePassThroughTimeStampField"... default is false if true the field should be contained in the log message e.g with "...;DateValue=2016-05-12T20:00:00.625Z;...". Fix issue #13 "Update nuget dependencies to use Microsoft.Azure.ConfigurationManager" support Microsoft.Azure.ConfigurationManager as from .NET Framework 4.5.2. Fix issue #14 "Azure Gov ALA workspaces not supported" now it's possible to configre the workspace domain name with the property "logAnalyticsDNS" default is "ods.opinsights.azure.com".</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.5" />
         <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
+      <group targetFramework="net452">
+        <dependency id="log4net" version="2.0.5" />
+        <dependency id="Microsoft.Azure.ConfigurationManager" version="4.0.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
       <group targetFramework=".netstandard2.0">
-		<dependency id="log4net" version="2.0.8" />
-		<dependency id="Newtonsoft.Json" version="11.0.2" />
-		<dependency id="Microsoft.Extensions.Configuration" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Configuration.Abstractions" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Configuration.Binder" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Configuration.EnvironmentVariables" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Configuration.FileExtensions" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Configuration.Json" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Primitives" version="2.0.0" />
-		<dependency id="Microsoft.Extensions.Logging.Log4Net.AspNetCore" version="2.0.3" />
+		    <dependency id="log4net" version="2.0.8" />
+		    <dependency id="Newtonsoft.Json" version="11.0.2" />
+		    <dependency id="Microsoft.Extensions.Configuration" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Configuration.Abstractions" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Configuration.Binder" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Configuration.EnvironmentVariables" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Configuration.FileExtensions" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Configuration.Json" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Primitives" version="2.0.0" />
+		    <dependency id="Microsoft.Extensions.Logging.Log4Net.AspNetCore" version="2.0.3" />
       </group>
     </dependencies>
  	<!-- https://docs.microsoft.com/de-de/nuget/reference/nuspec#including-content-files -->

@@ -57,8 +57,10 @@ namespace Log4ALA
 
         public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
         public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
+        public string LogAnalyticsDNS { get; set; } = ConfigSettings.DEFAULT_LOGANALYTICS_DNS;
 
         public bool DisableAnonymousPropsPrefix { get; set; } = ConfigSettings.DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX;
+        public bool EnablePassThroughTimeStampField { get; set; } = ConfigSettings.DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD;
 
 
         public string[] KeyValueSeparators { get; set; } = null;
@@ -239,6 +241,9 @@ namespace Log4ALA
                 DisableAnonymousPropsPrefix = configSettings.ALADisableAnonymousPropsPrefix == null ? DisableAnonymousPropsPrefix : (bool)configSettings.ALADisableAnonymousPropsPrefix;
 
 
+                EnablePassThroughTimeStampField = configSettings.ALAEnablePassThroughTimeStampField == null ? EnablePassThroughTimeStampField : (bool)configSettings.ALAEnablePassThroughTimeStampField;
+                log.Inf($"[{this.Name}] - enablePassThroughTimeStampField:[{EnablePassThroughTimeStampField}]", true);
+
                 ThreadPriority = string.IsNullOrWhiteSpace(configSettings.ALAThreadPriority) ? ThreadPriority : configSettings.ALAThreadPriority;
                 ThreadPriority priority;
                 if (!Enum.TryParse(ThreadPriority, out priority))
@@ -321,6 +326,11 @@ namespace Log4ALA
                     KeyValuePairSeparators = new string[] { KeyValuePairSeparator };
                 }
                 
+
+                LogAnalyticsDNS = string.IsNullOrWhiteSpace(configSettings.ALALogAnalyticsDNS) ? LogAnalyticsDNS : configSettings.ALALogAnalyticsDNS;
+                log.Inf($"[{this.Name}] - logAnalyticsDNS:[{LogAnalyticsDNS}]", true);
+
+
 
                 string configDisableInfoLogFile = configSettings.ALADisableInfoAppenderFileCommon ? "CommonConfiguration" : this.Name;
                 log.Inf($"[{configDisableInfoLogFile}] - disableInfoLogFile:[{DisableInfoLogFile}]", true);

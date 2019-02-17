@@ -43,8 +43,11 @@ namespace Log4ALA
         private const string ABORT_TIMEOUT_SECONDS_PROP = "abortTimeoutSeconds";
         private const string ALA_KEY_VALUE_SEPARATOR_PROP = "keyValueSeparator";
         private const string ALA_KEY_VALUE_PAIR_SEPARATOR_PROP = "keyValuePairSeparator";
+        private const string ALA_LOG_ANALYTICS_DNS_PROP = "logAnalyticsDNS";
         private const string ALA_DEBUG_HTTP_REQ_URI_PROP = "debugHTTPReqURI";
         private const string ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP = "disableAnonymousPropsPrefix";
+
+        private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
 
 
 
@@ -75,9 +78,11 @@ namespace Log4ALA
 
         public const string DEFAULT_KEY_VALUE_SEPARATOR = "=";
         public const string DEFAULT_KEY_VALUE_PAIR_SEPARATOR = ";";
+        public const string DEFAULT_LOGANALYTICS_DNS = "ods.opinsights.azure.com";
 
         public const bool DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX = false;
-
+        public const bool DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = false;
+        
 
         public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
 
@@ -430,6 +435,22 @@ namespace Log4ALA
             }
         }
 
+        public bool? ALAEnablePassThroughTimeStampField
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAEnablePassThroughTimeStampField = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP}");
+#else
+                string aLAEnablePassThroughTimeStampField = CloudConfigurationManager[$"{this.propPrefix}:{ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAEnablePassThroughTimeStampField) ? (bool?)null : Boolean.Parse(aLAEnablePassThroughTimeStampField));
+            }
+        }
+
+
+        
+
         public int? ALABatchSizeInBytes
         {
             get
@@ -605,6 +626,18 @@ namespace Log4ALA
 #endif
             }
         }
+        public string ALALogAnalyticsDNS
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_LOG_ANALYTICS_DNS_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_LOG_ANALYTICS_DNS_PROP}"];
+#endif
+            }
+        }
+      
 
         public bool ALADisableAnonymousPropsPrefixCommon { get; set; } = false;
         public bool? ALADisableAnonymousPropsPrefix

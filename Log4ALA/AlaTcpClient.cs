@@ -12,19 +12,20 @@ namespace Log4ALA
     public class AlaTcpClient
     {
         // Azure Log Analytics API server address. 
-        protected const String AlaApiUrl = "ods.opinsights.azure.com";
+        private String alaApiUrl = ConfigSettings.DEFAULT_LOGANALYTICS_DNS;
 
         private byte[] sharedKeyBytes;
         private string workSpaceID;
 
         // Creates AlaClient instance. 
-        public AlaTcpClient(string sharedKey, string workSpaceId, bool debugConsoleLog = false, string logAppenderName = null, int port = 443, bool ssl = true, string debugHost = null)
+        public AlaTcpClient(string sharedKey, string workSpaceId, bool debugConsoleLog = false, string logAppenderName = null, int port = 443, bool ssl = true, string debugHost = null, string logAnalyticsDNS = ConfigSettings.DEFAULT_LOGANALYTICS_DNS)
         {
+            alaApiUrl = logAnalyticsDNS;
             m_appenderName = logAppenderName;
             m_debConsoleLog = debugConsoleLog;
             sharedKeyBytes = Convert.FromBase64String(sharedKey);
             workSpaceID = workSpaceId;
-            m_serverAddr = $"{workSpaceID}.{AlaApiUrl}";
+            m_serverAddr = $"{workSpaceID}.{alaApiUrl}";
             if (!string.IsNullOrWhiteSpace(debugHost))
             {
                 m_serverAddr = debugHost;

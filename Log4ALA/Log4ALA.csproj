@@ -4,7 +4,7 @@
 
   
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net45;net452;netstandard2.0</TargetFrameworks>
     <AssemblyName>Log4ALA</AssemblyName>
     <PackageId>Log4ALA</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -40,6 +40,13 @@
     <DelaySign>False</DelaySign>
     <!--<AssemblyOriginatorKeyFile>../servicestack.snk</AssemblyOriginatorKeyFile>-->
   </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
+    <DefineConstants>$(DefineConstants);NET452</DefineConstants>
+    <SignAssembly>True</SignAssembly>
+    <DelaySign>False</DelaySign>
+    <!--<AssemblyOriginatorKeyFile>../servicestack.snk</AssemblyOriginatorKeyFile>-->
+  </PropertyGroup>
  
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD2_0</DefineConstants>
@@ -49,9 +56,13 @@
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.1.0" />
     <PackageReference Include="log4net" Version="2.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-
   </ItemGroup>
-  
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452'">
+    <PackageReference Include="Microsoft.Azure.ConfigurationManager" Version="4.0.0" />
+    <PackageReference Include="log4net" Version="2.0.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
   
   
 
@@ -77,6 +88,15 @@
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45'">
+    <EmbeddedResource Include="internalLog4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="internalLog4netOnlyErr.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452'">
     <EmbeddedResource Include="internalLog4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

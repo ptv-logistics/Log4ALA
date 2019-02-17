@@ -8,15 +8,15 @@
 using log4net.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Text;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Log4ALA
 {
@@ -25,6 +25,10 @@ namespace Log4ALA
         public static char[] AllowedCharPlus = new char[] { '_' };
 
         private Log4ALAAppender appender;
+
+        private static Regex validString = new Regex(@"[a-zA-Z0-9_]+", RegexOptions.Compiled);
+        private static bool perfBoost = false;
+
 
         public LoggingEventSerializer(Log4ALAAppender appender)
         {
@@ -48,11 +52,19 @@ namespace Log4ALA
 
             IDictionary<string, Object> payload = new ExpandoObject() as IDictionary<string, Object>;
 
-            payload.Add(appender.coreFields.DateFieldName, loggingEvent.TimeStamp.ToUniversalTime().ToString("o"));
+            if (!appender.EnablePassThroughTimeStampField)
+            {
+                payload.Add(appender.coreFields.DateFieldName, loggingEvent.TimeStamp.ToUniversalTime().ToString("o"));
+            }
+
+            bool msgIsValidString = loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject);
+            bool isKeyValueDetection = appender.KeyValueDetection;
+            bool isMsgObjNotNull = loggingEvent.MessageObject != null;
+            bool isMsgObjValidSysStrFormat = isMsgObjNotNull && loggingEvent.MessageObject is log4net.Util.SystemStringFormat;
 
 
             var valObjects = new ExpandoObject() as IDictionary<string, Object>;
-            if ((bool)appender.JsonDetection && loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && ((string)loggingEvent.MessageObject).IsValidJson())
+            if ((bool)appender.JsonDetection && msgIsValidString && ((string)loggingEvent.MessageObject).IsValidJson())
             {
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>((string)loggingEvent.MessageObject);
                 foreach (var val in values)
@@ -65,24 +77,24 @@ namespace Log4ALA
             }
             else
             {
-                if ((bool)appender.KeyValueDetection && loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject) && !((string)loggingEvent.MessageObject).IsValidJson())
+                if (isKeyValueDetection && msgIsValidString)
                 {
-                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
+                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
-                else if ((bool)appender.KeyValueDetection && loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat && !string.IsNullOrWhiteSpace(loggingEvent.RenderedMessage) && !(loggingEvent.RenderedMessage).IsValidJson())
+                else if (isKeyValueDetection && isMsgObjValidSysStrFormat && !string.IsNullOrWhiteSpace(loggingEvent.RenderedMessage))
                 {
-                    ConvertKeyValueMessage(payload, loggingEvent.RenderedMessage, (int)appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, (int)appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
+                    ConvertKeyValueMessage(payload, loggingEvent.RenderedMessage, appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
-                else if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is log4net.Util.SystemStringFormat)
+                else if (isMsgObjValidSysStrFormat)
                 {
                     payload.Add(appender.coreFields.MiscMessageFieldName, loggingEvent.RenderedMessage);
                 }
-                else if (appender.DisableAnonymousPropsPrefix && loggingEvent.MessageObject != null && loggingEvent.MessageObject.IsAnonymousType())
+                else if (appender.DisableAnonymousPropsPrefix && isMsgObjNotNull && loggingEvent.MessageObject.IsAnonymousType())
                 {
                     var anonymous = loggingEvent.MessageObject;
                     foreach (PropertyInfo propertyInfo in anonymous.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-                        payload.Add(propertyInfo.Name.TrimFieldName((int)appender.MaxFieldNameLength), propertyInfo.GetValue(anonymous, null));
+                        payload.Add(propertyInfo.Name.TrimFieldName(appender.MaxFieldNameLength), propertyInfo.GetValue(anonymous, null));
                     }
                 }
                 else
@@ -91,11 +103,11 @@ namespace Log4ALA
                 }
             }
 
-            if ((bool)appender.AppendLogger)
+            if (appender.AppendLogger)
             {
                 payload.Add(appender.coreFields.LoggerFieldName, loggingEvent.LoggerName);
             }
-            if ((bool)appender.AppendLogLevel)
+            if (appender.AppendLogLevel)
             {
                 payload.Add(appender.coreFields.LevelFieldName, loggingEvent.Level.DisplayName.ToUpper());
             }
@@ -135,9 +147,9 @@ namespace Log4ALA
 
                 if (KeyValuePairSeparator.Length == 1)
                 {
-                    le1Sp = message.Split(Convert.ToChar(KeyValuePairSeparator));
+                    le1Sp = message.Split(KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                     //remove empty objects
-                    le1Sp = le1Sp.Where(ll => !string.IsNullOrWhiteSpace((ll))).Select(l => l.Trim()).ToArray();
+                    //le1Sp = le1Sp.Where(ll => !string.IsNullOrWhiteSpace((ll))).Select(l => l.Trim()).ToArray();
                 }
                 else
                 {
@@ -150,14 +162,16 @@ namespace Log4ALA
 
                 foreach (var le1p in le1Sp)
                 {
-                    if (Regex.Matches(le1p, Regex.Escape(KeyValueSeparator)).Count > 1)
+
+                    if (le1p.Occurences(KeyValueSeparator) > 1)
                     {
                         string[] le1pSP = le1p.Split(' ');
                         //remove whitespaces
                         le1pSP = le1pSP.Select(l => l.Trim()).ToArray();
                         foreach (var le1pp in le1pSP)
                         {
-                            if (Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 1)
+                            int keyValueCount = le1pp.Occurences(KeyValueSeparator);
+                            if (keyValueCount == 1)
                             {
                                 string[] le1ppSP;
                                 if (KeyValueSeparator.Length == 1)
@@ -174,7 +188,7 @@ namespace Log4ALA
                                     CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
                                 }
                             }
-                            else if(Regex.Matches(le1pp, Regex.Escape(KeyValueSeparator)).Count == 2) {
+                            else if(keyValueCount == 2) {
                                 string[] le1ppSP;
                                 if (KeyValueSeparator.Length == 1)
                                 {
@@ -202,7 +216,7 @@ namespace Log4ALA
                     }
                     else
                     {
-                        if (Regex.Matches(le1p, Regex.Escape(KeyValueSeparator)).Count == 1)
+                        if (le1p.Occurences(KeyValueSeparator) == 1)
                         {
                             string[] le1ppSP;
                             if (KeyValueSeparator.Length == 1)
@@ -237,6 +251,37 @@ namespace Log4ALA
             }
         }
 
+        private void ConvertKeyValueMessageNew(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
+        {
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+
+                if (KeyValuePairSeparator.Length == 1)
+                {
+                    if (KeyValueSeparator.Length == 1)
+                    {
+                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                    }
+                    else
+                    {
+                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                    }
+                }
+                else
+                {
+                    if (KeyValueSeparator.Length == 1)
+                    {
+                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                    }
+                    else
+                    {
+                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength));
+                    }
+                }
+            }
+        }
+
+
         private static void CreateAlaField(IDictionary<string, object> payload, ConcurrentDictionary<string, int> duplicates, string key, object value, int maxFieldNameLength)
         {
 
@@ -270,7 +315,7 @@ namespace Log4ALA
         private static string RemoveSpecialCharacters(string str)
         {
             var sb = new StringBuilder(str.Length);
-            foreach (var c in str.Where(c => (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || AllowedCharPlus.Any(ch => ch.Equals(c))))
+            foreach (var c in str.Where(c => (validString.Match(c.ToString()).Success)))
             {
                 sb.Append(c);
             }
@@ -284,6 +329,7 @@ namespace Log4ALA
 
     static class StringExtension
     {
+        public static Regex yearRegex = new Regex(@"\d{4}", RegexOptions.Compiled);
 
         public static string OfMaxBytes(this string str, int maxByteLength)
         {
@@ -326,7 +372,7 @@ namespace Log4ALA
             {
                 convertedValue = parsedDouble;
             }
-            else if (DateTime.TryParse(value, out parsedDateTime))
+            else if (yearRegex.Matches(value).Count == 1 &&  DateTime.TryParse(value, out parsedDateTime))
             {
                 convertedValue = parsedDateTime.ToUniversalTime();
             }
@@ -363,6 +409,20 @@ namespace Log4ALA
             }
 
             return false;
+        }
+
+        public static int Occurences(this string str, string val)
+        {
+            int occurrences = 0;
+            int startingIndex = 0;
+
+            while ((startingIndex = str.IndexOf(val, startingIndex)) >= 0)
+            {
+                ++occurrences;
+                ++startingIndex;
+            }
+
+            return occurrences;
         }
 
     }
