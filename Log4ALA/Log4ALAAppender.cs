@@ -54,6 +54,8 @@ namespace Log4ALA
         public int BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
         public int MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
         public int MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
+        public int HttpClientTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_TIMEOUT;
+        public int HttpClientRequestTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT;
 
         public string KeyValueSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR;
         public string KeyValuePairSeparator { get; set; } = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR;
@@ -283,6 +285,15 @@ namespace Log4ALA
                     MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
                 }
                 log.Inf($"[{this.Name}] - maxFieldNameLength:[{MaxFieldNameLength}]", true);
+
+
+                HttpClientTimeout = configSettings.ALAHttpClientTimeout == null ? HttpClientTimeout : (int)configSettings.ALAHttpClientTimeout;
+                log.Inf($"[{this.Name}] - httpClientTimeout:[{HttpClientTimeout}]", true);
+
+                HttpClientRequestTimeout = configSettings.ALAHttpClientRequestTimeout == null ? HttpClientRequestTimeout : (int)configSettings.ALAHttpClientRequestTimeout;
+                log.Inf($"[{this.Name}] - httpClientRequestTimeout:[{HttpClientRequestTimeout}]", true);
+
+
 
                 if (BatchSizeInBytes > 0 || BatchWaitInSec > 0)
                 {

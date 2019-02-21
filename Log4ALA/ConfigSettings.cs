@@ -46,6 +46,10 @@ namespace Log4ALA
         private const string ALA_LOG_ANALYTICS_DNS_PROP = "logAnalyticsDNS";
         private const string ALA_DEBUG_HTTP_REQ_URI_PROP = "debugHTTPReqURI";
         private const string ALA_DISABLE_ANONYMOUS_PROPS_PREFIX_PROP = "disableAnonymousPropsPrefix";
+        private const string ALA_HTTP_CLIENT_TIMEOUT_PROP = "httpClientTimeout";
+        private const string ALA_HTTP_CLIENT_REQUEST_TIMEOUT_PROP = "httpClientRequestTimeout";
+
+
 
         private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
 
@@ -82,7 +86,10 @@ namespace Log4ALA
 
         public const bool DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX = false;
         public const bool DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = false;
-        
+
+        public const int DEFAULT_HTTP_CLIENT_TIMEOUT = 10000;
+        public const int DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT = 10000;
+
 
         public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
 
@@ -526,6 +533,32 @@ namespace Log4ALA
                 string aLAMaxFieldNameLength = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MAX_FIELD_NAME_LENGTH_PROP}"];
 #endif
                 return (string.IsNullOrWhiteSpace(aLAMaxFieldNameLength) ? (int?)null : int.Parse(aLAMaxFieldNameLength));
+            }
+        }
+
+        public int? ALAHttpClientTimeout
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAHttpClientTimeout = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_HTTP_CLIENT_TIMEOUT_PROP}");
+#else
+                string aLAHttpClientTimeout = CloudConfigurationManager[$"{this.propPrefix}:{ALA_HTTP_CLIENT_TIMEOUT_PROP}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAHttpClientTimeout) ? (int?)null : int.Parse(aLAHttpClientTimeout));
+            }
+        }
+
+        public int? ALAHttpClientRequestTimeout
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAHttpClientRequestTimeout = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_HTTP_CLIENT_REQUEST_TIMEOUT_PROP}");
+#else
+                string aLAHttpClientRequestTimeout = CloudConfigurationManager[$"{this.propPrefix}:{ALA_HTTP_CLIENT_REQUEST_TIMEOUT_PROP}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAHttpClientRequestTimeout) ? (int?)null : int.Parse(aLAHttpClientRequestTimeout));
             }
         }
 

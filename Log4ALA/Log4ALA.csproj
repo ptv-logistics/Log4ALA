@@ -56,12 +56,14 @@
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.1.0" />
     <PackageReference Include="log4net" Version="2.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452'">
     <PackageReference Include="Microsoft.Azure.ConfigurationManager" Version="4.0.0" />
     <PackageReference Include="log4net" Version="2.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
   </ItemGroup>
   
   
@@ -76,6 +78,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
@@ -105,8 +108,9 @@
     </EmbeddedResource>
   </ItemGroup>
   
+  
   <ItemGroup>
-    <None Remove="log4net.config" />
+     <None Remove="log4net.config" />
   </ItemGroup>
   
   <ItemGroup>
@@ -114,6 +118,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
- 
-  
+
+
 </Project>
