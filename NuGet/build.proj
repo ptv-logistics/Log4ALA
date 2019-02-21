@@ -101,6 +101,14 @@
       <Log4ALAFiles Include="$(SrcDir)\bin\$(Configuration)\net45\Log4ALA.*"></Log4ALAFiles>
       <Log4ALAConentFiles Include="$(SrcDir)\bin\$(Configuration)\net45\internalLog4net.*"></Log4ALAConentFiles>
       <Log4ALAConent2Files Include="$(SrcDir)\bin\$(Configuration)\net45\log4net.config"></Log4ALAConent2Files>
+	  
+	  
+      <Log4ALA452Files Include="$(SrcDir)\bin\$(Configuration)\net452\Log4ALA.*"></Log4ALA452Files>
+      <Log4ALA452ConentFiles Include="$(SrcDir)\bin\$(Configuration)\net452\internalLog4net.*"></Log4ALA452ConentFiles>
+      <Log4ALA452Conent2Files Include="$(SrcDir)\bin\$(Configuration)\net452\log4net.config"></Log4ALA452Conent2Files>
+
+	  
+	  
       <Log4ALACoreLibFiles Include="$(SrcDir)\bin\$(Configuration)\netstandard2.0\Log4ALA.*"></Log4ALACoreLibFiles>
       <Log4ALACoreContentFiles Include="$(SrcDir)\bin\$(Configuration)\netstandard2.0\internalLog4net.*"></Log4ALACoreContentFiles>
     </ItemGroup>
@@ -115,7 +123,11 @@
     <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\net45" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\net45')" />
     <Copy SourceFiles="%(Log4ALAFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\net45" />
  
-    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0')" />
+    <MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\net452" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\net452')" />
+    <Copy SourceFiles="%(Log4ALA452Files.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\net452" />
+
+
+	<MakeDir Directories="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0')" />
     <!--<MakeDir Directories="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" Condition="!Exists('$(NuGetPackageDir)\Log4ALA\contentFiles\any\any')" />-->
     <Copy SourceFiles="%(Log4ALACoreLibFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\lib\netstandard2.0" />
     <!--<Copy SourceFiles="%(Log4ALAConent2Files.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
