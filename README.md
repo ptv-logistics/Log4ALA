@@ -68,7 +68,7 @@ namespace Log4ALATest
             //Log message as json string ...the json properties will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 10; i++)
             {
-                alaLogger3.Info($"{{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}}");
+                alaLogger3.Info($"{\"id\":\"log-{i}\", \"message\":\"test-{i}\"}");
             }
 
             System.Console.WriteLine("done4");
@@ -141,6 +141,8 @@ to "[=]" and keyValuePairSeparator to "[;]" and now your log message should look
 10. Disable the MiscMessageFieldName of the coreFieldNames property (default is MiscMessageFieldName="MiscMsg") as custom field prefix with the property disableAnonymousPropsPrefix (true/false default is false) in case of using anonymous types as log message e.g. with 
 alaLogger2.Info(new { Id=$"log-{i}", Message=$"test-{i}", Num=i, IsEnabled=true }) wich will lead to the following Azure Log Analytics Custom Fields: MiscMsg_Id_s, MiscMsg_Message_s, MiscMsg_Num_d, MiscMsg_IsEnabled_b to 
 log without prefix set disableAnonymousPropsPrefix=true and you will get the custom fields Id_s, Message_s, Num_d, IsEnabled_b without MiscMsg_ prefix.
+11. Configurable workspace domain name default is ods.opinsights.azure.com (the domain name could be configured with logAnalyticsDNS). Now it's possible to change the domain name to Azure government workspaces ods.opinsights.azure.**us**.
+12. Configurable passthrough timestamp with enablePassThroughTimeStampField default is false if true the field should be contained in the log message e.g with "...;DateValue=2016-05-12T20:00:00.625Z;...".
 
 
 
@@ -384,9 +386,19 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 	  -->
 
 	 <!-- optional property disableAnonymousPropsPrefix (true/false default is false) to disable the MiscMessageFieldName 
-	 (default is MiscMsg) as prefix in case of logging with anonymous types
+	      (default is MiscMsg) as prefix in case of logging with anonymous types
      <disableAnonymousPropsPrefix value="false"/>
 	  -->
+
+	 <!-- optional property disableAnonymousPropsPrefix (default is ods.opinsights.azure.com) to change the workspace domain name
+     <logAnalyticsDNS value="ods.opinsights.azure.com"/>
+	  -->
+
+	 <!-- optional property enablePassThroughTimeStampField (default is false) to passthrough the timestamp field (which will be used as Log Analytics TimeGenerated field)
+	      if true the field should be contained in the log message e.g with "...;DateValue=2016-05-12T20:00:00.625Z;...".
+     <enablePassThroughTimeStampField value="false"/>
+	  -->
+  
 
   </appender>
   
