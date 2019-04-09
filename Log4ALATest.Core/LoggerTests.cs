@@ -16,10 +16,7 @@ namespace Log4ALATest.Core
 
         static void Main(string[] args)
         {
-
-            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
-
+            XmlConfigurator.Configure(REPOSITORY, new FileInfo("log4net.config"));
 
             ////Log messages with [;] separated key[=]value strings...the keys will then be mapped to Azure Log Analytic properties/columns.
             for (int i = 0; i < 3; i++)
