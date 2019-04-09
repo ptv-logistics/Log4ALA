@@ -30,18 +30,9 @@ namespace Log4ALATest.Core
 
             System.Console.WriteLine("done");
 
-
-
-            System.Threading.Thread.Sleep(new TimeSpan(0, 0, 20));
-
-
-            //System.Console.WriteLine("shutdown logger...");
-
-            //LogManager.Shutdown();
-            //System.Console.WriteLine("shutdown succeeded...");
-
+            // sleep to give the Azure Log Analytics (ALA) log4net Appender thread a chance
+            // to send the log data HTTP POST request to the Azure Log Analytics Data Collector API
             System.Threading.Thread.Sleep(new TimeSpan(1, 0, 0));
-
 
         }
     }
