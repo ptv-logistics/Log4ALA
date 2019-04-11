@@ -20,7 +20,7 @@ namespace Log4ALA
 
         protected readonly BlockingCollection<string> Queue;
         protected readonly Thread WorkerThread;
-        protected readonly Random Random = new Random();
+        protected static readonly Random Random = new Random();
 
         protected bool IsRunning = false;
 
@@ -73,7 +73,7 @@ namespace Log4ALA
                 string message = $"{queueLogger.appender.Name}-Size={queueLogger.Queue.Count}";
                 queueLogger.appender.log.Inf(message, queueLogger.appender.LogMessageToFile);
 
-                HttpRequest($"{{\"Msg\":\"{message}\",\"{appender.coreFields.DateFieldName}\":\"{DateTime.UtcNow.ToString("o")}\"}}");
+                HttpRequest($"{{\"Msg\":\"{message}\",\"{appender.coreFields.DateFieldName}\":\"{DateTime.UtcNow.ToString("o")}\"}}", 1);
 
             }
             catch (Exception)
@@ -150,7 +150,8 @@ namespace Log4ALA
                                 break;
                             }
 
-                            if (this.cToken.IsCancellationRequested != true) {
+                            if (this.cToken.IsCancellationRequested != true)
+                            {
                                 string errMessage = $"[{appender.Name}] - Azure Log Analytics problems take log message from queue: {ee.Message}";
                                 appender.log.Err(errMessage);
                             }
@@ -169,7 +170,7 @@ namespace Log4ALA
                         continue;
                     }
 
-                    HttpRequest(alaPayLoad);
+                    HttpRequest(alaPayLoad, numItems);
 
                     //stop loop if background worker thread was canceled by AbortWorker
                     if (this.cToken.IsCancellationRequested == true)
@@ -229,7 +230,7 @@ namespace Log4ALA
                 {
                     CloseConnection();
                     string errMessage = $"Unable to {(init ? "connect" : "reconnect")} to AlaClient => [{ex.Message}] retry [{(retryCount + 1)}]";
-                    if(ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
                     {
                         System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.Connect] - [{errMessage}]");
                     }
@@ -270,7 +271,8 @@ namespace Log4ALA
                 {
                     var handler = new TimeoutHandler
                     {
-                        DefaultTimeout = TimeSpan.FromSeconds(10),
+                        Appender = appender,
+                        DefaultTimeout = TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout),
                         InnerHandler = new HttpClientHandler()
                     };
                     httpClient = new HttpClient(handler);
@@ -346,14 +348,14 @@ namespace Log4ALA
 
         public void AbortWorker()
         {
-            if(WorkerThread != null)
+            if (WorkerThread != null)
             {
                 //controlled cancelation of the background worker thread to trigger sending 
                 //the queued data to ALA before abort the thread
                 this.tokenSource.Cancel();
 
                 Queue.CompleteAdding();
-  
+
                 //wait until the worker thread has flushed the locally queued log data
                 //and has successfully sent the log data to Azur Log Analytics by HttpRequest(string log) or if
                 //the timeout of 10 seconds reached
@@ -365,69 +367,19 @@ namespace Log4ALA
 
         private StringBuilder headerBuilder = new StringBuilder();
 
-        private void HttpRequest(string log)
+        private void HttpRequest(string log, int numItems)
         {
-            var rootDelay = ConfigSettings.MIN_DELAY;
-            int retryCount = 0;
-
-            while (true)
+    
+            var maxRetryAttempts = appender.HttpDataCollectorRetry;
+            RetryOnException(maxRetryAttempts, (id) =>
             {
-                try
-                {
-                    PostData(DateTime.Now.ToUniversalTime().ToString("r"), log);
-                }
-                catch (Exception ex)
-                {
-                    // Reopen the lost connection.
-                    string errMessage = $"reopen lost connection and retry...{ex.Message}-{ex.StackTrace}";
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
-                    {
-                         appender.log.Err($"[{appender.Name}] - {errMessage}");
-                         System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.HttpRequest-PostData] - [{errMessage}]");
-                    }
-                    rootDelay *= 2;
-                    if (rootDelay > ConfigSettings.MAX_DELAY)
-                        rootDelay = ConfigSettings.MAX_DELAY;
-
-                    var waitFor = rootDelay + Random.Next(rootDelay);
-
-                    ++retryCount;
-
-                    try
-                    {
-                        Thread.Sleep(waitFor);
-                    }
-                    catch (Exception e)
-                    {
-                        string errMsg = $"Thread sleep exception => [{e.StackTrace}]";
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
-                        {
-                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.HttpRequest-retry-sleep] - [{errMsg}]");
-                        }
-                        appender.log.Err($"[{appender.Name}] - {errMsg}");
-                        throw new ThreadInterruptedException();
-                    }
-                    Connect();
-                    continue;
-                }
-
-
-
-                //unblock AbortWorker if AbortWorker has canceld the background worker thread
-                if (this.cToken.IsCancellationRequested == true)
-                {
-                    this.manualResetEvent.Set();
-                }
-
-                break;
-            }
-
+                return PostData(DateTime.Now.ToUniversalTime().ToString("r"), log, numItems, id);
+            });
         }
 
 
-
         // Send a request to the POST API endpoint
-        public void PostData(string date, string json)
+        public string PostData(string date, string json, int numItems, string id = null)
         {
 
             // for http debugging please install httpbin (https://github.com/requests/httpbin) locally as docker container:
@@ -472,37 +424,147 @@ namespace Log4ALA
             httpRequestMessage.Content = httpContent;
 
             // Uncomment to test per-request timeout
-            httpRequestMessage.SetTimeout(TimeSpan.FromSeconds(appender.HttpClientRequestTimeout));
+            httpRequestMessage.SetTimeout(TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout));
 
             // Uncomment to test that cancellation still works properly
             //this.tokenSource.CancelAfter(TimeSpan.FromSeconds(2));
 
-            Task<HttpResponseMessage> response = httpClient.SendAsync(httpRequestMessage, this.cToken);
+ 
+            Task<HttpResponseMessage> response;
+            try
+            {
+                //https://stackoverflow.com/questions/14435520/why-use-httpclient-for-synchronous-connection
+                response = httpClient.SendAsync(httpRequestMessage, this.cToken);
 
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    id = $"{response.Id}";
+                }
 
-            TimeSpan.FromMilliseconds(appender.HttpClientTimeout);
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - start post numItems [{numItems}] id [{id}]");
+                }
 
-            string statusCode = "OK";
+            }
+            catch (Exception sasy)
+            {
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - [httpClient.SendAsync EXCEPTION. {sasy.StackTrace}]");
+                }
 
-            if (response.Result.IsSuccessStatusCode)
+                throw;
+            }
+
+            while (!response.IsFaulted && !response.IsCompleted && !response.IsCanceled)
+            {
+                System.Threading.Thread.Sleep(new TimeSpan(0, 0, 1));
+            }
+
+            var statusCode = "UNKNOWN";
+
+            try
             {
                 statusCode = response.Result.StatusCode.ToString();
             }
-            else
+            catch (Exception)
             {
-                statusCode = response.Result.StatusCode.ToString();
+                //continue
             }
-
-            HttpContent responseContent = response.Result.Content;
-            string result = responseContent.ReadAsStringAsync().Result;
 
             if (ConfigSettings.ALAEnableDebugConsoleLog)
             {
-                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - [{statusCode}]");
+                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - numItems [{numItems}] - id/faulted/completed/canceled/statusCode [{id}/{response.IsFaulted}/{response.IsCompleted}/{response.IsCanceled}/{statusCode}]");
             }
+
+            if (response.IsFaulted)
+            {
+                throw new Exception($"{id}|HTTPClient response isFaulted");
+            }
+            
+            appender.log.Inf($"[{appender.Name}] - {json}", appender.LogMessageToFile);
+
+            return $"{id}";
 
         }
 
+
+        public void RetryOnException(int times, Func<string,string> operation)
+        {
+            var task = Task.Run(() =>
+            {
+                var attempts = 0;
+                var rootDelay = ConfigSettings.MIN_DELAY;
+
+                var id = string.Empty;
+
+                do
+                {
+                    try
+                    {
+                        attempts++;
+                        var idSuccess = operation(id);
+                        string msg = $"post with id [{idSuccess}] succeeded";
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}");
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(id))
+                        {
+                             appender.log.Err($"[{appender.Name}] - {msg}");
+                        }
+
+                        break; // Sucess! Lets exit the loop!
+                    }
+                    catch (Exception ex)
+                    {
+
+                        id = ex.Message.Split("|".ToCharArray())[0];
+                        var message = ex.Message.Split("|".ToCharArray())[1];
+
+                        if (attempts == times)
+                        {
+                            string retryMsg = $"retry limit for id [{id}] reached";
+                            if (ConfigSettings.ALAEnableDebugConsoleLog)
+                            {
+                                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}");
+                            }
+                            appender.log.Err($"[{appender.Name}] - {retryMsg}");
+
+                            break;
+                        }
+
+                        rootDelay *= 2;
+                        if (rootDelay > ConfigSettings.MAX_DELAY)
+                            rootDelay = ConfigSettings.MAX_DELAY;
+
+                        var waitFor = rootDelay + Random.Next(rootDelay);
+
+                        string msg = $"Exception caught on attempt {attempts} - will retry request with id [{id}]  after delay {waitFor}";
+
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}");
+                        }
+                        appender.log.Err($"[{appender.Name}] - {msg}");
+
+
+                        Task.Delay(TimeSpan.FromMilliseconds(waitFor)).Wait();
+                    }
+
+                   
+                } while (true);
+
+                //unblock AbortWorker if AbortWorker has canceld the background worker thread
+                if (this.cToken.IsCancellationRequested == true)
+                {
+                    this.manualResetEvent.Set();
+                }
+
+            });
+        }
 
         /// <summary>
         /// SHA256 signature hash

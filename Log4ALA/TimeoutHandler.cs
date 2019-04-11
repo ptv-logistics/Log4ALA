@@ -9,6 +9,9 @@ namespace Log4ALA
     {
         public TimeSpan DefaultTimeout { get; set; } = TimeSpan.FromSeconds(100);
 
+        public Log4ALAAppender Appender { get; set; }
+
+
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             using (var cts = GetCancellationTokenSource(request, cancellationToken))
@@ -17,8 +20,13 @@ namespace Log4ALA
                 {
                     return await base.SendAsync(request, cts?.Token ?? cancellationToken);
                 }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                catch (OperationCanceledException oce) when (!cancellationToken.IsCancellationRequested)
                 {
+                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    {
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{Appender.Name}]|ERROR|[{nameof(TimeoutHandler)}.SendAsync] - {nameof(OperationCanceledException)}: [{oce.StackTrace}]");
+                    }
+
                     throw new TimeoutException();
                 }
             }

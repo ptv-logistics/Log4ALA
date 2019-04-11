@@ -55,7 +55,7 @@ namespace Log4ALA
 
 
 
-        public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 6;
+        public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 20;
         public const int DEFAULT_BATCH_WAIT_MAX_SECONDS = 60;
         public const string DEFAULT_AZURE_API_VERSION = "2016-04-01";
         public const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS = "120";
@@ -87,11 +87,11 @@ namespace Log4ALA
         public const bool DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX = false;
         public const bool DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = false;
 
-        public const int DEFAULT_HTTP_CLIENT_TIMEOUT = 10000;
-        public const int DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT = 10000;
+        public const int DEFAULT_HTTP_CLIENT_TIMEOUT = 20000;
+        public const int DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT = 20000;
 
 
-        public const int BATCH_SIZE_MAX = 31457280; //30 mb quota limit per post 
+        public const int BATCH_SIZE_MAX = 29000000; //quota limit per post 
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
