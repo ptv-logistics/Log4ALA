@@ -22,6 +22,8 @@ namespace Log4ALA
         protected readonly Thread WorkerThread;
         protected static readonly Random Random = new Random();
 
+        private int httpClientId = 0;
+
         protected bool IsRunning = false;
 
         private byte[] SharedKeyBytes { get; set; }
@@ -30,7 +32,6 @@ namespace Log4ALA
 
         private Timer logQueueSizeTimer = null;
 
-        private HttpClient httpClient = null;
         private CancellationTokenSource tokenSource;
         private CancellationToken cToken;
         private ManualResetEvent manualResetEvent;
@@ -97,8 +98,6 @@ namespace Log4ALA
                     cToken.ThrowIfCancellationRequested();
                 }
 
-
-                Connect(true);
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
 
@@ -204,9 +203,9 @@ namespace Log4ALA
             }
         }
 
-        protected void Connect(bool init = false)
+        protected HttpClient Connect(bool init = false, string httpClientId = null)
         {
-            CloseConnection();
+            HttpClient httpClient = null;
 
             var rootDelay = ConfigSettings.MIN_DELAY;
             int retryCount = 0;
@@ -215,10 +214,14 @@ namespace Log4ALA
             {
                 try
                 {
-                    OpenConnection();
+                    httpClient = OpenConnection();
                     try
                     {
-                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to AlaClient", init ? true : appender.LogMessageToFile);
+                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API", init ? true : appender.LogMessageToFile);
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API");
+                        }
                     }
                     catch (Exception)
                     {
@@ -228,11 +231,11 @@ namespace Log4ALA
                 }
                 catch (Exception ex)
                 {
-                    CloseConnection();
-                    string errMessage = $"Unable to {(init ? "connect" : "reconnect")} to AlaClient => [{ex.Message}] retry [{(retryCount + 1)}]";
+                    CloseConnection(httpClient);
+                    string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Unable to {(init ? "connect" : "reconnect")} to Log Analytics Data Collector API => [{ex.Message}] retry [{(retryCount + 1)}]";
                     if (ConfigSettings.ALAEnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.Connect] - [{errMessage}]");
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}");
                     }
                     appender.log.Err($"[{appender.Name}] - {errMessage}");
                     appender.extraLog.Err($"[{appender.Name}] - {errMessage}");
@@ -252,32 +255,35 @@ namespace Log4ALA
                 }
                 catch (Exception ex)
                 {
-                    string errMessage = $"Thread sleep exception => [{ex.StackTrace}]";
+                    string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Thread sleep exception => [{ex.StackTrace}]";
                     if (ConfigSettings.ALAEnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.Connect] - [{errMessage}]");
+                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}");
                     }
                     appender.log.Err($"[{appender.Name}] - {errMessage}");
                     throw new ThreadInterruptedException();
                 }
             }
+
+            return httpClient;
         }
 
-        protected virtual void OpenConnection()
+        protected virtual HttpClient OpenConnection()
         {
             try
-            {
-                if (httpClient == null)
+            {        
+                HttpClient httpClient;
+
+                var handler = new TimeoutHandler
                 {
-                    var handler = new TimeoutHandler
-                    {
-                        Appender = appender,
-                        DefaultTimeout = TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout),
-                        InnerHandler = new HttpClientHandler()
-                    };
-                    httpClient = new HttpClient(handler);
-                    httpClient.Timeout = TimeSpan.FromMilliseconds(appender.HttpClientTimeout);
-                }
+                    Appender = appender,
+                    DefaultTimeout = TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout),
+                    InnerHandler = new HttpClientHandler()
+                };
+                httpClient = new HttpClient(handler);
+                httpClient.Timeout = TimeSpan.FromMilliseconds(appender.HttpClientTimeout);
+
+                return httpClient;
             }
             catch (Exception ex)
             {
@@ -289,7 +295,7 @@ namespace Log4ALA
             }
         }
 
-        protected virtual void CloseConnection()
+        protected virtual void CloseConnection(HttpClient httpClient, string httpClientId = null)
         {
             try
             {
@@ -298,6 +304,11 @@ namespace Log4ALA
                     try
                     {
                         httpClient.CancelPendingRequests();
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests");
+                        }
+
                     }
                     catch (Exception)
                     {
@@ -308,6 +319,10 @@ namespace Log4ALA
                         try
                         {
                             httpClient.Dispose();
+                            if (ConfigSettings.ALAEnableDebugConsoleLog)
+                            {
+                                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} disposed");
+                            }
                         }
                         catch (Exception)
                         {
@@ -321,7 +336,39 @@ namespace Log4ALA
             {
                 if (ConfigSettings.ALAEnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CloseConnection] - [{ex.StackTrace}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CloseConnection] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]");
+                }
+            }
+
+        }
+
+
+        protected virtual void CancelPendingRequests(HttpClient httpClient, string httpClientId = null)
+        {
+            try
+            {
+                if (httpClient != null)
+                {
+                    try
+                    {
+                        httpClient.CancelPendingRequests();
+                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        {
+                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests");
+                        }
+
+                    }
+                    catch (Exception)
+                    {
+                        //contiune
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CancelPendingRequests] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]");
                 }
             }
 
@@ -367,19 +414,37 @@ namespace Log4ALA
 
         private StringBuilder headerBuilder = new StringBuilder();
 
+        private HttpClient httpGlobalClient = null;
+
         private void HttpRequest(string log, int numItems)
         {
-    
-            var maxRetryAttempts = appender.HttpDataCollectorRetry;
-            RetryOnException(maxRetryAttempts, (id) =>
+
+            if(httpClientId >= 100000)
             {
-                return PostData(DateTime.Now.ToUniversalTime().ToString("r"), log, numItems, id);
+                httpClientId = 0;
+            }
+
+            var idStart = $"{++httpClientId}";
+            var maxRetryAttempts = appender.HttpDataCollectorRetry;
+            RetryOnException(maxRetryAttempts, (id, obj) =>
+            {
+                //do httpRequest
+                return PostData(DateTime.Now.ToUniversalTime().ToString("r"), log, numItems, (string.IsNullOrWhiteSpace(id) ? idStart : id), obj);
+            }, () =>
+            {
+                if(httpGlobalClient == null)
+                {
+                    httpGlobalClient = Connect(true, idStart);
+                }
+                //init httpClient
+                return httpGlobalClient;
+
             });
         }
 
 
         // Send a request to the POST API endpoint
-        public string PostData(string date, string json, int numItems, string id = null)
+        public OperationResult PostData(string date, string json, int numItems, string id = null, object obj = null)
         {
 
             // for http debugging please install httpbin (https://github.com/requests/httpbin) locally as docker container:
@@ -393,73 +458,86 @@ namespace Log4ALA
             // and replacefor alaServerAddr with http://localhost/anything by setting the property debugHTTPReqURI=http://localhost/anything to inspect the http request 
             // which will then be logged into log4ALA_info.log instead of sending to Azure Log Analytics data collector API.
 
-
-            var alaQueryContext = $"?api-version={appender.AzureApiVersion}";
-            string url = "https://" + appender.WorkspaceId + $".{appender.LogAnalyticsDNS}/api/logs{alaQueryContext}";
-
-            if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
-            {
-                url = $"{appender.DebugHTTPReqURI}{alaQueryContext}";
-            }
-
-
-            var utf8Encoding = new UTF8Encoding();
-            Byte[] content = utf8Encoding.GetBytes(json);
-            var byteArrayContent = new ByteArrayContent(content);
-
-            var signature = HashSignature("POST", content.Length, "application/json", date, "/api/logs");
-            httpClient.DefaultRequestHeaders.Clear();
-
-            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            httpClient.DefaultRequestHeaders.Add("Log-Type", appender.LogType);
-            httpClient.DefaultRequestHeaders.Add("Authorization", signature);
-            httpClient.DefaultRequestHeaders.Add("x-ms-date", date);
-            httpClient.DefaultRequestHeaders.Add("time-generated-field", appender.coreFields.DateFieldName);
-
-            HttpContent httpContent = byteArrayContent;
-            httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            //Task<HttpResponseMessage> response = httpClient.PostAsync(new Uri(url), httpContent, this.cToken);
-
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
-            httpRequestMessage.Content = httpContent;
-
-            // Uncomment to test per-request timeout
-            httpRequestMessage.SetTimeout(TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout));
-
-            // Uncomment to test that cancellation still works properly
-            //this.tokenSource.CancelAfter(TimeSpan.FromSeconds(2));
-
- 
             Task<HttpResponseMessage> response;
+
+            HttpClient httpClient = null;
+            Exception httpClientEx = null;
+
             try
             {
+                httpClient = (HttpClient)obj;
+
+                var alaQueryContext = $"?api-version={appender.AzureApiVersion}";
+                string url = "https://" + appender.WorkspaceId + $".{appender.LogAnalyticsDNS}/api/logs{alaQueryContext}";
+
+                if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
+                {
+                    url = $"{appender.DebugHTTPReqURI}{alaQueryContext}";
+                }
+
+
+                var utf8Encoding = new UTF8Encoding();
+                Byte[] content = utf8Encoding.GetBytes(json);
+                var byteArrayContent = new ByteArrayContent(content);
+
+                var signature = HashSignature("POST", content.Length, "application/json", date, "/api/logs");
+                httpClient.DefaultRequestHeaders.Clear();
+
+                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                httpClient.DefaultRequestHeaders.Add("Log-Type", appender.LogType);
+                httpClient.DefaultRequestHeaders.Add("Authorization", signature);
+                httpClient.DefaultRequestHeaders.Add("x-ms-date", date);
+                httpClient.DefaultRequestHeaders.Add("time-generated-field", appender.coreFields.DateFieldName);
+
+                HttpContent httpContent = byteArrayContent;
+                httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
+                httpRequestMessage.Content = httpContent;
+
+                // Uncomment to test per-request timeout
+                httpRequestMessage.SetTimeout(TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout));
+
+                // Uncomment to test that cancellation still works properly
+                //this.tokenSource.CancelAfter(TimeSpan.FromSeconds(2));
                 //https://stackoverflow.com/questions/14435520/why-use-httpclient-for-synchronous-connection
                 response = httpClient.SendAsync(httpRequestMessage, this.cToken);
 
-                if (string.IsNullOrWhiteSpace(id))
-                {
-                    id = $"{response.Id}";
-                }
 
                 if (ConfigSettings.ALAEnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - start post numItems [{numItems}] id [{id}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} start post numItems [{numItems}]");
                 }
 
             }
             catch (Exception sasy)
             {
+                CancelPendingRequests(httpClient, id);
                 if (ConfigSettings.ALAEnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - [httpClient.SendAsync EXCEPTION. {sasy.StackTrace}]");
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} SendAsync EXCEPTION. [{sasy.StackTrace}]");
                 }
 
-                throw;
+
+                httpClientEx = sasy;
+                return new OperationResult() { Id = $"{id}", Ex = httpClientEx, Obj = httpClient };
+
             }
 
-            while (!response.IsFaulted && !response.IsCompleted && !response.IsCanceled)
+            try
             {
-                System.Threading.Thread.Sleep(new TimeSpan(0, 0, 1));
+                while (!response.IsFaulted && !response.IsCompleted && !response.IsCanceled)
+                {
+                    System.Threading.Thread.Sleep(new TimeSpan(0, 0, 1));
+                }
+
+            }
+            catch (Exception)
+            {
+                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                {
+                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} error during wait for HttpResponseMessage");
+                }
             }
 
             var statusCode = "UNKNOWN";
@@ -475,58 +553,73 @@ namespace Log4ALA
 
             if (ConfigSettings.ALAEnableDebugConsoleLog)
             {
-                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - numItems [{numItems}] - id/faulted/completed/canceled/statusCode [{id}/{response.IsFaulted}/{response.IsCompleted}/{response.IsCanceled}/{statusCode}]");
+                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} numItems [{numItems}] - faulted/completed/canceled/statusCode [{response.IsFaulted}/{response.IsCompleted}/{response.IsCanceled}/{statusCode}]");
             }
 
-            if (response.IsFaulted)
+            bool isFaulted = response.IsFaulted;
+
+            if (isFaulted)
             {
-                throw new Exception($"{id}|HTTPClient response isFaulted");
+                CancelPendingRequests(httpClient, id);
+                httpClientEx = new Exception($"HTTPClient response {(isFaulted ? "isFaulted" : "isCanceled")}");
             }
-            
+
             appender.log.Inf($"[{appender.Name}] - {json}", appender.LogMessageToFile);
 
-            return $"{id}";
+            return new OperationResult() { Id = $"{id}", Ex = httpClientEx, Obj = httpClient };
 
         }
 
 
-        public void RetryOnException(int times, Func<string,string> operation)
+        public void RetryOnException(int times, Func<string, object, OperationResult> operation, Func<object> createObject)
         {
-            var task = Task.Run(() =>
-            {
+            //var task = Task.Run(() =>
+            //{
                 var attempts = 0;
                 var rootDelay = ConfigSettings.MIN_DELAY;
 
                 var id = string.Empty;
+
+                var obj = createObject();
+
+                bool isRetry = false;
 
                 do
                 {
                     try
                     {
                         attempts++;
-                        var idSuccess = operation(id);
-                        string msg = $"post with id [{idSuccess}] succeeded";
+                        var opResult = operation(id,obj);
+
+                        id = opResult.Id;
+                        obj = opResult.Obj;
+
+                        if (opResult.Ex != null)
+                        {
+                            throw opResult.Ex;
+                        }
+
+                        string msg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} post succeeded";
                         if (ConfigSettings.ALAEnableDebugConsoleLog)
                         {
                             System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}");
                         }
 
-                        if (!string.IsNullOrWhiteSpace(id))
+                        if (isRetry)
                         {
-                             appender.log.Err($"[{appender.Name}] - {msg}");
+                            isRetry = false;
+                            appender.log.Err($"[{appender.Name}] - {msg}");
                         }
 
                         break; // Sucess! Lets exit the loop!
                     }
                     catch (Exception ex)
                     {
-
-                        id = ex.Message.Split("|".ToCharArray())[0];
-                        var message = ex.Message.Split("|".ToCharArray())[1];
+                        var message = ex.Message;
 
                         if (attempts == times)
                         {
-                            string retryMsg = $"retry limit for id [{id}] reached";
+                            string retryMsg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} retry limit reached";
                             if (ConfigSettings.ALAEnableDebugConsoleLog)
                             {
                                 System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}");
@@ -542,7 +635,7 @@ namespace Log4ALA
 
                         var waitFor = rootDelay + Random.Next(rootDelay);
 
-                        string msg = $"Exception caught on attempt {attempts} - will retry request with id [{id}]  after delay {waitFor}";
+                        string msg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} Exception caught on attempt {attempts} - will retry request after delay {waitFor}";
 
                         if (ConfigSettings.ALAEnableDebugConsoleLog)
                         {
@@ -552,9 +645,11 @@ namespace Log4ALA
 
 
                         Task.Delay(TimeSpan.FromMilliseconds(waitFor)).Wait();
+                        isRetry = true;
+
                     }
 
-                   
+
                 } while (true);
 
                 //unblock AbortWorker if AbortWorker has canceld the background worker thread
@@ -563,7 +658,7 @@ namespace Log4ALA
                     this.manualResetEvent.Set();
                 }
 
-            });
+            //});
         }
 
         /// <summary>
@@ -583,6 +678,38 @@ namespace Log4ALA
             }
         }
 
+    }
+
+    public class OperationResult
+    {
+        public string Id { get; set; } = null;
+        public object Obj { get; set; } = null;
+        public Exception Ex{ get; set; } = null;
+
+    }
+
+
+    public sealed class HttpService
+    {
+        private static readonly HttpClient instance = new HttpClient();
+
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit
+        static HttpService()
+        {
+        }
+
+        private HttpService()
+        {
+        }
+
+        public static HttpClient Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
     }
 
 }
