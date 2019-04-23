@@ -55,7 +55,7 @@ namespace Log4ALA
 
 
 
-        public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 20;
+        public const int DEFAULT_HTTP_DATA_COLLECTOR_RETRY = 50;
         public const int DEFAULT_BATCH_WAIT_MAX_SECONDS = 60;
         public const string DEFAULT_AZURE_API_VERSION = "2016-04-01";
         public const string DEFAULT_QUEUE_SIZE_LOG_INTERVAL_SECONDS = "120";
