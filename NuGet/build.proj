@@ -3,8 +3,8 @@
 <Import Project="$(MSBuildProjectDirectory)/build.tasks" />
   <PropertyGroup>
     <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
-    <MinorVersion Condition="$(MinorVersion) == ''">5</MinorVersion>
-    <PatchVersion Condition="$(PatchVersion) == ''">1</PatchVersion>
+    <MinorVersion Condition="$(MinorVersion) == ''">6</MinorVersion>
+    <PatchVersion Condition="$(PatchVersion) == ''">0</PatchVersion>
   </PropertyGroup>
 
   <PropertyGroup>
