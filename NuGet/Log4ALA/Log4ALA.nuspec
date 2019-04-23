@@ -3,15 +3,15 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.5.0</version>
+    <version>2.5.1</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
     <licenseUrl>https://github.com/ptv-logistics/Log4ALA/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
-    <copyright>Copyright © 2018 PTV Group</copyright>
-    <releaseNotes>Added support to passthrough the timestamp field (which will be used as Log Analytics TimeGenerated field) with the property "enablePassThroughTimeStampField"... default is false if true the field should be contained in the log message e.g with "...;DateValue=2016-05-12T20:00:00.625Z;...". Replaced the complex TcpClient with the simple HttpClient. Fix issue #13 "Update nuget dependencies to use Microsoft.Azure.ConfigurationManager" support Microsoft.Azure.ConfigurationManager as from .NET Framework 4.5.2. Fix issue #14 "Azure Gov ALA workspaces not supported" now it's possible to configre the workspace domain name with the property "logAnalyticsDNS" default is "ods.opinsights.azure.com".</releaseNotes>
+    <copyright>Copyright © 2019 PTV Group</copyright>
+    <releaseNotes>Optimize/fix HttpClient retry strategy to solve issue under heavy load (e.g. generate 6 million log entries within 15 minutes) which leads to duplicate log entries in Anzure Log Analytics, add more detailed debugging output.</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.5" />
