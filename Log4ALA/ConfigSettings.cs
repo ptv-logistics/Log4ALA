@@ -30,6 +30,7 @@ namespace Log4ALA
         private const string QUEUE_SIZE_LOG_INTERVAL_PROP = "alaQueueSizeLogIntervalInSec";
         private const string QUEUE_SIZE_LOG_INTERVAL_ENABLED_PROP = "alaQueueSizeLogIntervalEnabled";
         private const string ALA_KEY_VALUE_DETECTION_PROP = "keyValueDetection";
+        private const string ALA_KEY_TO_LOWER_CASE_PROP = "KeyToLowerCase";
         private const string ALA_JSON_DETECTION_PROP = "jsonDetection";
         private const string ALA_BATCH_SIZE_BYTES_PROP = "batchSizeInBytes";
         private const string ALA_BATCH_NUM_ITEMS_PROP = "batchNumItems";
@@ -68,6 +69,7 @@ namespace Log4ALA
         public const bool DEFAULT_DISABLE_INFO_APPENDER_FILE = false;
         public const bool DEFAULT_ENABLE_DEBUG_CONSOLE_LOG = false;
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
+        public const bool DEFAULT_KEY_TO_LOWER_CASE = false;
         public const bool DEFAULT_JSON_DETECTION = true;
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 100;
@@ -428,6 +430,21 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLAKeyValueDetection) ? (bool?)null : Boolean.Parse(aLAKeyValueDetection));
             }
         }
+
+        public bool? ALAKeyToLowerCase
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAKeyToLowerCase = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_KEY_TO_LOWER_CASE_PROP}");
+#else
+                string aLAKeyToLowerCase = CloudConfigurationManager[$"{this.propPrefix}:{ALA_KEY_TO_LOWER_CASE_PROP}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAKeyToLowerCase) ? (bool?)null : Boolean.Parse(aLAKeyToLowerCase));
+            }
+        }
+
+       
 
         public bool? ALAJsonDetection
         {

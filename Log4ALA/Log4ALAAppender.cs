@@ -63,6 +63,8 @@ namespace Log4ALA
 
         public bool DisableAnonymousPropsPrefix { get; set; } = ConfigSettings.DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX;
         public bool EnablePassThroughTimeStampField { get; set; } = ConfigSettings.DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD;
+        public bool KeyToLowerCase { get; set; } = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE;
+
 
 
         public string[] KeyValueSeparators { get; set; } = null;
@@ -314,6 +316,9 @@ namespace Log4ALA
 
                 KeyValueDetection = configSettings.ALAKeyValueDetection == null ? KeyValueDetection : (bool)configSettings.ALAKeyValueDetection;
                 log.Inf($"[{this.Name}] - keyValueDetection:[{KeyValueDetection}]", true);
+
+                KeyToLowerCase = configSettings.ALAKeyToLowerCase == null ? KeyToLowerCase : (bool)configSettings.ALAKeyToLowerCase;
+                log.Inf($"[{this.Name}] - keyToLowerCase:[{KeyToLowerCase}]", true);
 
                 JsonDetection = configSettings.ALAJsonDetection == null ? JsonDetection : (bool)configSettings.ALAJsonDetection;
                 log.Inf($"[{this.Name}] - jsonDetecton:[{JsonDetection}]", true);

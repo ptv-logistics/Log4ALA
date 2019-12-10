@@ -13,6 +13,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{2E777CA1-0
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{D4EE647D-418C-4F09-B8CF-273C28D0AC1E}"
+	ProjectSection(SolutionItems) = preProject
+		NuGet\build.bat = NuGet\build.bat
+		NuGet\build.proj = NuGet\build.proj
+		NuGet\build.tasks = NuGet\build.tasks
+		NuGet\Log4ALA.Core\Log4ALA.core.nuspec = NuGet\Log4ALA.Core\Log4ALA.core.nuspec
+		NuGet\Log4ALA\Log4ALA.nuspec = NuGet\Log4ALA\Log4ALA.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

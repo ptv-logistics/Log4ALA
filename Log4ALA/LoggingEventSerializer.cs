@@ -59,6 +59,7 @@ namespace Log4ALA
 
             bool msgIsValidString = loggingEvent.MessageObject is System.String && !string.IsNullOrWhiteSpace((string)loggingEvent.MessageObject);
             bool isKeyValueDetection = appender.KeyValueDetection;
+            bool isKeyToLowerCase = appender.KeyToLowerCase;
             bool isMsgObjNotNull = loggingEvent.MessageObject != null;
             bool isMsgObjValidSysStrFormat = isMsgObjNotNull && loggingEvent.MessageObject is log4net.Util.SystemStringFormat;
 
@@ -71,7 +72,8 @@ namespace Log4ALA
                 {
                     if (!valObjects.ContainsKey(val.Key))
                     {
-                        payload.Add(val.Key.TrimFieldName((int)appender.MaxFieldNameLength), val.Value.TypeConvert((int)appender.MaxFieldByteLength));
+                        var key = val.Key.TrimFieldName((int)appender.MaxFieldNameLength);
+                        payload.Add((isKeyToLowerCase ? key.ToLower() : key ), val.Value.TypeConvert((int)appender.MaxFieldByteLength));
                     }
                 }
             }
@@ -94,7 +96,8 @@ namespace Log4ALA
                     var anonymous = loggingEvent.MessageObject;
                     foreach (PropertyInfo propertyInfo in anonymous.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-                        payload.Add(propertyInfo.Name.TrimFieldName(appender.MaxFieldNameLength), propertyInfo.GetValue(anonymous, null));
+                        var key = propertyInfo.Name.TrimFieldName(appender.MaxFieldNameLength);
+                        payload.Add((isKeyToLowerCase ? key.ToLower() : key), propertyInfo.GetValue(anonymous, null));
                     }
                 }
                 else
@@ -139,7 +142,7 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
+        private void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR, bool isKeyToLowerCase = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -185,7 +188,7 @@ namespace Log4ALA
 
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
-                                    CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
                                 }
                             }
                             else if(keyValueCount == 2) {
@@ -203,7 +206,7 @@ namespace Log4ALA
                                     string.IsNullOrWhiteSpace(le1ppSP[2]) && le1pp.Trim().EndsWith(KeyValueSeparator) && 
                                     $"{le1ppSP[1].Trim()}{KeyValueSeparator}".IsBase64())
                                 {
-                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}{KeyValueSeparator}".TypeConvert(maxByteLength), maxFieldNameLength);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}{KeyValueSeparator}".TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
 
                                 }
                             }
@@ -230,7 +233,7 @@ namespace Log4ALA
 
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength);
+                                CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
                             }
                         }
                         else
@@ -282,10 +285,12 @@ namespace Log4ALA
         }
 
 
-        private static void CreateAlaField(IDictionary<string, object> payload, ConcurrentDictionary<string, int> duplicates, string key, object value, int maxFieldNameLength)
+        private static void CreateAlaField(IDictionary<string, object> payload, ConcurrentDictionary<string, int> duplicates, string key, object value, int maxFieldNameLength, bool isKeyToLowerCase)
         {
 
             key = key.TrimFieldName(maxFieldNameLength).Trim();
+
+            key = isKeyToLowerCase ? key.ToLower() : key;
 
             if (!payload.ContainsKey(key))
             {
