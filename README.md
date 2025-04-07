@@ -29,23 +29,23 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
 
 
 ### Configuration settings
- <b>logType</b>
- The Custom table name without _CL 
- <b>ingestionApi</b> 
- To use the new Ingestion API set to true - default is false 
- <b>ingestionApiGzip</b>
- To compress the send ingestion logs - default is true
- <b>tenantId</b>
- Tenant ID of your Microsoft Entra ID
- <b>appId</b>
- Application ID of your registered Microsoft Entra Application and service principal
- <b>appSecret</b>
- The secret of the above application ID
- <b>dcrEndpoint</b>
- The dcr endpoint URI
- <b>dcrId</b>
- The data collection rule (dcr) id which should be used for the transformantion
- <b>dcrEndpointApiVersion</b>
+ <b>logType</b></br>
+ The Custom table name without _CL</br>
+ <b>ingestionApi</b></br>
+ To use the new Ingestion API set to true - default is false</br>
+ <b>ingestionApiGzip</b></br>
+ To compress the send ingestion logs - default is true</br>
+ <b>tenantId</b></br>
+ Tenant ID of your Microsoft Entra ID</br>
+ <b>appId</b></br>
+ Application ID of your registered Microsoft Entra Application and service principal</br>
+ <b>appSecret</b></br>
+ The secret of the above application ID</br>
+ <b>dcrEndpoint</b></br>
+ The dcr endpoint URI</br>
+ <b>dcrId</b></br>
+ The data collection rule (dcr) id which should be used for the transformantion</br>
+ <b>dcrEndpointApiVersion</b></br>
  The dcr endpoint api version - default is 2023-01-01
 
 
