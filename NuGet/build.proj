@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
 <Import Project="$(MSBuildProjectDirectory)/build.tasks" />
   <PropertyGroup>
     <MajorVersion Condition="$(MajorVersion) == ''">2</MajorVersion>
@@ -134,7 +134,7 @@
     <Copy SourceFiles="%(Log4ALACoreContentFiles.Identity)" DestinationFolder="$(NuGetPackageDir)\Log4ALA\contentFiles\any\any" />
 	-->
 
-    <Exec Command="&quot;$(NuGetPath)&quot; pack &quot;$(NuGetPackageDir)\Log4ALA\Log4ALA.nuspec&quot; -OutputDirectory &quot;$(NuGetPackageDir)&quot; -Version $(PackageVersion) -Symbols"
+    <Exec Command='"$(NuGetPath)" pack "$(NuGetPackageDir)\Log4ALA\Log4ALA.nuspec" -OutputDirectory "$(NuGetPackageDir)" -Version $(PackageVersion) -Symbols -MSBuildPath "$(MSBuildPath)"'
             LogStandardErrorAsError="true" />
 
     <!-- Log4ALA.Core
@@ -157,7 +157,7 @@
   <Target Name="NuGetRestore">
 
  
-    <Exec Command="&quot;$(NuGetPath)&quot; restore $(BuildSolutionDir)\Log4ALA.sln"
+    <Exec Command='"$(NuGetPath)" restore "$(BuildSolutionDir)Log4ALA.sln" -MSBuildPath "$(MSBuildPath)"'
             LogStandardErrorAsError="true" />
 
 

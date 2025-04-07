@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Log4ALA
 {
@@ -37,8 +40,11 @@ namespace Log4ALA
         private CancellationToken cToken;
         private ManualResetEvent manualResetEvent;
 
+        private AzureADToken azureADToken;
+
         public QueueLogger(Log4ALAAppender appender)
         {
+            this.azureADToken = new AzureADToken() { ExpiresInD = DateTimeOffset.Now.AddDays(-1).ToUniversalTime() };
             this.tokenSource = new CancellationTokenSource();
             this.cToken = tokenSource.Token;
             this.manualResetEvent = new ManualResetEvent(false);
@@ -115,9 +121,11 @@ namespace Log4ALA
                     buffer.Append('[');
                     stopwatch.Restart();
 
+                    var batchSizeMax = appender.IngestionApi ? (appender.IngestionApiGzip ? (ConfigSettings.INGESTION_API_BATCH_SIZE_MAX * 2) : ConfigSettings.INGESTION_API_BATCH_SIZE_MAX) : ConfigSettings.BATCH_SIZE_MAX;
+
                     while (((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           (numItems < appender.BatchNumItems && byteLength < ConfigSettings.BATCH_SIZE_MAX && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < ConfigSettings.BATCH_SIZE_MAX))
+                           (numItems < appender.BatchNumItems && byteLength < batchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < batchSizeMax))
                           )
                     {
                         try
@@ -470,6 +478,11 @@ namespace Log4ALA
 
                 var alaQueryContext = $"?api-version={appender.AzureApiVersion}";
                 string url = "https://" + appender.WorkspaceId + $".{appender.LogAnalyticsDNS}/api/logs{alaQueryContext}";
+                
+                if ((bool)appender.IngestionApi)
+                {
+                    url = $"{appender.DcrEndpoint.TrimEnd('/')}/dataCollectionRules/{appender.DcrId}/streams/Custom-{appender.LogType}_CL?api-version={appender.DcrEndpointApiVersion}";
+                }
 
                 if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
                 {
@@ -481,16 +494,45 @@ namespace Log4ALA
                 Byte[] content = utf8Encoding.GetBytes(json);
                 var byteArrayContent = new ByteArrayContent(content);
 
-                var signature = HashSignature("POST", content.Length, "application/json", date, "/api/logs");
                 httpClient.DefaultRequestHeaders.Clear();
 
-                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                httpClient.DefaultRequestHeaders.Add("Log-Type", appender.LogType);
-                httpClient.DefaultRequestHeaders.Add("Authorization", signature);
-                httpClient.DefaultRequestHeaders.Add("x-ms-date", date);
-                httpClient.DefaultRequestHeaders.Add("time-generated-field", appender.coreFields.DateFieldName);
+                HttpContent httpContent = null;
 
-                HttpContent httpContent = byteArrayContent;
+                if ((bool)appender.IngestionApi)
+                {
+                    var task = Task.Run(async () => await GetTokenAsync());
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {task.Result.AccessToken}");
+
+                    if (appender.IngestionApiGzip)
+                    {
+                        var jsonContent = new StringContent(json, Encoding.UTF8, "application/json");
+                        httpContent = new GzipContent(jsonContent, "gzip");
+                    }
+                    else
+                    {
+                        httpContent = byteArrayContent;
+                    }
+
+                    if (!String.IsNullOrWhiteSpace(appender.IngestionApiDebugHeader))
+                    {
+                        httpClient.DefaultRequestHeaders.Add("x-ms-client-request-id", appender.IngestionApiDebugHeader);
+                    }
+
+                }
+                else
+                {
+                    var signature = HashSignature("POST", content.Length, "application/json", date, "/api/logs");
+
+                    httpClient.DefaultRequestHeaders.Add("Log-Type", appender.LogType);
+                    httpClient.DefaultRequestHeaders.Add("Authorization", signature);
+                    httpClient.DefaultRequestHeaders.Add("x-ms-date", date);
+                    httpClient.DefaultRequestHeaders.Add("time-generated-field", appender.coreFields.DateFieldName);
+
+                    httpContent = byteArrayContent;
+
+                }
+
+                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
@@ -549,7 +591,7 @@ namespace Log4ALA
             {
                 statusCode = response.Result.StatusCode;
 
-                if (!statusCode.Equals(HttpStatusCode.OK))
+                if (!statusCode.Equals(HttpStatusCode.OK) && !statusCode.Equals(HttpStatusCode.NoContent))
                 {
                     result = response.Result.ReasonPhrase;
                     httpStatusCode2Retry = statusCode.Equals(HttpStatusCode.InternalServerError) || statusCode.Equals(HttpStatusCode.ServiceUnavailable) || statusCode.Equals((HttpStatusCode)429);
@@ -578,7 +620,7 @@ namespace Log4ALA
                 CancelPendingRequests(httpClient, id);
                 httpClientEx = new Exception($"HTTPClient response {statusCode} - {result}");
             }
-            else if (!statusCode.Equals(HttpStatusCode.OK) && !httpStatusCode2Retry)
+            else if (!statusCode.Equals(HttpStatusCode.OK) && !statusCode.Equals(HttpStatusCode.NoContent) && !httpStatusCode2Retry)
             {
                 CancelPendingRequests(httpClient, id);
                 httpClientEx = new HttpNoRetryException($"HTTPClient response {statusCode} - {result}");
@@ -714,6 +756,55 @@ namespace Log4ALA
             }
         }
 
+        //https://learn.microsoft.com/en-us/azure/azure-monitor/logs/tutorial-logs-ingestion-code?tabs=powershell
+        private async Task<AzureADToken> GetTokenAsync()
+        {
+            lock (azureADToken)
+            {
+                if (!azureADToken.HasTokenExpired()) return azureADToken;
+            }
+
+            var tenantId = appender.TenantId;
+            var appId = appender.AppId;
+            var secret = appender.AppSecret;
+            //var resourceUrl = "https://management.azure.com/";
+            var requestUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+            var scope = "https://monitor.azure.com//.default";
+
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Clear();
+            var dict = new Dictionary<string, string>
+            {
+                { "client_id", appId },
+                { "scope", scope },
+                { "client_secret", secret },
+                { "grant_type", "client_credentials" }
+            };
+
+
+
+            var requestBody = new FormUrlEncodedContent(dict);
+            //System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {requestBody}");
+
+
+            requestBody.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var response = await httpClient.PostAsync(requestUrl, requestBody);
+
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+ 
+            lock (azureADToken)
+            {
+                azureADToken = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureADToken>(responseContent);
+            }
+            return azureADToken;
+        }
+
+
     }
 
     public class OperationResult
@@ -763,6 +854,110 @@ namespace Log4ALA
             : base(message, inner)
         {
         }
+    }
+
+    public class GzipContent : HttpContent
+    {
+        private readonly HttpContent originalContent;
+        private readonly string encodingType;
+
+        public GzipContent(HttpContent content, string encodingType)
+        {
+            if (content == null)
+            {
+                throw new ArgumentNullException("content");
+            }
+
+            if (encodingType == null)
+            {
+                throw new ArgumentNullException("encodingType");
+            }
+
+            originalContent = content;
+            this.encodingType = encodingType.ToLowerInvariant();
+
+            if (this.encodingType != "gzip" && this.encodingType != "deflate")
+            {
+                throw new InvalidOperationException(string.Format("Encoding '{0}' is not supported. Only supports gzip or deflate encoding.", this.encodingType));
+            }
+
+            foreach (KeyValuePair<string, IEnumerable<string>> header in originalContent.Headers)
+            {
+                Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            Headers.ContentEncoding.Add(encodingType);
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = -1;
+
+            return false;
+        }
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
+        {
+            Stream compressedStream = null;
+
+            if (encodingType == "gzip")
+            {
+                compressedStream = new GZipStream(stream, CompressionMode.Compress, leaveOpen: true);
+            }
+            else if (encodingType == "deflate")
+            {
+                compressedStream = new DeflateStream(stream, CompressionMode.Compress, leaveOpen: true);
+            }
+
+            return originalContent.CopyToAsync(compressedStream).ContinueWith(tsk =>
+            {
+                if (compressedStream != null)
+                {
+                    compressedStream.Dispose();
+                }
+            });
+        }
+    }
+
+    public class AzureADToken
+    {
+        [JsonProperty("token_type")]
+        public string TokenType { get; set; }
+
+        public DateTimeOffset ExpiresInD { get; set; }
+        private string expiresIn;
+
+        [JsonProperty("expires_in")]
+        public string ExpiresIn {
+
+            set
+            {
+                expiresIn = value;
+                // Unix timestamp is seconds past epoch
+                DateTimeOffset origin = DateTimeOffset.UtcNow;
+                ExpiresInD = origin.AddSeconds(double.Parse(expiresIn)).ToUniversalTime();
+            }
+
+        }
+
+        [JsonProperty("ext_expires_in")]
+        public string ExtExpiresIn { get; set; }
+
+        [JsonProperty("expires_on")]
+        public string ExpiresOn { get; set; }
+
+        public bool HasTokenExpired()
+        {
+            return ExpiresInD <= DateTimeOffset.Now.ToUniversalTime();
+        }
+
+        [JsonProperty("not_before")]
+        public string NotBefore { get; set; }
+
+        public string Resource { get; set; }
+
+        [JsonProperty("access_token")]
+        public string AccessToken { get; set; }
     }
 
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Log4ALA", "Log4ALA\Log4ALA.csproj", "{D6353B8E-8A48-4282-8FF6-BA9D16295D6A}"
 EndProject
@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{D4EE647D
 		NuGet\build.tasks = NuGet\build.tasks
 		NuGet\Log4ALA.Core\Log4ALA.core.nuspec = NuGet\Log4ALA.Core\Log4ALA.core.nuspec
 		NuGet\Log4ALA\Log4ALA.nuspec = NuGet\Log4ALA\Log4ALA.nuspec
+		NuGet\nugetPush.bat = NuGet\nugetPush.bat
 	EndProjectSection
 EndProject
 Global
