@@ -44,7 +44,7 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  <b>dcrEndpoint</b></br>
  The dcr endpoint URI</br>
  <b>dcrId</b></br>
- The data collection rule (dcr) id which should be used for the transformantion</br>
+ The data collection rule (dcr) id which should be used for the transformation</br>
  <b>dcrEndpointApiVersion</b></br>
  The dcr endpoint api version - default is 2023-01-01
 
