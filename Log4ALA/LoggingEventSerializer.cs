@@ -81,11 +81,11 @@ namespace Log4ALA
             {
                 if (isKeyValueDetection && msgIsValidString)
                 {
-                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, appender.MaxFieldByteLength, appender.MaxFieldNameLength, appender.coreFields.MiscMessageFieldName, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
+                    ConvertKeyValueMessage(payload, (string)loggingEvent.MessageObject, appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
                 else if (isKeyValueDetection && isMsgObjValidSysStrFormat && !string.IsNullOrWhiteSpace(loggingEvent.RenderedMessage))
                 {
-                    ConvertKeyValueMessage(payload, loggingEvent.RenderedMessage, appender.MaxFieldByteLength, appender.MaxFieldNameLength, appender.coreFields.MiscMessageFieldName, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
+                    ConvertKeyValueMessage(payload, loggingEvent.RenderedMessage, appender.MaxFieldByteLength, appender.coreFields.MiscMessageFieldName, appender.MaxFieldNameLength, appender.KeyValueSeparator, appender.KeyValuePairSeparator);
                 }
                 else if (isMsgObjValidSysStrFormat)
                 {
@@ -142,7 +142,7 @@ namespace Log4ALA
             return JsonConvert.SerializeObject(payload, Formatting.None);
         }
 
-        private void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, int maxFieldNameLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR, bool isKeyToLowerCase = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE)
+        private void ConvertKeyValueMessage(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR, bool isKeyToLowerCase = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -254,7 +254,7 @@ namespace Log4ALA
             }
         }
 
-        private void ConvertKeyValueMessageNew(IDictionary<string, Object> payload, string message, int maxByteLength, int maxFieldNameLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
+        private void ConvertKeyValueMessageNew(IDictionary<string, Object> payload, string message, int maxByteLength, string miscMsgFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, int maxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH, string KeyValueSeparator = ConfigSettings.DEFAULT_KEY_VALUE_SEPARATOR, string KeyValuePairSeparator = ConfigSettings.DEFAULT_KEY_VALUE_PAIR_SEPARATOR)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -348,7 +348,7 @@ namespace Log4ALA
             });
         }
 
-        public static string TrimFieldName(this string str, int length)
+        public static string TrimFieldName(this string str, int length = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
         {
             return str.Length > length ? str.Substring(0, length) : str;
         }

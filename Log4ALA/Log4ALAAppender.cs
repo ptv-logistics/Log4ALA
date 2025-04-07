@@ -52,7 +52,7 @@ namespace Log4ALA
         public int BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
         public int BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
-        public int MaxFieldByteLength { get; set; }
+        public int MaxFieldByteLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
         public int MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
         public int HttpClientTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_TIMEOUT;
         public int HttpClientRequestTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT;
@@ -64,16 +64,7 @@ namespace Log4ALA
         public bool DisableAnonymousPropsPrefix { get; set; } = ConfigSettings.DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX;
         public bool EnablePassThroughTimeStampField { get; set; } = ConfigSettings.DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD;
         public bool KeyToLowerCase { get; set; } = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE;
-        public bool IngestionApi { get; set; } = ConfigSettings.DEFAULT_INGESTION_API;
-        public string TenantId { get; set; }
-        public string AppId { get; set; }
-        public string AppSecret { get; set; }
-        public string DcrEndpoint { get; set; }
-        public string DcrId { get; set; }
-        public string DcrEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DCR_ENDPOINT_API_VERSION;
-        public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
 
-        public string IngestionApiDebugHeader { get; set; }
 
 
         public string[] KeyValueSeparators { get; set; } = null;
@@ -98,7 +89,7 @@ namespace Log4ALA
                 string tempValue;
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    tempValue = JsonConvert.SerializeObject(new CoreFieldNames() { DateFieldName = (IngestionApi ? ConfigSettings.INGESTION_API_DEFAULT_DATE_FIELD_NAME : ConfigSettings.DEFAULT_DATE_FIELD_NAME), MiscMessageFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, LevelFieldName = ConfigSettings.DEFAULT_LEVEL_FIELD_NAME, LoggerFieldName = ConfigSettings.DEFAULT_LOGGER_FIELD_NAME });
+                    tempValue = JsonConvert.SerializeObject(new CoreFieldNames() { DateFieldName = ConfigSettings.DEFAULT_DATE_FIELD_NAME, MiscMessageFieldName = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME, LevelFieldName = ConfigSettings.DEFAULT_LEVEL_FIELD_NAME, LoggerFieldName = ConfigSettings.DEFAULT_LOGGER_FIELD_NAME });
                 }
                 else
                 {
@@ -218,14 +209,7 @@ namespace Log4ALA
                     System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]");
                 }
 #endif
-                IngestionApi = configSettings.ALAIngestionApi == null ? IngestionApi : (bool)configSettings.ALAIngestionApi;
-                log.Inf($"[{this.Name}] - ingestionApi:[{IngestionApi}]", true);
-
-                IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
-                log.Inf($"[{this.Name}] - ingestionApiGzip:[{IngestionApiGzip}]", true);
-               
-
-                if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
+                if (string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
                 {
                     throw new Exception($"the Log4ALAAppender property workspaceId [{WorkspaceId}] shouldn't be empty");
                 }
@@ -233,66 +217,14 @@ namespace Log4ALA
                 WorkspaceId = string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) ? WorkspaceId : configSettings.ALAWorkspaceId;
                 log.Inf($"[{this.Name}] - workspaceId:[{WorkspaceId}]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALATenantId) && string.IsNullOrWhiteSpace(TenantId))
-                {
-                    throw new Exception($"the Log4ALAAppender property tenantId [{TenantId}] shouldn't be empty");
-                }
 
-                TenantId = string.IsNullOrWhiteSpace(configSettings.ALATenantId) ? TenantId : configSettings.ALATenantId;
-                log.Inf($"[{this.Name}] - tenantId:[{TenantId}]", true);
-
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAAppId) && string.IsNullOrWhiteSpace(AppId))
-                {
-                    throw new Exception($"the Log4ALAAppender property appId [{AppId}] shouldn't be empty");
-                }
-
-                AppId = string.IsNullOrWhiteSpace(configSettings.ALAAppId) ? AppId : configSettings.ALAAppId;
-                log.Inf($"[{this.Name}] - appId:[{AppId}]", true);
-
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) && string.IsNullOrWhiteSpace(AppSecret))
-                {
-                    throw new Exception($"the Log4ALAAppender property appSecret [{AppSecret}] shouldn't be empty");
-                }
-
-                AppSecret = string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) ? AppSecret : configSettings.ALAAppSecret;
-                log.Inf($"[{this.Name}] - appSecret:[{(string.IsNullOrWhiteSpace(AppSecret) ? string.Empty : AppSecret.Remove(20))}...]", true);
-
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrEndpoint) && string.IsNullOrWhiteSpace(DcrEndpoint))
-                {
-                    throw new Exception($"the Log4ALAAppender property dcrEndpoint [{DcrEndpoint}] shouldn't be empty");
-                }
-
-                DcrEndpoint = string.IsNullOrWhiteSpace(configSettings.ALADcrEndpoint) ? DcrEndpoint : configSettings.ALADcrEndpoint;
-                log.Inf($"[{this.Name}] - dcrEndpoint:[{DcrEndpoint}]", true);
-
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrId) && string.IsNullOrWhiteSpace(DcrId))
-                {
-                    throw new Exception($"the Log4ALAAppender property dcrId [{DcrId}] shouldn't be empty");
-                }
-
-                DcrId = string.IsNullOrWhiteSpace(configSettings.ALADcrId) ? DcrId : configSettings.ALADcrId;
-                log.Inf($"[{this.Name}] - dcrId:[{(string.IsNullOrWhiteSpace(DcrId) ? string.Empty: DcrId.Remove(20))}...]", true);
-
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrEndpointApiVersion) && string.IsNullOrWhiteSpace(DcrEndpointApiVersion))
-                {
-                    throw new Exception($"the Log4ALAAppender property dcrEndpointApiVersion [{DcrEndpointApiVersion}] shouldn't be empty");
-                }
-
-                DcrEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcrEndpointApiVersion) ? DcrEndpointApiVersion : configSettings.ALADcrEndpointApiVersion;
-                log.Inf($"[{this.Name}] - dcrEndpointApiVersion:[{DcrEndpointApiVersion}]", true);
-
-
-                IngestionApiDebugHeader = string.IsNullOrWhiteSpace(configSettings.ALAIngestionApiDebugHeader) ? IngestionApiDebugHeader : configSettings.ALAIngestionApiDebugHeader;
-                log.Inf($"[{this.Name}] - ingestionApiDebugHeader:[{IngestionApiDebugHeader}]", true);
-                
-
-                if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALASharedKey) && string.IsNullOrWhiteSpace(SharedKey))
+                if (string.IsNullOrWhiteSpace(configSettings.ALASharedKey) && string.IsNullOrWhiteSpace(SharedKey))
                 {
                     throw new Exception($"the Log4ALAAppender property sharedKey [{SharedKey}] shouldn't be empty");
                 }
 
                 SharedKey = string.IsNullOrWhiteSpace(configSettings.ALASharedKey) ? SharedKey : configSettings.ALASharedKey;
-                log.Inf($"[{this.Name}] - sharedKey:[{(string.IsNullOrWhiteSpace(SharedKey) ? SharedKey : SharedKey.Remove(15))}...]", true);
+                log.Inf($"[{this.Name}] - sharedKey:[{SharedKey.Remove(15)}...]", true);
 
                 if (string.IsNullOrWhiteSpace(configSettings.ALALogType) && string.IsNullOrWhiteSpace(LogType))
                 {
@@ -341,12 +273,10 @@ namespace Log4ALA
                 BatchWaitMaxInSec = configSettings.ALABatchWaitMaxInSec == null ? BatchWaitMaxInSec : (int)configSettings.ALABatchWaitMaxInSec;
                 log.Inf($"[{this.Name}] - batchWaitMaxInSec:[{BatchWaitMaxInSec}]", true);
 
-                var defaultMaxFieldByteLen = (IngestionApi ? ConfigSettings.INGESTION_API_DEFAULT_MAX_FIELD_BYTE_LENGTH : ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH);
-
-                MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? defaultMaxFieldByteLen : (int)configSettings.ALAMaxFieldByteLength;
-                if(MaxFieldByteLength > defaultMaxFieldByteLen)
+                MaxFieldByteLength = configSettings.ALAMaxFieldByteLength == null ? MaxFieldByteLength : (int)configSettings.ALAMaxFieldByteLength;
+                if(MaxFieldByteLength > ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH)
                 {
-                    MaxFieldByteLength = defaultMaxFieldByteLen;
+                    MaxFieldByteLength = ConfigSettings.DEFAULT_MAX_FIELD_BYTE_LENGTH;
                 }
                 log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
 

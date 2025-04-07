@@ -50,17 +50,6 @@ namespace Log4ALA
         private const string ALA_HTTP_CLIENT_TIMEOUT_PROP = "httpClientTimeout";
         private const string ALA_HTTP_CLIENT_REQUEST_TIMEOUT_PROP = "httpClientRequestTimeout";
 
-        //https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-samples#logs-ingestion-api
-        //https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-structure#properties
-        private const string ALA_INGESTION_API_PROP = "ingestionApi";
-        private const string ALA_TENANT_ID_PROP = "tenantId";
-        private const string ALA_APP_ID_PROP = "appId";
-        private const string ALA_APP_SECRET_PROP = "appSecret";
-        private const string ALA_DCR_ENDPOINT_PROP = "dcrEndpoint";
-        private const string ALA_DCR_ID_PROP = "dcrId";
-        private const string ALA_DCR_ENDPOINT_API_VERSION_PROP = "dcrEndpointApiVersion";
-        private const string ALA_INGESTION_API_GZIP_PROP = "ingestionApiGzip";
-        private const string ALA_INGESTION_API_DEBUG_HEADER = "ingestionApiDebugHeader";
 
 
         private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
@@ -82,14 +71,12 @@ namespace Log4ALA
         public const bool DEFAULT_KEY_VALUE_DETECTION = true;
         public const bool DEFAULT_KEY_TO_LOWER_CASE = false;
         public const bool DEFAULT_JSON_DETECTION = true;
-        public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 1024 * 32;
-        public const int INGESTION_API_DEFAULT_MAX_FIELD_BYTE_LENGTH = 1024 * 64;
+        public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 32000;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 100;
         public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
         public const string DEFAULT_TIMEOUT_SECONDS = "10";
 
         public const string DEFAULT_DATE_FIELD_NAME = "DateValue";
-        public const string INGESTION_API_DEFAULT_DATE_FIELD_NAME = "TimeGenerated";
         public const string DEFAULT_MISC_MSG_FIELD_NAME = "MiscMsg";
         public const string DEFAULT_LOGGER_FIELD_NAME = "Logger";
         public const string DEFAULT_LEVEL_FIELD_NAME = "Level";
@@ -100,18 +87,13 @@ namespace Log4ALA
         public const string DEFAULT_LOGANALYTICS_DNS = "ods.opinsights.azure.com";
 
         public const bool DEFAULT_DISABLE_ANONYMOUS_PROPS_PREFIX = false;
-        public static bool DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = false;
+        public const bool DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = false;
 
         public const int DEFAULT_HTTP_CLIENT_TIMEOUT = 20000;
         public const int DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT = 20000;
 
-        public const bool DEFAULT_INGESTION_API = false;
-        public const string DEFAULT_DCR_ENDPOINT_API_VERSION = "2023-01-01";
-        public const bool DEFAULT_INGESTION_API_GZIP = true;
 
-
-        public static int BATCH_SIZE_MAX = 29000000; //quota limit per post 
-        public static int INGESTION_API_BATCH_SIZE_MAX = 1024 * 1024; //quota limit per post 
+        public const int BATCH_SIZE_MAX = 29000000; //quota limit per post 
 
         // Minimal delay between attempts to reconnect in milliseconds. 
         public const int MIN_DELAY = 100;
@@ -205,93 +187,6 @@ namespace Log4ALA
 #endif
             }
         }
-
-        public string ALATenantId
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_TENANT_ID_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_TENANT_ID_PROP}"];
-#endif
-            }
-        }
-
-        public string ALAAppId
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APP_ID_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_APP_ID_PROP}"];
-#endif
-            }
-        }
-
-        public string ALAAppSecret
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_APP_SECRET_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_APP_SECRET_PROP}"];
-#endif
-            }
-        }
-
-        public string ALADcrEndpoint
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DCR_ENDPOINT_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DCR_ENDPOINT_PROP}"];
-#endif
-            }
-        }
-
-        public string ALADcrId
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DCR_ID_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DCR_ID_PROP}"];
-#endif
-            }
-        }
-
-        public string ALADcrEndpointApiVersion
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DCR_ENDPOINT_API_VERSION_PROP}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DCR_ENDPOINT_API_VERSION_PROP}"];
-#endif
-            }
-        }
-
-        public string ALAIngestionApiDebugHeader
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_DEBUG_HEADER}");
-#else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_DEBUG_HEADER}"];
-#endif
-            }
-        }
-
-
-        
 
         public string ALASharedKey
         {
@@ -561,39 +456,6 @@ namespace Log4ALA
                 string aLAJsonDetection = CloudConfigurationManager[$"{this.propPrefix}:{ALA_JSON_DETECTION_PROP}"];
 #endif
                 return (string.IsNullOrWhiteSpace(aLAJsonDetection) ? (bool?)null : Boolean.Parse(aLAJsonDetection));
-            }
-        }
-
-        public bool? ALAIngestionApiGzip
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                string aLAIngestionApiGzip = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_GZIP_PROP}");
-#else
-                string aLAIngestionApiGzip = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_GZIP_PROP}"];
-#endif
-                return (string.IsNullOrWhiteSpace(aLAIngestionApiGzip) ? (bool?)false : Boolean.Parse(aLAIngestionApiGzip));
-            }
-        }
-
-        public bool? ALAIngestionApi
-        {
-            get
-            {
-#if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                string aLAIngestionApi = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_PROP}");
-#else
-                string aLAIngestionApi = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_PROP}"];
-#endif
-                var ingApi = (string.IsNullOrWhiteSpace(aLAIngestionApi) ? (bool?)false : Boolean.Parse(aLAIngestionApi));
-
-                if ((bool)ingApi)
-                {
-                    DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = true;
-                }
-
-                return ingApi;
             }
         }
 
