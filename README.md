@@ -20,6 +20,36 @@ Or reference it and use it according to the [License](./LICENSE).
 
 ![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/oms.jpg)
 
+
+## Logs Ingestion API support
+
+### General description
+
+https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-overview
+
+
+### Configuration settings
+ <b>logType</b>
+ The Custom table name without _CL 
+ <b>ingestionApi</b> 
+ To use the new Ingestion API set to true - default is false 
+ <b>ingestionApiGzip</b>
+ To compress the send ingestion logs - default is true
+ <b>tenantId</b>
+ Tenant ID of your Microsoft Entra ID
+ <b>appId</b>
+ Application ID of your registered Microsoft Entra Application and service principal
+ <b>appSecret</b>
+ The secret of the above application ID
+ <b>dcrEndpoint</b>
+ The dcr endpoint URI
+ <b>dcrId</b>
+ The data collection rule (dcr) id which should be used for the transformantion
+ <b>dcrEndpointApiVersion</b>
+ The dcr endpoint api version - default is 2023-01-01
+
+
+
 ## Use it
 
 This example is also available as a [LoggerTests.cs](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/LoggerTests.cs):
