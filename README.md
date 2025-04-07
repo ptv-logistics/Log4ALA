@@ -29,10 +29,10 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
 
 
 ### Configuration settings
- <b>logType</b></br>
- The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png)</br>
  <b>ingestionApi</b></br>
  To use the new Ingestion API set to true - default is false</br>
+ <b>logType</b></br>
+ The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png)</br>
  <b>ingestionApiGzip</b></br>
  To compress the send ingestion logs - default is true</br>
  <b>tenantId</b></br>
