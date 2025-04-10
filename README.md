@@ -153,10 +153,10 @@ System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("http://IP:PORT/
 
 1. You can batch multiple log messages together in a single request by configuration with the properties batchSizeInBytes, batchNumItems or batchWaitInSec (described further down). 
 If batchSizeInBytes will be choosed the collecting of the log data will be stopped and send to Azure Log Analyitcs if batchSizeInBytes will be reached or the duration is >= BatchWaitMaxInSec with default 60s or 
-batch size >= BatchSizeMax 30 mb this conditions applies also if you choose batchNumItems. In case of batchWaitInSec collecting will be stopped and send if batchWaitInSec will be reached or the batch size will be >= BatchSizeMax 30 mb.
+batch size >= BatchSizeMax 30 mb (1 mb for Ingestion API)  this conditions applies also if you choose batchNumItems. In case of batchWaitInSec collecting will be stopped and send if batchWaitInSec will be reached or the batch size will be >= BatchSizeMax 30 mb (1 mb for Ingestion API) .
 2. Auto detection/convertion of numeric, boolean, and dateTime string values to the [ Azure Log Analytics type _s, _g, _d, _b and _t](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-collector-api#record-type-and-properties)().
-3. Field values greater than 32 KB will be truncated (the value could be configured with maxFieldByteLength).
-4. Field names greater than 100 chars will be truncated (the value could be configured with maxFieldNameLength).
+3. Field values greater than 32 KB (64 KB for Ingestion API) will be truncated (the value could be configured with maxFieldByteLength).
+4. Field names greater than 100 chars (45 chars for Ingestion API) will be truncated (the value could be configured with maxFieldNameLength).
 5. Configurable core field names (the value could be configured with coreFieldNames).
 6. Configurable background worker thread priority (the value could be configured with threadPriority).
 7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
