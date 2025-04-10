@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using log4net.Appender;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -92,7 +93,20 @@ namespace Log4ALA
 
         private Stopwatch stopwatch = Stopwatch.StartNew();
         private StringBuilder buffer = new StringBuilder();//StringBuilderCache.Acquire();
+        public static int CompressionLength(string line)
+        {
+            var utf8Encoding = new UTF8Encoding();
+            Byte[] content = utf8Encoding.GetBytes(line);
 
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(memoryStream, CompressionLevel.Optimal))
+                {
+                    gzipStream.Write(content, 0, content.Length);
+                }
+                return memoryStream.ToArray().Length;
+            }
+        }
         protected virtual void Run()
         {
             try
@@ -108,6 +122,10 @@ namespace Log4ALA
 
                 int qReadTimeout = (int)appender.QueueReadTimeout;
 
+                var batchSizeMax = appender.IngestionApi ? ConfigSettings.INGESTION_API_BATCH_SIZE_MAX : ConfigSettings.BATCH_SIZE_MAX;
+
+                var batchSizeInBytes = appender.IngestionApi ? (appender.BatchSizeInBytes > ConfigSettings.INGESTION_API_BATCH_SIZE_MAX ? ConfigSettings.INGESTION_API_BATCH_SIZE_MAX : appender.BatchSizeInBytes) : (appender.BatchSizeInBytes > ConfigSettings.BATCH_SIZE_MAX ? ConfigSettings.BATCH_SIZE_MAX : appender.BatchSizeInBytes);
+
                 // Send data in queue.
                 while (true)
                 {
@@ -121,9 +139,8 @@ namespace Log4ALA
                     buffer.Append('[');
                     stopwatch.Restart();
 
-                    var batchSizeMax = appender.IngestionApi ? (appender.IngestionApiGzip ? (ConfigSettings.INGESTION_API_BATCH_SIZE_MAX * 2) : ConfigSettings.INGESTION_API_BATCH_SIZE_MAX) : ConfigSettings.BATCH_SIZE_MAX;
 
-                    while (((byteLength < appender.BatchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                    while (((byteLength < batchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < batchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < batchSizeMax))
                           )
@@ -132,7 +149,7 @@ namespace Log4ALA
                         {
                             if (Queue.TryTake(out line, qReadTimeout))
                             {
-                                byteLength += System.Text.Encoding.UTF8.GetByteCount(line);
+                                byteLength += appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength(line) : System.Text.Encoding.UTF8.GetByteCount(line)) : System.Text.Encoding.UTF8.GetByteCount(line);
 
                                 if (numItems >= 1)
                                 {
@@ -902,11 +919,11 @@ namespace Log4ALA
 
             if (encodingType == "gzip")
             {
-                compressedStream = new GZipStream(stream, CompressionMode.Compress, leaveOpen: true);
+                compressedStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true);
             }
             else if (encodingType == "deflate")
             {
-                compressedStream = new DeflateStream(stream, CompressionMode.Compress, leaveOpen: true);
+                compressedStream = new DeflateStream(stream, CompressionLevel.Optimal, leaveOpen: true);
             }
 
             return originalContent.CopyToAsync(compressedStream).ContinueWith(tsk =>
