@@ -85,6 +85,7 @@ namespace Log4ALA
         public const int DEFAULT_MAX_FIELD_BYTE_LENGTH = 1024 * 32;
         public const int INGESTION_API_DEFAULT_MAX_FIELD_BYTE_LENGTH = 1024 * 64;
         public const int DEFAULT_MAX_FIELD_NAME_LENGTH = 100;
+        public const int INGESTION_API_DEFAULT_MAX_FIELD_NAME_LENGTH = 45;
         public const int DEFAULT_QUEUE_READ_TIMEOUT = 500;
         public const string DEFAULT_TIMEOUT_SECONDS = "10";
 

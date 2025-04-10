@@ -53,7 +53,7 @@ namespace Log4ALA
         public int BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
         public int MaxFieldByteLength { get; set; }
-        public int MaxFieldNameLength { get; set; } = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
+        public int MaxFieldNameLength { get; set; }
         public int HttpClientTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_TIMEOUT;
         public int HttpClientRequestTimeout { get; set; } = ConfigSettings.DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT;
 
@@ -350,11 +350,12 @@ namespace Log4ALA
                 }
                 log.Inf($"[{this.Name}] - maxFieldByteLength:[{MaxFieldByteLength}]", true);
 
+                var defaultMaxFieldNameLength = (IngestionApi ? ConfigSettings.INGESTION_API_DEFAULT_MAX_FIELD_NAME_LENGTH : ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH);
 
-                MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? MaxFieldNameLength : (int)configSettings.ALAMaxFieldNameLength;
-                if (MaxFieldNameLength > ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH)
+                MaxFieldNameLength = configSettings.ALAMaxFieldNameLength == null ? defaultMaxFieldNameLength : (int)configSettings.ALAMaxFieldNameLength;
+                if (MaxFieldNameLength > defaultMaxFieldNameLength)
                 {
-                    MaxFieldNameLength = ConfigSettings.DEFAULT_MAX_FIELD_NAME_LENGTH;
+                    MaxFieldNameLength = defaultMaxFieldNameLength;
                 }
                 log.Inf($"[{this.Name}] - maxFieldNameLength:[{MaxFieldNameLength}]", true);
 
