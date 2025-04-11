@@ -48,6 +48,14 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  <b>dcrEndpointApiVersion</b></br>
  The dcr endpoint api version - default is 2023-01-01
 
+### Changed Behaviour
+
+ **Important** ...if the Logs Ingestion API will be used instead of the deprecated HTTP Data Collector API the custom fields/ columns in the Log Analytics table won't be created automatically any longer
+and need to be created manually in the depending Log Analytics table and also added in the data collection rule (dcr) definition for the transformation.
+
+## How to change Log Analytics table schema + dcr
+
+Custom table schema changes e.g. add/delete/change columns can be done with [UpdateLogAnalyticsCustomTableAndDcr.ps1](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/UpdateLogAnalyticsCustomTableAndDcr.ps1)
 
 
 ## Use it
@@ -161,7 +169,9 @@ batch size >= BatchSizeMax 30 mb (1 mb for Ingestion API)  this conditions appli
 6. Configurable background worker thread priority (the value could be configured with threadPriority).
 7. Configurable abortTimeoutSeconds - the time to wait for flushing the remaining buffered data to Azure Log Analytics if e.g. the Log4Net process will be shutdown.
 8. Configurable detection of json strings (e.g. "{\"id\":\"log-1\", \"message\":\"test-1\"}") or key value (e.g. "message=test-1") in the log messages with the properties jsonDetection (default true) and keyValueDetection (default true). Azure Log Analytics creates 
-custom fields/ record types for each incoming json property or key name.
+custom fields/ record types for each incoming json property or key name. 
+ **Important** ...if the Logs Ingestion API will be used the custom fields/ columns in the Log Analytics table won't be created automatically any longer
+and need to be created manually in the depending Log Analytics table and also added in the data collection rule (dcr) definition for the transformation.
 9. Configurable keyValue detection with keyValueSeparator and keyValuePairSeparator properties. To configure any other single char or multiple chars as separator for the keyValue detection in the log message.
 To avoid format conflicts e.g. with the semicolon separated key=value log message "Err=throws xy exception;Id=123" normally you will get two custom fields/records in Azure Log Analytics 
 Err_s:"throws xy exception" and Id_d:123 but if you like to use one of the default keyValueSeparator "=" or the default keyValuePairSeparator ";" chars in the value itself e.g. "Err=throws exception = exception
