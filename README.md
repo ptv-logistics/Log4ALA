@@ -53,7 +53,7 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  **Important** ...if the Logs Ingestion API will be used instead of the deprecated HTTP Data Collector API the custom fields/ columns in the Log Analytics table won't be created automatically any longer
 and need to be created manually in the depending Log Analytics table and also added in the data collection rule (dcr) definition for the transformation.
 
-## How to change Log Analytics table schema + dcr
+#### How to change Log Analytics table schema + dcr
 
 Custom table schema changes e.g. add/delete/change columns can be done with [UpdateLogAnalyticsCustomTableAndDcr.ps1](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/UpdateLogAnalyticsCustomTableAndDcr.ps1)
 
