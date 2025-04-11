@@ -30,7 +30,8 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
 
 ### Configuration settings
  <b>ingestionApi</b></br>
- To use the new Ingestion API set to true - default is false</br>
+ To use the new Ingestion API set to true - default is false.</br>
+ If true workspaceId and SharedKey can leave empty</br>
  <b>logType</b></br>
  The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png)</br>
  <b>ingestionApiGzip</b></br>
@@ -222,6 +223,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- +++++++++++++++++++++++++++++++++++ -->
 
     <!-- to use the new Ingestion API set to true - default is false -->
+    <!-- if true the above workspaceId and SharedKey can leave empty -->
     <add key="Log4ALAAppender_1.ingestionApi" value="false"/>
     <!--to compress the send ingestion logs - default is true-->
     <add key="Log4ALAAppender_1.ingestionApiGzip" value="true"/> 
