@@ -20,7 +20,7 @@ $userManagedIdentity = "YOUR_USER_MG_IDENTIY"
 
 # if $isManagedIdentityLogin is false set azure $azureCredUser + $azureCredPwd  
 $azureCredUser = "YOUR_AZURE_LOGIN_USER"
-$azureCredPwd = "YOUR_AZURE_LOGIN_USER_PASSWORD"
+$azureCredPwd = "YOUR_AZURE_LOGIN_USER_PASSWORD" # clear text pwd
 
 
 # Azure subscription id of which contains the log analytics custom table and dcr rule
@@ -71,7 +71,7 @@ function DoAzureUserMgmtIdentityLoginWithSub([string]$userManagedIdentity, [stri
 	}
 	Catch
 	{
-        	Log "Clear-AzContext -Scope Process -Force..."
+       	Log "Clear-AzContext -Scope Process -Force..."
 		Clear-AzContext -Scope Process -Force
 		DoAzureUserMgmtIdentityLoginWithSub -userManagedIdentity $userManagedIdentity -subscriptionId $subscriptionId
 	}
@@ -113,7 +113,7 @@ function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser
 	}
 	Catch
 	{
-        	Log "Clear-AzContext -Scope Process -Force..."
+       	Log "Clear-AzContext -Scope Process -Force..."
 		Clear-AzContext -Scope Process -Force
 		DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd
 	}
