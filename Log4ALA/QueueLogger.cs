@@ -57,8 +57,10 @@ namespace Log4ALA
             this.manualResetEvent = new ManualResetEvent(false);
             this.appender = appender;
             Queue = new BlockingCollection<string>(appender.LoggingQueueSize != null && appender.LoggingQueueSize > 0 ? (int)appender.LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
-            SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
 
+            if (!string.IsNullOrWhiteSpace(appender.SharedKey)) {
+                SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
+            }
             WorkerThread = new Thread(new ThreadStart(Run));
             WorkerThread.Name = $"Azure Log Analytics Log4net Appender ({appender.Name})";
             WorkerThread.IsBackground = true;
