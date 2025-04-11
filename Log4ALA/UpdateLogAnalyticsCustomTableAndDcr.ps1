@@ -142,9 +142,12 @@ $tableParams = @'
 '@
 
 $tableParams = $tableParams.Replace("-TABLE_NAME-", $dcrTable)
-$ResourceId = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Insights/dataCollectionRules/$dcrName" # Resource ID of the DCR to edit
-$DcrFilePath = "$PSScriptRoot\$dcrName.json" # File to store DCR content
-$TableSchemaFilePath = "$PSScriptRoot\$dcrTable.json" # File to store DCR content
+# Resource ID of the DCR
+$ResourceId = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Insights/dataCollectionRules/$dcrName"
+# File to store the data collection rule (dcr) schema definition
+$DcrFilePath = "$PSScriptRoot\$dcrName.json"
+# File to store Log Analytics custom table schema definition
+$TableSchemaFilePath = "$PSScriptRoot\$dcrTable.json"
 
 if($userManagedIdentity){
 	DoAzureUserMgmtIdentityLoginWithSub -userManagedIdentity $userManagedIdentity -subscriptionId $subscriptionId -reconnect $false
