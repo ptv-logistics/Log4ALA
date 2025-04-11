@@ -15,24 +15,25 @@ $saveCurrentTableSchema2File = $true
 # Azure Login mechanism to run the script
 $userManagedIdentity = $true
 
-# Set the $userManagedIdentity if $isManagedIdentityLogin is true 
+# if $isManagedIdentityLogin is true set the $userManagedIdentity  
 $userManagedIdentity = "YOUR_USER_MG_IDENTIY"
 
-# Set azure user + pwd if $isManagedIdentityLogin is false 
+# if $isManagedIdentityLogin is false set azure $azureCredUser + $azureCredPwd  
 $azureCredUser = "YOUR_AZURE_LOGIN_USER"
 $azureCredPwd = "YOUR_AZURE_LOGIN_USER_PASSWORD"
 
 
-# subscription id of which contains the log analytics custom table and dcr rule
+# Azure subscription id of which contains the log analytics custom table and dcr rule
 $subscriptionId = "YOUR_AZURE_SUBSCRIPTION_ID"
 
-# resource group name of the log analytics custom table and data collection rule (dcr)
+# Azure resource group name of the log analytics custom table and data collection rule (dcr)
+# both in the same resourc group
 $resourceGroupName = "YOUR_RESOURCE_GROUP_NAME"
 
-# log analytics workspace name which contains the log analytics custom table
+# Azure Log Analytics Workspace name which contains the log analytics custom table
 $workSpace = "YOUR_LOG_ANALYTICS_WORKSPACE_NAME"
 
-# log analytics custom table name
+# log analytics custom table name with _CL suffix
 $dcrTable = "YOUR_LOG_ANALYTICS_TABLE_NAME_WITH_CL_SUFFIX"
 
 # name of the data collection rule (dcr)
