@@ -60,7 +60,7 @@ namespace Log4ALA
         private const string ALA_DCR_ID_PROP = "dcrId";
         private const string ALA_DCR_ENDPOINT_API_VERSION_PROP = "dcrEndpointApiVersion";
         private const string ALA_INGESTION_API_GZIP_PROP = "ingestionApiGzip";
-        private const string ALA_INGESTION_API_DEBUG_HEADER = "ingestionApiDebugHeader";
+        private const string ALA_INGESTION_API_DEBUG_HEADER_VALUE = "ingestionApiDebugHeaderValue";
 
 
         private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
@@ -283,14 +283,14 @@ namespace Log4ALA
             }
         }
 
-        public string ALAIngestionApiDebugHeader
+        public string ALAIngestionApiDebugHeaderValue
         {
             get
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_DEBUG_HEADER}");
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_DEBUG_HEADER_VALUE}");
 #else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_DEBUG_HEADER}"];
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_DEBUG_HEADER_VALUE}"];
 #endif
             }
         }

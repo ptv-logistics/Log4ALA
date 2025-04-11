@@ -551,9 +551,9 @@ namespace Log4ALA
                         httpContent = byteArrayContent;
                     }
 
-                    if (!String.IsNullOrWhiteSpace(appender.IngestionApiDebugHeader))
+                    if (!String.IsNullOrWhiteSpace(appender.IngestionApiDebugHeaderValue))
                     {
-                        httpClient.DefaultRequestHeaders.Add("x-ms-client-request-id", appender.IngestionApiDebugHeader);
+                        httpClient.DefaultRequestHeaders.Add("x-ms-client-request-id", appender.IngestionApiDebugHeaderValue);
                     }
 
                 }

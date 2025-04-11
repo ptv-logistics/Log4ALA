@@ -73,7 +73,7 @@ namespace Log4ALA
         public string DcrEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DCR_ENDPOINT_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
 
-        public string IngestionApiDebugHeader { get; set; }
+        public string IngestionApiDebugHeaderValue { get; set; }
 
 
         public string[] KeyValueSeparators { get; set; } = null;
@@ -282,8 +282,8 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - dcrEndpointApiVersion:[{DcrEndpointApiVersion}]", true);
 
 
-                IngestionApiDebugHeader = string.IsNullOrWhiteSpace(configSettings.ALAIngestionApiDebugHeader) ? IngestionApiDebugHeader : configSettings.ALAIngestionApiDebugHeader;
-                log.Inf($"[{this.Name}] - ingestionApiDebugHeader:[{IngestionApiDebugHeader}]", true);
+                IngestionApiDebugHeaderValue = string.IsNullOrWhiteSpace(configSettings.ALAIngestionApiDebugHeaderValue) ? IngestionApiDebugHeaderValue : configSettings.ALAIngestionApiDebugHeaderValue;
+                log.Inf($"[{this.Name}] - ingestionApiDebugHeaderValue:[{IngestionApiDebugHeaderValue}]", true);
                 
 
                 if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALASharedKey) && string.IsNullOrWhiteSpace(SharedKey))
