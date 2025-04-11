@@ -216,6 +216,29 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 	<!--ALAAppender name (prefix) dependent settings-->
     <add key="Log4ALAAppender_1.workspaceId" value=""/>
     <add key="Log4ALAAppender_1.SharedKey" value=""/>
+
+    <!-- +++++++++++++++++++++++++++++++++++ -->
+    <!-- Properties to use the Ingestion API -->
+    <!-- +++++++++++++++++++++++++++++++++++ -->
+
+    <!-- to use the new Ingestion API set to true - default is false -->
+    <add key="Log4ALAAppender_1.ingestionApi" value="false"/>
+    <!--to compress the send ingestion logs - default is true-->
+    <add key="Log4ALAAppender_1.ingestionApiGzip" value="true"/> 
+    <!-- Tenant ID of your Microsoft Entra ID  -->
+    <add key="Log4ALAAppender_1.tenantId" value=""/>
+    <!-- Application ID of your registered Microsoft Entra Application and service principal -->
+    <add key="Log4ALAAppender_1.appId" value=""/>
+    <!-- the secret of the above application ID-->
+    <add key="Log4ALAAppender_1.appSecret" value=""/>
+    <!-- the dcr endpoint -->
+    <add key="Log4ALAAppender_1.dcrEndpoint" value=""/>
+    <!-- the data collection rule (dcr) id which should be used for the transformantion -->
+    <add key="Log4ALAAppender_1.dcrId" value="dcr-..."/>
+    <!-- the dcr endpoint api version - default is 2023-01-01 -->
+    <add key="Log4ALAAppender_1.dcrEndpointApiVersion" value="2023-01-01"/>
+
+
     <add key="Log4ALAAppender_1.logType" value=""/>
     <add key="Log4ALAAppender_1.logMessageToFile" value="true"/>
 
@@ -253,6 +276,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
 
 This configuration is also available as a [appsettings.json](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALATest.Core/appsettings.json):
 
+
 ```json
 {
  
@@ -260,6 +284,14 @@ This configuration is also available as a [appsettings.json](https://github.com/
 
     "workspaceId": "",
     "SharedKey": "",
+    "ingestionApi": false,
+    "ingestionApiGzip": true ,
+    "tenantId": "",
+    "appId": "",
+    "appSecret": "",
+    "dcrEndpoint": "",
+    "dcrEndpoint": "",
+    "dcrEndpoint": "",
     "logType": "",
     "logMessageToFile": true,
     "jsonDetection": true,
@@ -342,6 +374,29 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!--<azureApiVersion value="2016-04-01" />-->
     <!-- optional max retries if the HTTP Data Collector API request failed (default 6 retries) -->
     <!--<httpDataCollectorRetry value="6" />-->
+
+    <!-- +++++++++++++++++++++++++++++++++++ -->
+    <!-- Properties to use the Ingestion API -->
+    <!-- +++++++++++++++++++++++++++++++++++ -->
+
+    <!-- to use the new Ingestion API set to true - default is false -->
+    <ingestionApi value="false"/>
+    <!--to compress the send ingestion logs - default is true-->
+    <ingestionApiGzip value="true"/> 
+    <!-- Tenant ID of your Microsoft Entra ID  -->
+    <tenantId value=""/>
+    <!-- Application ID of your registered Microsoft Entra Application and service principal -->
+    <appId value=""/>
+    <!-- the secret of the above application ID-->
+    <appSecret value=""/>
+    <!-- the dcr endpoint -->
+    <dcrEndpoint value=""/>
+    <!-- the data collection rule (dcr) id which should be used for the transformantion -->
+    <dcrId value="dcr-..."/>
+    <!-- the dcr endpoint api version - default is 2023-01-01 -->
+    <dcrEndpointApiVersion value="2023-01-01"/>
+
+
 	 
     <!-- 
     optional debug setting which should only be used during development or on testsystem. Set 
@@ -486,8 +541,8 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 ## Issues
 
 [Data ingestion time in Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-data-ingestion-time)
-Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the 
-Azure Portal and select the depending Log Analytics Workspace/Usage and estimated costs and then click *Usage details* then scroll over to the right and you can see the Performance dashboard ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/).
+Keep in mind that this library won't assure that your JSON payloads are being indexed, it will make sure that the Logs Ingestion API and the HTTP Data Collection API [responds an Accept](https://azure.microsoft.com/en-us/documentation/articles/log-analytics-data-collector-api/#return-codes) typically it takes just a few seconds for the data/payload to be indexed, to know how much time does it take until the posted data has been indexed completely go to the 
+Azure Portal and select the depending Log Analytics Workspace/Usage and estimated costs and then click *Insights* then tab *Usage* scroll over to the bottom and the tab *Ingestion Latency* ... There can be Live Site issues causing some delays, hence the official SLA is longer than this see also [SLA for Log Analytics](https://azure.microsoft.com/en-gb/support/legal/sla/log-analytics/v1_1/).
 
 ## Supported Frameworks
 
