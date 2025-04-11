@@ -126,6 +126,10 @@ namespace Log4ALA
         public const string LOG_ERR_DEFAULT_FILE = "log4ALA_error.log";
         public const string LOG_INFO_DEFAULT_FILE = "log4ALA_info.log";
 
+        public const char COMMA = ',';
+        public const char SQUARE_BRACKET_OPEN = '[';
+        public const char SQUARE_BRACKET_CLOSE = ']';
+
 
         private string propPrefix = string.Empty;
 

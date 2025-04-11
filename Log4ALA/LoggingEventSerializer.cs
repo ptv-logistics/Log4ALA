@@ -387,7 +387,7 @@ namespace Log4ALA
             }
             else
             {
-                convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ',' });
+                convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ConfigSettings.COMMA });
             }
 
             return convertedValue;

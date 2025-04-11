@@ -43,8 +43,14 @@ namespace Log4ALA
 
         private AzureADToken azureADToken;
 
+        private int commaByteLength = 1;
+
+        private int squareBracketsSize = 2;
+
         public QueueLogger(Log4ALAAppender appender)
         {
+            this.commaByteLength = appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength($"{ConfigSettings.COMMA}") : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.COMMA}")) : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.COMMA}");
+            this.squareBracketsSize = appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}") : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}")) : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}");
             this.azureADToken = new AzureADToken() { ExpiresInD = DateTimeOffset.Now.AddDays(-1).ToUniversalTime() };
             this.tokenSource = new CancellationTokenSource();
             this.cToken = tokenSource.Token;
@@ -134,26 +140,41 @@ namespace Log4ALA
 
                     // Take data from queue.
                     string line = string.Empty;
-                    int byteLength = 0;
+                    int byteLength = squareBracketsSize;
                     int numItems = 0;
-                    buffer.Append('[');
+                    buffer.Append(ConfigSettings.SQUARE_BRACKET_OPEN);
                     stopwatch.Restart();
 
 
-                    while (((byteLength < batchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
+                    while ((byteLength < batchSizeInBytes && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
                            (numItems < appender.BatchNumItems && byteLength < batchSizeMax && (stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitMaxInSec) ||
-                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < batchSizeMax))
+                           ((stopwatch.ElapsedMilliseconds / 1000) < appender.BatchWaitInSec && byteLength < batchSizeMax)
                           )
                     {
                         try
                         {
+
                             if (Queue.TryTake(out line, qReadTimeout))
                             {
                                 byteLength += appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength(line) : System.Text.Encoding.UTF8.GetByteCount(line)) : System.Text.Encoding.UTF8.GetByteCount(line);
 
                                 if (numItems >= 1)
                                 {
-                                    buffer.Append(',');
+                                    byteLength += commaByteLength;
+                                    buffer.Append(ConfigSettings.COMMA);
+                                }
+
+                                //double check if current byte length is greater or equal max byte length limit to avoid that
+                                //then current loop will break the limit
+                                if (byteLength >= batchSizeMax)
+                                {
+                                    //rollback line which exeeds the limit
+                                    Queue.TryAdd(line);
+                                    if (buffer.ToString().EndsWith($"{ConfigSettings.COMMA}"))
+                                    {
+                                        buffer.Remove(buffer.Length - 1, 1);
+                                    }
+                                    break;
                                 }
 
                                 buffer.Append(line);
@@ -184,7 +205,7 @@ namespace Log4ALA
 
                     }
 
-                    buffer.Append(']');
+                    buffer.Append(ConfigSettings.SQUARE_BRACKET_CLOSE);
 
                     var alaPayLoad = buffer.ToString();
 
