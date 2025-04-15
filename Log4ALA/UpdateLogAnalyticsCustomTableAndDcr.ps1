@@ -13,7 +13,7 @@
 $saveCurrentTableSchema2File = $true
 
 # Azure Login mechanism to run the script
-$userManagedIdentity = $true
+$isUserManagedIdentity = $true
 
 # if $isManagedIdentityLogin is true set the $userManagedIdentity  
 $userManagedIdentity = "YOUR_USER_MG_IDENTIY"
@@ -149,7 +149,7 @@ $DcrFilePath = "$PSScriptRoot\$dcrName.json"
 # File to store Log Analytics custom table schema definition
 $TableSchemaFilePath = "$PSScriptRoot\$dcrTable.json"
 
-if($userManagedIdentity){
+if($isUserManagedIdentity){
 	DoAzureUserMgmtIdentityLoginWithSub -userManagedIdentity $userManagedIdentity -subscriptionId $subscriptionId -reconnect $false
 }else{
 	DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd
