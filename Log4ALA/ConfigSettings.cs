@@ -53,6 +53,7 @@ namespace Log4ALA
         //https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-samples#logs-ingestion-api
         //https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-structure#properties
         private const string ALA_INGESTION_API_PROP = "ingestionApi";
+        private const string ALA_INGESTION_IDENTITY_LOGIN_PROP = "ingestionIdentityLogin";
         private const string ALA_TENANT_ID_PROP = "tenantId";
         private const string ALA_APP_ID_PROP = "appId";
         private const string ALA_APP_SECRET_PROP = "appSecret";
@@ -107,6 +108,7 @@ namespace Log4ALA
         public const int DEFAULT_HTTP_CLIENT_REQUEST_TIMEOUT = 20000;
 
         public const bool DEFAULT_INGESTION_API = false;
+        public const bool DEFAULT_INGESTION_IDENTITY_LOGIN = true;
         public const string DEFAULT_DCR_ENDPOINT_API_VERSION = "2023-01-01";
         public const bool DEFAULT_INGESTION_API_GZIP = true;
 
@@ -599,6 +601,22 @@ namespace Log4ALA
                 }
 
                 return ingApi;
+            }
+        }
+
+        public bool? ALAIngestionIdentityLogin
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAIngestionIdentityLogin = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_IDENTITY_LOGIN_PROP}");
+#else
+                string aLAIngestionIdentityLogin = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_IDENTITY_LOGIN_PROP}"];
+#endif
+                var ingIdentityLogin= (string.IsNullOrWhiteSpace(aLAIngestionIdentityLogin) ? (bool?)false : Boolean.Parse(aLAIngestionIdentityLogin));
+                              
+
+                return ingIdentityLogin;
             }
         }
 

@@ -31,23 +31,26 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
 ### Configuration settings
  <b>ingestionApi</b></br>
  To use the new Ingestion API set to true - default is false.</br>
- If true workspaceId and SharedKey can leave empty</br>
+ If true workspaceId and SharedKey can leave empty.</br>
+ <b>ingestionIdentityLogin</b></br>
+ To use system or user managed identity login on Azure resources set to true - default is true.</br>
+ If true tenanteId, appId and appSecret can leave empty.</br>
  <b>logType</b></br>
- The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png)</br>
+ The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png).</br>
  <b>ingestionApiGzip</b></br>
- To compress the send ingestion logs - default is true</br>
+ To compress the send ingestion logs - default is true.</br>
  <b>tenantId</b></br>
- Tenant ID of your Microsoft Entra ID</br>
+ Tenant ID of your Microsoft Entra ID.</br>
  <b>appId</b></br>
- Application ID of your registered Microsoft Entra Application and service principal</br>
+ Application ID of your registered Microsoft Entra Application and service principal.</br>
  <b>appSecret</b></br>
- The secret of the above application ID</br>
+ The secret of the above application ID.</br>
  <b>dcrEndpoint</b></br>
- The dcr endpoint URI</br>
+ The dcr endpoint URI.</br>
  <b>dcrId</b></br>
- The data collection rule (dcr) id which should be used for the transformation</br>
+ The data collection rule (dcr) id which should be used for the transformation.</br>
  <b>dcrEndpointApiVersion</b></br>
- The dcr endpoint api version - default is 2023-01-01
+ The dcr endpoint api version - default is 2023-01-01.
 
 ### Changed Behaviour
 
@@ -225,7 +228,10 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- to use the new Ingestion API set to true - default is false -->
     <!-- if true the above workspaceId and SharedKey can leave empty -->
     <add key="Log4ALAAppender_1.ingestionApi" value="false"/>
-    <!--to compress the send ingestion logs - default is true-->
+    <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
+    <!-- If true tenanteId, appId and appSecret can leave empty. -->
+    <add key="Log4ALAAppender_1.ingestionIdentityLogin" value="false"/>
+     <!--to compress the send ingestion logs - default is true-->
     <add key="Log4ALAAppender_1.ingestionApiGzip" value="true"/> 
     <!-- Tenant ID of your Microsoft Entra ID  -->
     <add key="Log4ALAAppender_1.tenantId" value=""/>
@@ -287,6 +293,7 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "workspaceId": "",
     "SharedKey": "",
     "ingestionApi": false,
+    "ingestionIdentityLogin": false
     "ingestionApiGzip": true ,
     "tenantId": "",
     "appId": "",
@@ -383,6 +390,9 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
 
     <!-- to use the new Ingestion API set to true - default is false -->
     <ingestionApi value="false"/>
+    <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
+    <!-- If true tenanteId, appId and appSecret can leave empty. -->
+    <ingestionIdentityLogin value="false"/>
     <!--to compress the send ingestion logs - default is true-->
     <ingestionApiGzip value="true"/> 
     <!-- Tenant ID of your Microsoft Entra ID  -->

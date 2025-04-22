@@ -1,5 +1,4 @@
-﻿using log4net.Appender;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -14,7 +13,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Log4ALA
 {
@@ -804,34 +802,59 @@ namespace Log4ALA
                 if (!azureADToken.HasTokenExpired()) return azureADToken;
             }
 
-            var tenantId = appender.TenantId;
-            var appId = appender.AppId;
-            var secret = appender.AppSecret;
-            //var resourceUrl = "https://management.azure.com/";
-            var requestUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
-            var scope = "https://monitor.azure.com//.default";
+            var ingestionIdentityLogin = appender.IngestionIdentityLogin;
+
+            Dictionary<string, string> dict = null;
+            string requestUrl;
 
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Clear();
-            var dict = new Dictionary<string, string>
+            HttpResponseMessage response;
+
+            if (ingestionIdentityLogin)
             {
-                { "client_id", appId },
-                { "scope", scope },
-                { "client_secret", secret },
-                { "grant_type", "client_credentials" }
-            };
 
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+                var resource = System.Web.HttpUtility.UrlEncode("https://monitor.azure.com/");
+#else
+                var resource = System.Uri.EscapeDataString("https://monitor.azure.com/");
+#endif
 
+                requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
 
-            var requestBody = new FormUrlEncodedContent(dict);
-            //System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {requestBody}");
+                httpClient.DefaultRequestHeaders.Add("Metadata", "true");
+                response = await httpClient.GetAsync(requestUrl);
 
+            }
+            else
+            {
+ 
+                var tenantId = appender.TenantId;
+                var appId = appender.AppId;
+                var secret = appender.AppSecret;
 
-            requestBody.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-            
-            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                //var resourceUrl = "https://management.azure.com/";
+                requestUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+                var scope = "https://monitor.azure.com//.default";
 
-            var response = await httpClient.PostAsync(requestUrl, requestBody);
+                dict = new Dictionary<string, string>
+                {
+                    { "client_id", appId },
+                    { "scope", scope },
+                    { "client_secret", secret },
+                    { "grant_type", "client_credentials" }
+                };
+
+                var requestBody = new FormUrlEncodedContent(dict);
+                //System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {requestBody}");
+
+                requestBody.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                response = await httpClient.PostAsync(requestUrl, requestBody);
+
+            }
 
             response.EnsureSuccessStatusCode();
 

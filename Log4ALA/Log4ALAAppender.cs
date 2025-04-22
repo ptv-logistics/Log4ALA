@@ -65,6 +65,7 @@ namespace Log4ALA
         public bool EnablePassThroughTimeStampField { get; set; } = ConfigSettings.DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD;
         public bool KeyToLowerCase { get; set; } = ConfigSettings.DEFAULT_KEY_TO_LOWER_CASE;
         public bool IngestionApi { get; set; } = ConfigSettings.DEFAULT_INGESTION_API;
+        public bool IngestionIdentityLogin { get; set; } = ConfigSettings.DEFAULT_INGESTION_IDENTITY_LOGIN;
         public string TenantId { get; set; }
         public string AppId { get; set; }
         public string AppSecret { get; set; }
@@ -221,6 +222,9 @@ namespace Log4ALA
                 IngestionApi = configSettings.ALAIngestionApi == null ? IngestionApi : (bool)configSettings.ALAIngestionApi;
                 log.Inf($"[{this.Name}] - ingestionApi:[{IngestionApi}]", true);
 
+                IngestionIdentityLogin = configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
+                log.Inf($"[{this.Name}] - ingestionApi:[{IngestionIdentityLogin}]", true);
+
                 IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
                 log.Inf($"[{this.Name}] - ingestionApiGzip:[{IngestionApiGzip}]", true);
                
@@ -233,7 +237,7 @@ namespace Log4ALA
                 WorkspaceId = string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) ? WorkspaceId : configSettings.ALAWorkspaceId;
                 log.Inf($"[{this.Name}] - workspaceId:[{WorkspaceId}]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALATenantId) && string.IsNullOrWhiteSpace(TenantId))
+                if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALATenantId) && string.IsNullOrWhiteSpace(TenantId))
                 {
                     throw new Exception($"the Log4ALAAppender property tenantId [{TenantId}] shouldn't be empty");
                 }
@@ -241,7 +245,7 @@ namespace Log4ALA
                 TenantId = string.IsNullOrWhiteSpace(configSettings.ALATenantId) ? TenantId : configSettings.ALATenantId;
                 log.Inf($"[{this.Name}] - tenantId:[{TenantId}]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAAppId) && string.IsNullOrWhiteSpace(AppId))
+                if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALAAppId) && string.IsNullOrWhiteSpace(AppId))
                 {
                     throw new Exception($"the Log4ALAAppender property appId [{AppId}] shouldn't be empty");
                 }
@@ -249,7 +253,7 @@ namespace Log4ALA
                 AppId = string.IsNullOrWhiteSpace(configSettings.ALAAppId) ? AppId : configSettings.ALAAppId;
                 log.Inf($"[{this.Name}] - appId:[{AppId}]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) && string.IsNullOrWhiteSpace(AppSecret))
+                if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) && string.IsNullOrWhiteSpace(AppSecret))
                 {
                     throw new Exception($"the Log4ALAAppender property appSecret [{AppSecret}] shouldn't be empty");
                 }
