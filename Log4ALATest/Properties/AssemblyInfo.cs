@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Log4ALATest")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("PTV-Group")]
+[assembly: AssemblyCompany("PTV Logistics")]
 [assembly: AssemblyProduct("Log4ALATest")]
-[assembly: AssemblyCopyright("Copyright © PTV-Group 2018")]
+[assembly: AssemblyCopyright("Copyright © PTV Logistics 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
