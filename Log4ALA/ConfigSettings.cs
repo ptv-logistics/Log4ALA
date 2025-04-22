@@ -57,9 +57,9 @@ namespace Log4ALA
         private const string ALA_TENANT_ID_PROP = "tenantId";
         private const string ALA_APP_ID_PROP = "appId";
         private const string ALA_APP_SECRET_PROP = "appSecret";
-        private const string ALA_DCR_ENDPOINT_PROP = "dcrEndpoint";
+        private const string ALA_DC_ENDPOINT_PROP = "dcEndpoint";
         private const string ALA_DCR_ID_PROP = "dcrId";
-        private const string ALA_DCR_ENDPOINT_API_VERSION_PROP = "dcrEndpointApiVersion";
+        private const string ALA_DC_ENDPOINT_API_VERSION_PROP = "dcEndpointApiVersion";
         private const string ALA_INGESTION_API_GZIP_PROP = "ingestionApiGzip";
         private const string ALA_INGESTION_API_DEBUG_HEADER_VALUE = "ingestionApiDebugHeaderValue";
 
@@ -109,7 +109,7 @@ namespace Log4ALA
 
         public const bool DEFAULT_INGESTION_API = false;
         public const bool DEFAULT_INGESTION_IDENTITY_LOGIN = true;
-        public const string DEFAULT_DCR_ENDPOINT_API_VERSION = "2023-01-01";
+        public const string DEFAULT_DC_ENDPOINT_API_VERSION = "2023-01-01";
         public const bool DEFAULT_INGESTION_API_GZIP = true;
 
 
@@ -249,14 +249,14 @@ namespace Log4ALA
             }
         }
 
-        public string ALADcrEndpoint
+        public string ALADcEndpoint
         {
             get
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DCR_ENDPOINT_PROP}");
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DC_ENDPOINT_PROP}");
 #else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DCR_ENDPOINT_PROP}"];
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DC_ENDPOINT_PROP}"];
 #endif
             }
         }
@@ -273,14 +273,14 @@ namespace Log4ALA
             }
         }
 
-        public string ALADcrEndpointApiVersion
+        public string ALADcEndpointApiVersion
         {
             get
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DCR_ENDPOINT_API_VERSION_PROP}");
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_DC_ENDPOINT_API_VERSION_PROP}");
 #else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DCR_ENDPOINT_API_VERSION_PROP}"];
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_DC_ENDPOINT_API_VERSION_PROP}"];
 #endif
             }
         }

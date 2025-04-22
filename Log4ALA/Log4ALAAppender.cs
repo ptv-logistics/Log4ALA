@@ -69,9 +69,9 @@ namespace Log4ALA
         public string TenantId { get; set; }
         public string AppId { get; set; }
         public string AppSecret { get; set; }
-        public string DcrEndpoint { get; set; }
+        public string DcEndpoint { get; set; }
         public string DcrId { get; set; }
-        public string DcrEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DCR_ENDPOINT_API_VERSION;
+        public string DcEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DC_ENDPOINT_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
 
         public string IngestionApiDebugHeaderValue { get; set; }
@@ -261,13 +261,13 @@ namespace Log4ALA
                 AppSecret = string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) ? AppSecret : configSettings.ALAAppSecret;
                 log.Inf($"[{this.Name}] - appSecret:[{(string.IsNullOrWhiteSpace(AppSecret) ? string.Empty : AppSecret.Remove(20))}...]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrEndpoint) && string.IsNullOrWhiteSpace(DcrEndpoint))
+                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcEndpoint) && string.IsNullOrWhiteSpace(DcEndpoint))
                 {
-                    throw new Exception($"the Log4ALAAppender property dcrEndpoint [{DcrEndpoint}] shouldn't be empty");
+                    throw new Exception($"the Log4ALAAppender property dcEndpoint [{DcEndpoint}] shouldn't be empty");
                 }
 
-                DcrEndpoint = string.IsNullOrWhiteSpace(configSettings.ALADcrEndpoint) ? DcrEndpoint : configSettings.ALADcrEndpoint;
-                log.Inf($"[{this.Name}] - dcrEndpoint:[{DcrEndpoint}]", true);
+                DcEndpoint = string.IsNullOrWhiteSpace(configSettings.ALADcEndpoint) ? DcEndpoint : configSettings.ALADcEndpoint;
+                log.Inf($"[{this.Name}] - dcEndpoint:[{DcEndpoint}]", true);
 
                 if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrId) && string.IsNullOrWhiteSpace(DcrId))
                 {
@@ -277,13 +277,13 @@ namespace Log4ALA
                 DcrId = string.IsNullOrWhiteSpace(configSettings.ALADcrId) ? DcrId : configSettings.ALADcrId;
                 log.Inf($"[{this.Name}] - dcrId:[{(string.IsNullOrWhiteSpace(DcrId) ? string.Empty: DcrId.Remove(20))}...]", true);
 
-                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrEndpointApiVersion) && string.IsNullOrWhiteSpace(DcrEndpointApiVersion))
+                if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) && string.IsNullOrWhiteSpace(DcEndpointApiVersion))
                 {
-                    throw new Exception($"the Log4ALAAppender property dcrEndpointApiVersion [{DcrEndpointApiVersion}] shouldn't be empty");
+                    throw new Exception($"the Log4ALAAppender property dcEndpointApiVersion [{DcEndpointApiVersion}] shouldn't be empty");
                 }
 
-                DcrEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcrEndpointApiVersion) ? DcrEndpointApiVersion : configSettings.ALADcrEndpointApiVersion;
-                log.Inf($"[{this.Name}] - dcrEndpointApiVersion:[{DcrEndpointApiVersion}]", true);
+                DcEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) ? DcEndpointApiVersion : configSettings.ALADcEndpointApiVersion;
+                log.Inf($"[{this.Name}] - dcEndpointApiVersion:[{DcEndpointApiVersion}]", true);
 
 
                 IngestionApiDebugHeaderValue = string.IsNullOrWhiteSpace(configSettings.ALAIngestionApiDebugHeaderValue) ? IngestionApiDebugHeaderValue : configSettings.ALAIngestionApiDebugHeaderValue;

@@ -34,7 +34,7 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  If true workspaceId and SharedKey can leave empty.</br>
  <b>ingestionIdentityLogin</b></br>
  To use system or user managed identity login on Azure resources set to true - default is true.</br>
- If true tenanteId, appId and appSecret can leave empty.</br>
+ If true tenanteId, appId and appSecret for the service principal can leave empty.</br>
  <b>logType</b></br>
  The Custom table name without _CL</br>![workspaceId/SharedKey](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/table.png).</br>
  <b>ingestionApiGzip</b></br>
@@ -45,12 +45,12 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  Application ID of your registered Microsoft Entra Application and service principal.</br>
  <b>appSecret</b></br>
  The secret of the above application ID.</br>
- <b>dcrEndpoint</b></br>
- The dcr endpoint URI.</br>
+ <b>dcEndpoint</b></br>
+ The data collection endpoint (dce) URI.</br>
  <b>dcrId</b></br>
  The data collection rule (dcr) id which should be used for the transformation.</br>
- <b>dcrEndpointApiVersion</b></br>
- The dcr endpoint api version - default is 2023-01-01.
+ <b>dcEndpointApiVersion</b></br>
+ The dce api version - default is 2023-01-01.
 
 ### Changed Behaviour
 
@@ -63,7 +63,7 @@ Custom table schema changes e.g. add/delete/change columns can be done with [Upd
 
 #### Required Access role Assignement
 
-Please note to better keep the Azure dcr and dcr endpoint resources in the same Azure resource group and add the <b>Monitoring Metrics Publisher</b> access role assignement to the Service Principal (appId) and/or the system/user managed identity of this resource group
+Please note to better keep the Azure dcr and dce resources in the same Azure resource group and add the <b>Monitoring Metrics Publisher</b> access role assignement to the Service Principal (appId) and/or the system/user managed identity of this resource group
 to grant access to the Azure Ingestion API from the depending service principal and/or managed identity ![service principal and/or managed identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/system_user_identity.png).
 
 
@@ -234,7 +234,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <!-- if true the above workspaceId and SharedKey can leave empty -->
     <add key="Log4ALAAppender_1.ingestionApi" value="false"/>
     <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
-    <!-- If true tenanteId, appId and appSecret can leave empty. -->
+    <!-- If true tenanteId, appId and appSecret for the service principal can leave empty. -->
     <add key="Log4ALAAppender_1.ingestionIdentityLogin" value="false"/>
      <!--to compress the send ingestion logs - default is true-->
     <add key="Log4ALAAppender_1.ingestionApiGzip" value="true"/> 
@@ -244,12 +244,12 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_1.appId" value=""/>
     <!-- the secret of the above application ID-->
     <add key="Log4ALAAppender_1.appSecret" value=""/>
-    <!-- the dcr endpoint -->
-    <add key="Log4ALAAppender_1.dcrEndpoint" value=""/>
+    <!-- the data collection endpoint (dce) -->
+    <add key="Log4ALAAppender_1.dcEndpoint" value=""/>
     <!-- the data collection rule (dcr) id which should be used for the transformantion -->
     <add key="Log4ALAAppender_1.dcrId" value="dcr-..."/>
-    <!-- the dcr endpoint api version - default is 2023-01-01 -->
-    <add key="Log4ALAAppender_1.dcrEndpointApiVersion" value="2023-01-01"/>
+    <!-- the dce api version - default is 2023-01-01 -->
+    <add key="Log4ALAAppender_1.dcEndpointApiVersion" value="2023-01-01"/>
 
 
     <add key="Log4ALAAppender_1.logType" value=""/>
@@ -303,9 +303,9 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "tenantId": "",
     "appId": "",
     "appSecret": "",
-    "dcrEndpoint": "",
+    "dcEndpoint": "",
     "dcrId": "",
-    "dcrEndpointApiVersion": "",
+    "dcEndpointApiVersion": "",
     "logType": "",
     "logMessageToFile": true,
     "jsonDetection": true,
@@ -396,7 +396,7 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!-- to use the new Ingestion API set to true - default is false -->
     <ingestionApi value="false"/>
     <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
-    <!-- If true tenanteId, appId and appSecret can leave empty. -->
+    <!-- If true tenanteId, appId and appSecret for the service principal can leave empty. -->
     <ingestionIdentityLogin value="false"/>
     <!--to compress the send ingestion logs - default is true-->
     <ingestionApiGzip value="true"/> 
@@ -406,12 +406,12 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <appId value=""/>
     <!-- the secret of the above application ID-->
     <appSecret value=""/>
-    <!-- the dcr endpoint -->
-    <dcrEndpoint value=""/>
+    <!-- the data collection endpoint (dce)-->
+    <dcEndpoint value=""/>
     <!-- the data collection rule (dcr) id which should be used for the transformantion -->
     <dcrId value="dcr-..."/>
-    <!-- the dcr endpoint api version - default is 2023-01-01 -->
-    <dcrEndpointApiVersion value="2023-01-01"/>
+    <!-- the dce api version - default is 2023-01-01 -->
+    <dcEndpointApiVersion value="2023-01-01"/>
 
 
 	 

@@ -519,7 +519,7 @@ namespace Log4ALA
                 
                 if ((bool)appender.IngestionApi)
                 {
-                    url = $"{appender.DcrEndpoint.TrimEnd('/')}/dataCollectionRules/{appender.DcrId}/streams/Custom-{appender.LogType}_CL?api-version={appender.DcrEndpointApiVersion}";
+                    url = $"{appender.DcEndpoint.TrimEnd('/')}/dataCollectionRules/{appender.DcrId}/streams/Custom-{appender.LogType}_CL?api-version={appender.DcEndpointApiVersion}";
                 }
 
                 if (!string.IsNullOrWhiteSpace(appender.DebugHTTPReqURI))
