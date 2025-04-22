@@ -61,6 +61,11 @@ and need to be created manually in the depending Log Analytics table and also ad
 
 Custom table schema changes e.g. add/delete/change columns can be done with [UpdateLogAnalyticsCustomTableAndDcr.ps1](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/UpdateLogAnalyticsCustomTableAndDcr.ps1)
 
+#### Required Access role Assignement
+
+Please note to better keep the Azure dcr and dcr endpoint resources in the same Azure resource group and add the <b>Monitoring Metrics Publisher</b> access role assignement to the Service Principal (appId) and/or the system/user managed identity of this resource group
+to grant access to the Azure Ingestion API from the depending ![service principal and/or managed identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/system_user_identity.png).
+
 
 ## Use it
 
