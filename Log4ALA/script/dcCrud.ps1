@@ -292,7 +292,7 @@ if (!$tableExists){
         $tableParamsNew | ConvertTo-Json -Depth 20 | Out-File -FilePath $TableSchemaFilePath
         Log "initial table $($dcrTable) successfully created $($initTableResponse.StatusCode)"
     }else{
-        Log "initial table $($dcrTable) couldn't be created $($initTableResponse.StatusCode)"
+        Log "initial table $($dcrTable) couldn't be created $($initTableResponse.StatusCode) => $($initTableResponse.Content)"
     }
 }
 
@@ -333,7 +333,7 @@ if(!$dceExists){
     if ($createDcEndpointResponse.StatusCode -eq 200 -or $createDcEndpointResponse.StatusCode -eq 202){            
         Log "initial dce $($dcEndpointName) successfully created $($createDcEndpointResponse.StatusCode)"
     }else{
-        Log "initial dce $($dcEndpointName) couldn't be created $($createDcEndpointResponse.StatusCode)"
+        Log "initial dce $($dcEndpointName) couldn't be created $($createDcEndpointResponse.StatusCode) => $($createDcEndpointResponse.Content)"
     }
 
 }
@@ -395,10 +395,24 @@ if(!$saveCurrentTableSchema2File){
 
     Log "update table schema"
     # Update analytics table schema definition in $TableSchemaFilePath  and run the following command:
-    Invoke-AzRestMethod -Path "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/microsoft.operationalinsights/workspaces/$workSpaceName/tables/$($dcrTable)?api-version=2021-12-01-preview" -Method PUT -payload ($tableParamsNew | ConvertTo-Json -Depth 20)
+    $updateTableResponse = (Invoke-AzRestMethod -Path "$($tableResourceId)?api-version=2025-02-01" -Method PUT -payload ($tableParamsNew | ConvertTo-Json -Depth 20))
+    if($updateTableResponse.StatusCode -ne 200 -and $updateTableResponse.StatusCode -ne 202){
+        Log "current table $($dcrTable) couldn't be updated $($updateTableResponse.StatusCode)  => $($updateTableResponse.Content)"
+    }
 
-    Log "update dcr schema"
     # Update DCR definition in $DcrFilePath and run the following command: 
-    New-AzDataCollectionRule -Name $dcrName -ResourceGroupName $resourceGroupName -JsonFilePath $DcrFilePath
+    if (Test-Path -Path $DcrFilePath){
+        Log "Get current dcr schema via local file"
+        # Get current dcr schema via local file 
+        $dcrSchema = Get-Content -Raw -Path $DcrFilePath 
+        Log "update dcr schema"
+        # Update DCR definition in $DcrFilePath and run the following command: 
+        $updateDcrResponse = (Invoke-AzRestMethod -Path "$($dcrResourceId)?api-version=2023-03-11" -Method PUT -payload $dcrSchema )
+        if($updateDcrResponse.StatusCode -ne 200 -and $updateDcrResponse.StatusCode -ne 202){
+             Log "initial dcr $($dcrName) couldn't be updted $($updateDcrResponse.StatusCode) => $($updateDcrResponse.Content) "
+        }
+    }else{
+        Log "current dcr schema file $($DcrFilePath) not available dcr schema couldn't be updated"
+    }
 
 }
