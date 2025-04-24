@@ -59,7 +59,7 @@ and need to be created manually in the depending Log Analytics table and also ad
 
 #### How to change Log Analytics table schema + dcr
 
-Custom table schema changes e.g. add/delete/change columns can be done with [UpdateLogAnalyticsCustomTableAndDcr.ps1](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/UpdateLogAnalyticsCustomTableAndDcr.ps1)
+Custom table schema, dce and dcr changes e.g. create/update/delete/change columns can be done with [dcCrud.ps1](https://github.com/ptv-logistics/Log4ALA/blob/master/Log4ALA/script/dcCrud.ps1)
 
 #### Required Access role Assignement
 
