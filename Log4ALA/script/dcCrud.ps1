@@ -229,7 +229,7 @@ if($isUserManagedIdentity){
 
 if($saveCurrentTableSchema2File){
 
-    write-warning "get current table schema via Azure REST API"
+    Log "get current table schema via Azure REST API"
     # Get current table schema via Azure REST API
     $tables = (Invoke-AzRestMethod -Path "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/microsoft.operationalinsights/workspaces/$workSpace/tables/$($dcrTable)?api-version=2021-12-01-preview" -Method GET -payload $tableParams).Content  |  ConvertFrom-Json
 
@@ -278,7 +278,7 @@ Start-Transcript -path $OutputFileLocation -append
 $tableExists = ((Invoke-AzRestMethod -Path "$($tableResourceId)?api-version=2025-02-01" -Method GET).StatusCode -eq 200)
 
 if (!$tableExists){
-    Write-Host "create initial table $($dcrTable)"
+    Log "create initial table $($dcrTable)"
 
     $tableTemplate = Get-Content -Raw -Path $TableTemplate | ConvertFrom-Json
 
@@ -298,33 +298,33 @@ if (!$tableExists){
         $tableExists = ($initTableGetResponse.StatusCode -eq 200)
         $initialTable = $initTableGetResponse.Content | ConvertFrom-Json
     
-        Write-Host "save initial tabel schema to file $TableSchemaFilePath"
+        Log "save initial tabel schema to file $TableSchemaFilePath"
 
         $tableParamsNew.properties.schema.columns = $initialTable.properties.schema.columns
         $tableParamsNew.properties.schema.name = $dcrTable
        
         $tableParamsNew | ConvertTo-Json -Depth 20 | Out-File -FilePath $TableSchemaFilePath
-        Write-Host "initial table $($dcrTable) successfully created $($initTableResponse.StatusCode)"
+        Log "initial table $($dcrTable) successfully created $($initTableResponse.StatusCode)"
     }else{
-        Write-Warning "initial table $($dcrTable) couldn't be created $($initTableResponse.StatusCode)"
+        Log "initial table $($dcrTable) couldn't be created $($initTableResponse.StatusCode)"
     }
 }
 
 
 if($tableExists -and $saveCurrentTableSchema2File){
 
-    Write-Information "get current table schema via Azure REST API"
+    Log "get current table schema via Azure REST API"
     # Get current table schema via Azure REST API
     $tables = (Invoke-AzRestMethod -Path "$($tableResourceId)?api-version=2021-12-01-preview" -Method GET).Content  |  ConvertFrom-Json
 
 }else{
 
     if (Test-Path -Path $TableSchemaFilePath){
-        Write-Information "Get current table schema via local file"
+        Log "Get current table schema via local file"
         # Get current table schema via local file 
         $tables = Get-Content -Raw -Path $TableSchemaFilePath | ConvertFrom-Json 
     }else{
-        Write-Warning "current table schema file $($TableSchemaFilePath) not available"
+        Log "current table schema file $($TableSchemaFilePath) not available"
     }
 
 }
@@ -339,7 +339,7 @@ $dceExists = ((Invoke-AzRestMethod -Path ("$dceResourceId"+"?api-version=2023-03
 
 if(!$dceExists){
 
-    Write-Host "create initial data collection endpoint $dcEndpointName"
+    Log "create initial data collection endpoint $dcEndpointName"
     # Create data collection endpoint if required:
 
 
@@ -350,9 +350,9 @@ if(!$dceExists){
     $createDcEndpointResponse = Invoke-AzRestMethod -Path "$($dceResourceId)?api-version=2023-03-11" -Method PUT -payload $dcEndpointJson
 
     if ($createDcEndpointResponse.StatusCode -eq 200 -or $createDcEndpointResponse.StatusCode -eq 202){            
-        Write-Host "initial dce $($dcEndpointName) successfully created $($createDcEndpointResponse.StatusCode)"
+        Log "initial dce $($dcEndpointName) successfully created $($createDcEndpointResponse.StatusCode)"
     }else{
-        Write-Warning "initial dce $($dcEndpointName) couldn't be created $($createDcEndpointResponse.StatusCode)"
+        Log "initial dce $($dcEndpointName) couldn't be created $($createDcEndpointResponse.StatusCode)"
     }
 
 }
@@ -362,7 +362,7 @@ if(!$dceExists){
 $dcrExists = ((Invoke-AzRestMethod -Path ("$dcrResourceId"+"?api-version=2023-03-11") -Method GET).StatusCode -eq 200)
 
 if(!$dcrExists){
-    Write-Host "create initial data collection rule $($dcrName)"
+    Log "create initial data collection rule $($dcrName)"
 
     $dcrTemplate = Get-Content -Raw -Path $DcrTemplate | ConvertFrom-Json
 
@@ -387,19 +387,19 @@ if(!$dcrExists){
         $dcrExists = ($initDcrGetResponse.StatusCode -eq 200)
         $initialDcr = $initDcrGetResponse.Content
     
-        Write-Host "save initial dcr data collection rule to file $DcrFilePath"
+        Log "save initial dcr data collection rule to file $DcrFilePath"
         $initialDcr | ConvertFrom-Json | ConvertTo-Json -Depth 20 | Out-File -FilePath $DcrFilePath
-        Write-Host "initial $($dcrName) successfully created $($initDcrResponse.StatusCode)"
+        Log "initial $($dcrName) successfully created $($initDcrResponse.StatusCode)"
         $saveDCRDefinition = $false
     }else{
-        Write-Warning "initial dcr $($dcrName) couldn't be created $($initDcrResponse.StatusCode) => $($initDcrResponse.Content) "
+        Log "initial dcr $($dcrName) couldn't be created $($initDcrResponse.StatusCode) => $($initDcrResponse.Content) "
     }
 
 }
 
 if($saveCurrentTableSchema2File){
 
-    Write-Information "Save current tabel schema to file $TableSchemaFilePath"
+    Log "Save current tabel schema to file $TableSchemaFilePath"
     # Save current tabel schema to file $TableSchemaFilePath
     $tableParamsNew | ConvertTo-Json -Depth 20 | Out-File -FilePath $TableSchemaFilePath
     if($saveDCRDefinition){
@@ -411,11 +411,11 @@ if($saveCurrentTableSchema2File){
 
 if(!$saveCurrentTableSchema2File){
 
-    Write-Information "update table schema"
+    Log "update table schema"
     # Update analytics table schema definition in $TableSchemaFilePath  and run the following command:
     Invoke-AzRestMethod -Path "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/microsoft.operationalinsights/workspaces/$workSpaceName/tables/$($dcrTable)?api-version=2021-12-01-preview" -Method PUT -payload ($tableParamsNew | ConvertTo-Json -Depth 20)
 
-    Write-Information "update dcr schema"
+    Log "update dcr schema"
     # Update DCR definition in $DcrFilePath and run the following command: 
     New-AzDataCollectionRule -Name $dcrName -ResourceGroupName $resourceGroupName -JsonFilePath $DcrFilePath
 
