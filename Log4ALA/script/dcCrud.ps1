@@ -342,11 +342,6 @@ if(!$dceExists){
     Log "create initial data collection endpoint $dcEndpointName"
     # Create data collection endpoint if required:
 
-
-    #dcEndpointJson
-
-    #$createDcEndpointResponse = New-AzDataCollectionEndpoint -Name $dcEndpointName -ResourceGroupName $resourceGroupName -Location "northeurope" -NetworkAclsPublicNetworkAccess Enabled
-
     $createDcEndpointResponse = Invoke-AzRestMethod -Path "$($dceResourceId)?api-version=2023-03-11" -Method PUT -payload $dcEndpointJson
 
     if ($createDcEndpointResponse.StatusCode -eq 200 -or $createDcEndpointResponse.StatusCode -eq 202){            
