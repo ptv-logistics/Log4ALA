@@ -56,8 +56,8 @@ $saveCurrentTableSchema2File = $false
 # Azure Login mechanism to run the script
 $isUserManagedIdentity = $true
 
-# if $isManagedIdentityLogin is true set the $userManagedIdentity  
-$userManagedIdentity = "YOUR_USER_MG_IDENTIY"
+# if $isManagedIdentityLogin is true set the $userManagedIdentity client id
+$userManagedIdentity = "YOUR_USER_MG_IDENTIY_CLIENT_ID"
 
 # if $isManagedIdentityLogin is false set azure $azureCredUser + $azureCredPwd  
 $azureCredUser = "YOUR_AZURE_LOGIN_USER"
@@ -226,20 +226,6 @@ if($isUserManagedIdentity){
 
 
 
-
-if($saveCurrentTableSchema2File){
-
-    Log "get current table schema via Azure REST API"
-    # Get current table schema via Azure REST API
-    $tables = (Invoke-AzRestMethod -Path "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/microsoft.operationalinsights/workspaces/$workSpace/tables/$($dcrTable)?api-version=2021-12-01-preview" -Method GET -payload $tableParams).Content  |  ConvertFrom-Json
-
-}else{
-
-    write-warning "Get current table schema via local file"
-    # Get current table schema via local file 
-    $tables = Get-Content -Raw -Path $TableSchemaFilePath | ConvertFrom-Json 
-
-}
 
 $tableParamsNew = (@'
 {
