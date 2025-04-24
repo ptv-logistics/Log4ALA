@@ -232,7 +232,7 @@ $tableParamsNew = (@'
     "properties": {
         "schema": {
             "name": "-TABLE_NAME-",
-            "columns" : "-COLUMNS-"
+            "columns" : []
         }
     }
 }
@@ -277,7 +277,7 @@ if (!$tableExists){
     if($initTableResponse.StatusCode -eq 200 -or $initTableResponse.StatusCode -eq 202){
         # get initial table
         $initTableGetResponse = (Invoke-AzRestMethod -Path "$($tableResourceId)?api-version=2025-02-01" -Method GET)
-        while($initTableGetResponse.StatusCode -ne 200){
+        while($initTableGetResponse.StatusCode -ne 200 -or($initTableGetResponse.StatusCode -eq 200 -and ($initTableGetResponse.Content | ConvertFrom-Json).properties.provisioningState -eq "Updating")){
             $initTableGetResponse = (Invoke-AzRestMethod -Path "$($tableResourceId)?api-version=2025-02-01" -Method GET)
             Start-Sleep -Seconds 5
         }
@@ -361,7 +361,8 @@ if(!$dcrExists){
     if($initDcrResponse.StatusCode -eq 200 -or $initDcrResponse.StatusCode -eq 202){
         # get initial table
         $initDcrGetResponse = (Invoke-AzRestMethod -Path ("$dcrResourceId"+"?api-version=2023-03-11") -Method GET)
-        while($initDcrGetResponse.StatusCode -ne 200){
+        while($initDcrGetResponse.StatusCode -ne 200 -or($initDcrGetResponse.StatusCode -eq 200 -and ($initDcrGetResponse.Content | ConvertFrom-Json).properties.provisioningState -eq "Updating")){
+
             $initDcrGetResponse = (Invoke-AzRestMethod -Path ("$dcrResourceId"+"?api-version=2023-03-11") -Method GET)
             Start-Sleep -Seconds 5
         }
