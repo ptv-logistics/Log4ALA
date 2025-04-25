@@ -76,7 +76,7 @@ $workSpaceName = "YOUR_LOG_ANALYTICS_WORKSPACE_NAME"
 $workSpaceId = "YOUR_LOG_ANALYTICS_WORKSPACE_ID"
 
 # the global name will be used as prefix for the custom table, data collection rule (dcr) and data collection endpoint (dce) 
-# names e.g.:
+# names:
 # table name = $name_CL
 # dcr name = $name_DCR
 # dce name = $name-DCE
