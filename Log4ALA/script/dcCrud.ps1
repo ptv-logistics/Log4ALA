@@ -75,25 +75,24 @@ $resourceGroupName = "YOUR_RESOURCE_GROUP_NAME"
 $workSpaceName = "YOUR_LOG_ANALYTICS_WORKSPACE_NAME"
 $workSpaceId = "YOUR_LOG_ANALYTICS_WORKSPACE_ID"
 
-# global name
+# the global name will be used as prefix for the custom table, data collection rule (dcr) and data collection endpoint (dce) 
+# names e.g.:
+# table name = $name_CL
+# dcr name = $name_DCR
+# dce name = $name-DCE
 $name = "YOUR_GLOBAL_NAME"
+
+# Transformations in Azure Monitor allow you to filter or modify incoming data before it's sent to a Log Analytics workspace
+# https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-transformations-samples
+# default is source wich means all incoming json columns will be mapped 1:1 to the Azure log analytics custom table columns
+# e.g. "source | project TimeGenerated = now(), TimeGenerated_t = TimeGenerated, RealColumn_d = RealColumn, BooleanColumn_b = BooleanColumn, StringColumn_s = StringColumn"
+$transformKql = "source"
 
 # **********************
 # REQUIRED SETTINGS END
 # **********************
 
 
-
-
-
-# log analytics custom table name with _CL suffix
-$dcrTable = "$($name)_CL"
-
-# name of the data collection rule (dcr)
-$dcrName = "$($name.TrimEnd("_DCR"))_DCR"
-
-# name of the data collection endpoint (dce)
-$dcEndpointName = "$($name)-DCE"
 
 
 # **********************
@@ -181,6 +180,16 @@ function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser
 # **********************
 # MAIN SCRIPT 
 # **********************
+
+# log analytics custom table name with _CL suffix
+$dcrTable = "$($name)_CL"
+
+# name of the data collection rule (dcr)
+$dcrName = "$($name.TrimEnd("_DCR"))_DCR"
+
+# name of the data collection endpoint (dce)
+$dcEndpointName = "$($name)-DCE"
+
 
 $saveDCRDefinition = $saveCurrentTableSchema2File
 
@@ -404,10 +413,13 @@ if(!$saveCurrentTableSchema2File){
     if (Test-Path -Path $DcrFilePath){
         Log "Get current dcr schema via local file"
         # Get current dcr schema via local file 
-        $dcrSchema = Get-Content -Raw -Path $DcrFilePath 
+        $dcrSchema = Get-Content -Raw -Path $DcrFilePath | ConvertFrom-Json 
+
+        $dcrSchema.properties.dataFlows[0].transformKql =  $transformKql
+
         Log "update dcr schema"
         # Update DCR definition in $DcrFilePath and run the following command: 
-        $updateDcrResponse = (Invoke-AzRestMethod -Path "$($dcrResourceId)?api-version=2023-03-11" -Method PUT -payload $dcrSchema )
+        $updateDcrResponse = (Invoke-AzRestMethod -Path "$($dcrResourceId)?api-version=2023-03-11" -Method PUT -payload ($dcrSchema | ConvertTo-Json -Depth 20))
         if($updateDcrResponse.StatusCode -ne 200 -and $updateDcrResponse.StatusCode -ne 202){
              Log "initial dcr $($dcrName) couldn't be updted $($updateDcrResponse.StatusCode) => $($updateDcrResponse.Content) "
         }
