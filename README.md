@@ -235,7 +235,7 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_1.ingestionApi" value="false"/>
     <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
     <!-- If true tenanteId, appId and appSecret for the service principal can leave empty. -->
-    <add key="Log4ALAAppender_1.ingestionIdentityLogin" value="false"/>
+    <add key="Log4ALAAppender_1.ingestionIdentityLogin" value="true"/>
      <!--to compress the send ingestion logs - default is true-->
     <add key="Log4ALAAppender_1.ingestionApiGzip" value="true"/> 
     <!-- Tenant ID of your Microsoft Entra ID  -->
@@ -298,7 +298,7 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "workspaceId": "",
     "SharedKey": "",
     "ingestionApi": false,
-    "ingestionIdentityLogin": false
+    "ingestionIdentityLogin": true
     "ingestionApiGzip": true ,
     "tenantId": "",
     "appId": "",
@@ -397,7 +397,7 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <ingestionApi value="false"/>
     <!-- To use system or user managed identity login on Azure resources set to true - default is true. -->
     <!-- If true tenanteId, appId and appSecret for the service principal can leave empty. -->
-    <ingestionIdentityLogin value="false"/>
+    <ingestionIdentityLogin value="true"/>
     <!--to compress the send ingestion logs - default is true-->
     <ingestionApiGzip value="true"/> 
     <!-- Tenant ID of your Microsoft Entra ID  -->
