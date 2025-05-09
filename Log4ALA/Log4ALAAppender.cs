@@ -49,6 +49,8 @@ namespace Log4ALA
         public bool JsonDetection { get; set; } = ConfigSettings.DEFAULT_JSON_DETECTION;
         public int BatchSizeInBytes { get; set; } = ConfigSettings.DEFAULT_BATCH_SIZE_BYTES;
 
+        public bool EnableDebugConsoleLog { get; set; } = ConfigSettings.DEFAULT_ENABLE_DEBUG_CONSOLE_LOG;
+
         public int BatchNumItems { get; set; } = ConfigSettings.DEFAULT_BATCH_NUM_ITEMS;
         public int BatchWaitInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_SECONDS;
         public int BatchWaitMaxInSec { get; set; } = ConfigSettings.DEFAULT_BATCH_WAIT_MAX_SECONDS;
@@ -128,6 +130,9 @@ namespace Log4ALA
             {
                 configSettings = new ConfigSettings(this.Name);
 
+                EnableDebugConsoleLog = ConfigSettings.ALAEnableDebugConsoleLog == null ? EnableDebugConsoleLog : (bool)ConfigSettings.ALAEnableDebugConsoleLog;
+
+
                 LogMessageToFile = configSettings.ALALogMessageToFile == null ? LogMessageToFile : (bool)configSettings.ALALogMessageToFile;
                 DisableInfoLogFile = configSettings.ALADisableInfoAppenderFile == null ? DisableInfoLogFile : (bool)configSettings.ALADisableInfoAppenderFile;
 
@@ -205,6 +210,7 @@ namespace Log4ALA
                     extraLog = LogManager.GetLogger(ErrLoggerName);
 #endif
                     log.Inf($"[{this.Name}] - errLoggerName:[{ErrLoggerName}]", true);
+
                 }
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
@@ -212,18 +218,24 @@ namespace Log4ALA
                 log.Inf($"[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]", true);
                 log.Inf($"[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]", true);
 
-                if(ConfigSettings.ALAEnableDebugConsoleLog)
+                if(EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.ContentRootPath}]");
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]");
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]");
+                    var message1 = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - appsettings directory:[{ConfigSettings.ContentRootPath}]";
+                    var message2 = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - ASPNETCORE_ENVIRONMENT:[{ConfigSettings.AspNetCoreEnvironment}]";
+                    var message3 = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|TRACE|[{this.Name}] - APPSETTINGS_SUFFIX:[{ConfigSettings.AppsettingsSuffix}]";
+                    log.Deb($"{message1}", EnableDebugConsoleLog);
+                    log.Deb($"{message2}", EnableDebugConsoleLog);
+                    log.Deb($"{message3}", EnableDebugConsoleLog);
+                    System.Console.WriteLine(message1);
+                    System.Console.WriteLine(message2);
+                    System.Console.WriteLine(message3);
                 }
 #endif
                 IngestionApi = configSettings.ALAIngestionApi == null ? IngestionApi : (bool)configSettings.ALAIngestionApi;
                 log.Inf($"[{this.Name}] - ingestionApi:[{IngestionApi}]", true);
 
                 IngestionIdentityLogin = configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
-                log.Inf($"[{this.Name}] - ingestionApi:[{IngestionIdentityLogin}]", true);
+                log.Inf($"[{this.Name}] - ingestionIdentityLogin:[{IngestionIdentityLogin}]", true);
 
                 IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
                 log.Inf($"[{this.Name}] - ingestionApiGzip:[{IngestionApiGzip}]", true);
@@ -398,6 +410,8 @@ namespace Log4ALA
                 JsonDetection = configSettings.ALAJsonDetection == null ? JsonDetection : (bool)configSettings.ALAJsonDetection;
                 log.Inf($"[{this.Name}] - jsonDetecton:[{JsonDetection}]", true);
 
+
+
                 log.Inf($"[{this.Name}] - abortTimeoutSeconds:[{ConfigSettings.AbortTimeoutSeconds}]", true);
                 log.Inf($"[{this.Name}] - logMessageToFile:[{LogMessageToFile}]", true);
 
@@ -437,8 +451,7 @@ namespace Log4ALA
 
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalEnabled:[{ConfigSettings.IsLogQueueSizeInterval}]", true);
                 log.Inf($"[CommonConfiguration] - alaQueueSizeLogIntervalInSec:[{ConfigSettings.LogQueueSizeInterval}]", true);
-                log.Inf($"[CommonConfiguration] - enableDebugConsoleLog:[{ConfigSettings.ALAEnableDebugConsoleLog}]", true);
-
+                log.Inf($"[CommonConfiguration] - enableDebugConsoleLog:[{EnableDebugConsoleLog}]", true);
 
 
                 serializer = new LoggingEventSerializer(this);
@@ -449,7 +462,7 @@ namespace Log4ALA
             catch (Exception ex)
             {
                 queueLogger = null;
-                string message = $"[{this.Name}] - Unable to activate Log4ALAAppender: [{ex.Message}]";
+                string message = $"[{this.Name}] - Unable to activate Log4ALAAppender: [{ex.StackTrace}]";
                 System.Console.WriteLine(message);
                 log.Err(message);
                 extraLog.Err(message);
@@ -613,6 +626,16 @@ namespace Log4ALA
             if (logMessage2File && log != null)
             {
                 log.Warn(logMessage);
+            }
+        }
+
+        public static void Deb(this ILog log, string logMessage, bool logMessage2File = false)
+        {
+            logMessage = logMessage.Replace("|INFO|", "|DEBUG|").Substring(35);
+            
+            if (logMessage2File && log != null)
+            {
+                log.Err(logMessage);
             }
         }
 

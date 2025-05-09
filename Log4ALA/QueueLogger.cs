@@ -265,9 +265,11 @@ namespace Log4ALA
                     try
                     {
                         appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API", init ? true : appender.LogMessageToFile);
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        if (appender.EnableDebugConsoleLog)
                         {
-                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API");
+                            var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API";
+                            appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                            System.Console.WriteLine(message);
                         }
                     }
                     catch (Exception)
@@ -280,9 +282,11 @@ namespace Log4ALA
                 {
                     CloseConnection(httpClient);
                     string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Unable to {(init ? "connect" : "reconnect")} to Log Analytics Data Collector API => [{ex.Message}] retry [{(retryCount + 1)}]";
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}");
+                        var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}";
+                        appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(message);
                     }
                     appender.log.Err($"[{appender.Name}] - {errMessage}");
                     appender.extraLog.Err($"[{appender.Name}] - {errMessage}");
@@ -303,9 +307,11 @@ namespace Log4ALA
                 catch (Exception ex)
                 {
                     string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Thread sleep exception => [{ex.StackTrace}]";
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}");
+                        var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}";
+                        appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(message);
                     }
                     appender.log.Err($"[{appender.Name}] - {errMessage}");
                     throw new ThreadInterruptedException();
@@ -334,9 +340,11 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.OpenConnection] - [{ex.StackTrace}]");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.OpenConnection] - [{ex.StackTrace}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
                 throw new IOException($"An error occurred while init httpClient.", ex);
             }
@@ -351,9 +359,11 @@ namespace Log4ALA
                     try
                     {
                         httpClient.CancelPendingRequests();
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        if (appender.EnableDebugConsoleLog)
                         {
-                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests");
+                            var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests";
+                            appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                            System.Console.WriteLine(message);
                         }
 
                     }
@@ -366,9 +376,11 @@ namespace Log4ALA
                         try
                         {
                             httpClient.Dispose();
-                            if (ConfigSettings.ALAEnableDebugConsoleLog)
+                            if (appender.EnableDebugConsoleLog)
                             {
-                                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} disposed");
+                                var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} disposed";
+                                appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                                System.Console.WriteLine(message);
                             }
                         }
                         catch (Exception)
@@ -381,9 +393,11 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CloseConnection] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CloseConnection] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
             }
 
@@ -399,9 +413,11 @@ namespace Log4ALA
                     try
                     {
                         httpClient.CancelPendingRequests();
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        if (appender.EnableDebugConsoleLog)
                         {
-                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests");
+                            var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} cancel pending requests";
+                            appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                            System.Console.WriteLine(message);
                         }
 
                     }
@@ -413,9 +429,11 @@ namespace Log4ALA
             }
             catch (Exception ex)
             {
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CancelPendingRequests] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.CancelPendingRequests] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} - [{ex.StackTrace}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
             }
 
@@ -536,10 +554,34 @@ namespace Log4ALA
 
                 HttpContent httpContent = null;
 
+                string accessToken = string.Empty;
+
                 if ((bool)appender.IngestionApi)
                 {
                     var task = Task.Run(async () => await GetTokenAsync());
-                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {task.Result.AccessToken}");
+
+                    try
+                    {
+                        task.Wait();
+                    }
+                    catch (Exception)
+                    {
+                        string message = $"[QueueLogger] - Unable to get bearer token {(appender.IngestionIdentityLogin ? "(ingestionIdentityLogin) " : string.Empty)}";
+                        appender.log.Err($"[{appender.Name}] - {message}");
+
+                        throw;
+                    }
+                     
+                    accessToken = task.Result.AccessToken;
+
+                    if (appender.EnableDebugConsoleLog)
+                    {
+                        var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} {(appender.IngestionIdentityLogin ? "ingestionIdentityLogin" : string.Empty)} token: [{accessToken}]";
+                        appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(message);
+                    }
+
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
                     if (appender.IngestionApiGzip)
                     {
@@ -573,6 +615,14 @@ namespace Log4ALA
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+                if (appender.EnableDebugConsoleLog)
+                {
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} ingestion API post url: [{url}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
+                }
+
+
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
                 httpRequestMessage.Content = httpContent;
 
@@ -585,18 +635,22 @@ namespace Log4ALA
                 response = httpClient.SendAsync(httpRequestMessage, this.cToken);
 
 
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} start post numItems [{numItems}]");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} start post numItems [{numItems}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
 
             }
             catch (Exception sasy)
             {
                 CancelPendingRequests(httpClient, id);
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} SendAsync EXCEPTION. [{sasy.StackTrace}]");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} SendAsync EXCEPTION. [{sasy.StackTrace}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
 
 
@@ -615,9 +669,11 @@ namespace Log4ALA
             }
             catch (Exception)
             {
-                if (ConfigSettings.ALAEnableDebugConsoleLog)
+                if (appender.EnableDebugConsoleLog)
                 {
-                    System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} error during wait for HttpResponseMessage");
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} error during wait for HttpResponseMessage";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
                 }
             }
 
@@ -641,9 +697,11 @@ namespace Log4ALA
                 //continue
             }
 
-            if (ConfigSettings.ALAEnableDebugConsoleLog)
+            if (appender.EnableDebugConsoleLog)
             {
-                System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} numItems [{numItems}] - faulted/completed/canceled/statusCode [{response.IsFaulted}/{response.IsCompleted}/{response.IsCanceled}/{statusCode}{(string.IsNullOrWhiteSpace(result) ? string.Empty : $" - {result}")}]");
+                var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} numItems [{numItems}] - faulted/completed/canceled/statusCode [{response.IsFaulted}/{response.IsCompleted}/{response.IsCanceled}/{statusCode}{(string.IsNullOrWhiteSpace(result) ? string.Empty : $" - {result}")}]";
+                appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                System.Console.WriteLine(message);
             }
 
             bool isFaulted = response.IsFaulted;
@@ -701,9 +759,11 @@ namespace Log4ALA
                     }
 
                     string msg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} post succeeded";
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}");
+                        var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}";
+                        appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(message);
                     }
 
                     if (isRetry)
@@ -719,9 +779,11 @@ namespace Log4ALA
                     var message = ex.Message;
 
                     string retryMsg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} Exception [{message}] caught - retry canceled";
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}");
+                        var msg = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}";
+                        appender.log.Deb($"{msg}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(msg);
                     }
                     appender.log.Err($"[{appender.Name}] - {retryMsg}");
 
@@ -735,9 +797,11 @@ namespace Log4ALA
                     if (attempts == times)
                     {
                         string retryMsg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} retry limit reached";
-                        if (ConfigSettings.ALAEnableDebugConsoleLog)
+                        if (appender.EnableDebugConsoleLog)
                         {
-                            System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}");
+                            var msg2 = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {retryMsg}";
+                            appender.log.Deb($"{msg2}", appender.EnableDebugConsoleLog);
+                            System.Console.WriteLine(msg2);
                         }
                         appender.log.Err($"[{appender.Name}] - {retryMsg}");
 
@@ -752,9 +816,11 @@ namespace Log4ALA
 
                     string msg = $"{(!string.IsNullOrWhiteSpace(id) ? $"httpClient [{id}] " : "")} Exception [{message}] caught on attempt {attempts} - will retry request after delay {waitFor}";
 
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}");
+                        var msg3 = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {msg}";
+                        appender.log.Deb($"{msg3}", appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(msg3);
                     }
                     appender.log.Err($"[{appender.Name}] - {msg}");
 
@@ -822,6 +888,14 @@ namespace Log4ALA
 
                 requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
 
+                if (appender.EnableDebugConsoleLog)
+                {
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.GetTokenAsync] - ingestionIdentityLogin token requestUrl: [{requestUrl}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
+                }
+
+
                 httpClient.DefaultRequestHeaders.Add("Metadata", "true");
                 response = await httpClient.GetAsync(requestUrl);
 
@@ -855,7 +929,7 @@ namespace Log4ALA
                 response = await httpClient.PostAsync(requestUrl, requestBody);
 
             }
-
+  
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync();

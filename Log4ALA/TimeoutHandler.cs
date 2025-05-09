@@ -22,9 +22,11 @@ namespace Log4ALA
                 }
                 catch (OperationCanceledException oce) when (!cancellationToken.IsCancellationRequested)
                 {
-                    if (ConfigSettings.ALAEnableDebugConsoleLog)
+                    if (Appender.EnableDebugConsoleLog)
                     {
-                        System.Console.WriteLine($@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{Appender.Name}]|ERROR|[{nameof(TimeoutHandler)}.SendAsync] - {nameof(OperationCanceledException)}: [{oce.StackTrace}]");
+                        var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{Appender.Name}]|ERROR|[{nameof(TimeoutHandler)}.SendAsync] - {nameof(OperationCanceledException)}: [{oce.StackTrace}]";
+                        Appender.log.Deb($"{message}", Appender.EnableDebugConsoleLog);
+                        System.Console.WriteLine(message);
                     }
 
                     throw new TimeoutException();

@@ -404,24 +404,18 @@ namespace Log4ALA
             }
         }
 
-        private static bool? alaEnableDebugConsoleLog = null;
-        public static bool ALAEnableDebugConsoleLog
+        public static bool? ALAEnableDebugConsoleLog
         {
             get
             {
-                if(alaEnableDebugConsoleLog.HasValue)
-                {
-                    return alaEnableDebugConsoleLog.Value;
-                }
+               
 
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string aLAEnableDebugConsoleLog = CloudConfigurationManager.GetSetting(ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP);
 #else
                 string aLAEnableDebugConsoleLog = CloudConfigurationManager[ALA_ENABLE_DEBUG_CONSOLE_LOG_PROP];
 #endif
-                alaEnableDebugConsoleLog = (string.IsNullOrWhiteSpace(aLAEnableDebugConsoleLog) ? ConfigSettings.DEFAULT_ENABLE_DEBUG_CONSOLE_LOG : Boolean.Parse(aLAEnableDebugConsoleLog));
-
-                return alaEnableDebugConsoleLog.Value;
+                return (string.IsNullOrWhiteSpace(aLAEnableDebugConsoleLog) ? (bool?)null : Boolean.Parse(aLAEnableDebugConsoleLog));
             }
         }
         
@@ -580,7 +574,7 @@ namespace Log4ALA
 #else
                 string aLAIngestionApiGzip = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_GZIP_PROP}"];
 #endif
-                return (string.IsNullOrWhiteSpace(aLAIngestionApiGzip) ? (bool?)false : Boolean.Parse(aLAIngestionApiGzip));
+                return (string.IsNullOrWhiteSpace(aLAIngestionApiGzip) ? (bool?)null : Boolean.Parse(aLAIngestionApiGzip));
             }
         }
 
@@ -593,9 +587,9 @@ namespace Log4ALA
 #else
                 string aLAIngestionApi = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_PROP}"];
 #endif
-                var ingApi = (string.IsNullOrWhiteSpace(aLAIngestionApi) ? (bool?)false : Boolean.Parse(aLAIngestionApi));
+                var ingApi = (string.IsNullOrWhiteSpace(aLAIngestionApi) ? (bool?)null : Boolean.Parse(aLAIngestionApi));
 
-                if ((bool)ingApi)
+                if (ingApi.HasValue && (bool)ingApi)
                 {
                     DEFAULT_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD = true;
                 }
@@ -613,7 +607,7 @@ namespace Log4ALA
 #else
                 string aLAIngestionIdentityLogin = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_IDENTITY_LOGIN_PROP}"];
 #endif
-                var ingIdentityLogin= (string.IsNullOrWhiteSpace(aLAIngestionIdentityLogin) ? (bool?)false : Boolean.Parse(aLAIngestionIdentityLogin));
+                var ingIdentityLogin = (string.IsNullOrWhiteSpace(aLAIngestionIdentityLogin) ? (bool?)null : Boolean.Parse(aLAIngestionIdentityLogin));
                               
 
                 return ingIdentityLogin;
