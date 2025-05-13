@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -23,7 +23,7 @@
   
 
   <ItemGroup>
-    <PackageReference Include="Log4ALA" Version="2.7.0" />
+    <PackageReference Include="Log4ALA" Version="2.8.0" />
   </ItemGroup>
 
 
