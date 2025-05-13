@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2025 PTV Logistics</copyright>
-    <releaseNotes>Add Logs Ingestion API support because the Azure Monitor HTTP Data Collector API has been deprecated and will no longer be functional as of 9/14/2026.</releaseNotes>
+    <releaseNotes>Add Logs Ingestion API support because the Azure Monitor HTTP Data Collector API has been deprecated and will no longer be functional as of 9/14/2026. Update vulnearable log4net and Newtonsoft.Json versions.</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.10" />
