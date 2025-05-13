@@ -3,19 +3,19 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA.Core</id>
     <title>Log4ALA</title>
-    <version>2.6.0</version>
+    <version>2.7.0</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
     <licenseUrl>https://github.com/ptv-logistics/Log4ALA/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Log4Net appender for Azure Log Analytics (ALA)... sending data to Azure Log Analytics with the HTTP Data Collector API. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
-    <copyright>Copyright © 2019 PTV Group</copyright>
-    <releaseNotes>Optimize/fix HttpClient retry strategy to solve issue under heavy load (e.g. generate 6 million log entries within 15 minutes) which leads to duplicate log entries in Anzure Log Analytics, add more detailed debugging output.</releaseNotes>
+    <description>Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
+    <copyright>Copyright © 2025 PTV Logistics</copyright>
+    <releaseNotes>Add Logs Ingestion API support because the Azure Monitor HTTP Data Collector API has been deprecated and will no longer be functional as of 9/14/2026.</releaseNotes>
     <dependencies>
       <group targetFramework=".netstandard2.0">
-        <dependency id="log4net" version="2.0.8" />
-        <dependency id="Newtonsoft.Json" version="11.0.2" />
+        <dependency id="log4net" version="2.0.10" />
+        <dependency id="Newtonsoft.Json" version="13.0.1" />
         <dependency id="Microsoft.Extensions.Configuration" version="2.0.0" />
         <dependency id="Microsoft.Extensions.Configuration.Abstractions" version="2.0.0" />
         <dependency id="Microsoft.Extensions.Configuration.Binder" version="2.0.0" />
@@ -23,7 +23,6 @@
         <dependency id="Microsoft.Extensions.Configuration.FileExtensions" version="2.0.0" />
         <dependency id="Microsoft.Extensions.Configuration.Json" version="2.0.0" />
         <dependency id="Microsoft.Extensions.Primitives" version="2.0.0" />
-        <dependency id="Microsoft.Extensions.Logging.Log4Net.AspNetCore" version="2.0.3" />
         <dependency id="System.Net.Http" version="4.3.4" />
       </group>
     </dependencies>

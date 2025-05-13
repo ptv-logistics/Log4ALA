@@ -75,6 +75,8 @@ namespace Log4ALA
         public string DcrId { get; set; }
         public string DcEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DC_ENDPOINT_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
+        public bool IngestionApiGzipLegacyMangedDeflateStream { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM;
+       
 
         public string IngestionApiDebugHeaderValue { get; set; }
 
@@ -239,7 +241,20 @@ namespace Log4ALA
 
                 IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
                 log.Inf($"[{this.Name}] - ingestionApiGzip:[{IngestionApiGzip}]", true);
-               
+
+                IngestionApiGzipLegacyMangedDeflateStream = configSettings.ALAIngestionApiGzipLegacyMangedDeflateStream == null ? IngestionApiGzipLegacyMangedDeflateStream : (bool)configSettings.ALAIngestionApiGzipLegacyMangedDeflateStream;
+                log.Inf($"[{this.Name}] - ingestionApiGzipLegacyMangedDeflateStream:[{IngestionApiGzipLegacyMangedDeflateStream}]", true);
+
+
+#if NETSTANDARD2_0 || NETCOREAPP2_0
+                if (IngestionApiGzipLegacyMangedDeflateStream)
+                {
+                    // Enable the legacy DeflateStream implementation
+                    // https://learn.microsoft.com/en-us/dotnet/api/system.appcontext.setswitch?#examples
+                    AppContext.SetSwitch("NetFx45_LegacyManagedDeflateStream", true);
+                }
+#endif
+
 
                 if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
                 {

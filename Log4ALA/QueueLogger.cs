@@ -333,6 +333,12 @@ namespace Log4ALA
                     DefaultTimeout = TimeSpan.FromMilliseconds(appender.HttpClientRequestTimeout),
                     InnerHandler = new HttpClientHandler()
                 };
+
+                if (appender.IngestionApi && appender.IngestionApiGzip)
+                {
+                    handler.InnerHandler = new GzipCompressingHandler();
+                }
+
                 httpClient = new HttpClient(handler);
                 httpClient.Timeout = TimeSpan.FromMilliseconds(appender.HttpClientTimeout);
 
@@ -583,15 +589,7 @@ namespace Log4ALA
 
                     httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
-                    if (appender.IngestionApiGzip)
-                    {
-                        var jsonContent = new StringContent(json, Encoding.UTF8, "application/json");
-                        httpContent = new GzipContent(jsonContent, "gzip");
-                    }
-                    else
-                    {
-                        httpContent = byteArrayContent;
-                    }
+                    httpContent = byteArrayContent;
 
                     if (!String.IsNullOrWhiteSpace(appender.IngestionApiDebugHeaderValue))
                     {
@@ -621,7 +619,6 @@ namespace Log4ALA
                     appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
                     System.Console.WriteLine(message);
                 }
-
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
                 httpRequestMessage.Content = httpContent;
@@ -728,7 +725,6 @@ namespace Log4ALA
             return new OperationResult() { Id = $"{id}", Ex = httpClientEx, Obj = httpClient };
 
         }
-
 
         public void RetryOnException(int times, Func<string, object, OperationResult> operation, Func<object> createObject)
         {
@@ -993,66 +989,42 @@ namespace Log4ALA
         }
     }
 
-    public class GzipContent : HttpContent
+    public class GzipCompressingHandler : DelegatingHandler
     {
-        private readonly HttpContent originalContent;
-        private readonly string encodingType;
-
-        public GzipContent(HttpContent content, string encodingType)
+        public GzipCompressingHandler(HttpMessageHandler innerHandler = null)
+            : base(innerHandler ?? new HttpClientHandler())
         {
-            if (content == null)
-            {
-                throw new ArgumentNullException("content");
-            }
-
-            if (encodingType == null)
-            {
-                throw new ArgumentNullException("encodingType");
-            }
-
-            originalContent = content;
-            this.encodingType = encodingType.ToLowerInvariant();
-
-            if (this.encodingType != "gzip" && this.encodingType != "deflate")
-            {
-                throw new InvalidOperationException(string.Format("Encoding '{0}' is not supported. Only supports gzip or deflate encoding.", this.encodingType));
-            }
-
-            foreach (KeyValuePair<string, IEnumerable<string>> header in originalContent.Headers)
-            {
-                Headers.TryAddWithoutValidation(header.Key, header.Value);
-            }
-
-            Headers.ContentEncoding.Add(encodingType);
         }
 
-        protected override bool TryComputeLength(out long length)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            length = -1;
-
-            return false;
-        }
-
-        protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
-        {
-            Stream compressedStream = null;
-
-            if (encodingType == "gzip")
+            if (request.Content != null &&
+                !request.Content.Headers.ContentEncoding.Contains("gzip"))
             {
-                compressedStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true);
-            }
-            else if (encodingType == "deflate")
-            {
-                compressedStream = new DeflateStream(stream, CompressionLevel.Optimal, leaveOpen: true);
-            }
+                var originalContent = request.Content;
+                var originalContentStream = await originalContent.ReadAsStreamAsync();
 
-            return originalContent.CopyToAsync(compressedStream).ContinueWith(tsk =>
-            {
-                if (compressedStream != null)
+                var compressedStream = new MemoryStream();
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress, leaveOpen: true))
                 {
-                    compressedStream.Dispose();
+                    await originalContentStream.CopyToAsync(gzipStream);
                 }
-            });
+
+                compressedStream.Position = 0;
+
+                var compressedContent = new StreamContent(compressedStream);
+
+                // Copy headers from original content
+                foreach (var header in originalContent.Headers)
+                {
+                    compressedContent.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
+                compressedContent.Headers.ContentEncoding.Add("gzip");
+                request.Content = compressedContent;
+            }
+
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 

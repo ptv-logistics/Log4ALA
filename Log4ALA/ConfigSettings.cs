@@ -62,6 +62,7 @@ namespace Log4ALA
         private const string ALA_DC_ENDPOINT_API_VERSION_PROP = "dcEndpointApiVersion";
         private const string ALA_INGESTION_API_GZIP_PROP = "ingestionApiGzip";
         private const string ALA_INGESTION_API_DEBUG_HEADER_VALUE = "ingestionApiDebugHeaderValue";
+        private const string ALA_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM = "ingestionApiGzipLegacyManagedDeflateStream";
 
 
         private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
@@ -111,6 +112,7 @@ namespace Log4ALA
         public const bool DEFAULT_INGESTION_IDENTITY_LOGIN = true;
         public const string DEFAULT_DC_ENDPOINT_API_VERSION = "2023-01-01";
         public const bool DEFAULT_INGESTION_API_GZIP = true;
+        public const bool DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM = false;
 
 
         public static int BATCH_SIZE_MAX = 29000000; //quota limit per post 
@@ -577,6 +579,21 @@ namespace Log4ALA
                 return (string.IsNullOrWhiteSpace(aLAIngestionApiGzip) ? (bool?)null : Boolean.Parse(aLAIngestionApiGzip));
             }
         }
+
+
+        public bool? ALAIngestionApiGzipLegacyMangedDeflateStream
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAIngestionApiGzipLegacyMangedDeflateStream = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM}");
+#else
+                string aLAIngestionApiGzipLegacyMangedDeflateStream = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM}"];
+#endif
+                return (string.IsNullOrWhiteSpace(aLAIngestionApiGzipLegacyMangedDeflateStream) ? (bool?)null : Boolean.Parse(aLAIngestionApiGzipLegacyMangedDeflateStream));
+            }
+        }
+
 
         public bool? ALAIngestionApi
         {
