@@ -23,7 +23,7 @@
   
 
   <ItemGroup>
-    <PackageReference Include="Log4ALA" Version="2.9.0" />
+    <PackageReference Include="Log4ALA" Version="2.9.1" />
   </ItemGroup>
 
 

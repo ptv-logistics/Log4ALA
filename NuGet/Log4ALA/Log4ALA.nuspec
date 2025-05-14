@@ -3,15 +3,15 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.9.0</version>
+    <version>2.9.1</version>
     <authors>mob</authors>
     <owners>mob</owners>
-    <projectUrl>https://ptv-logistics.github.io/Log4ALA/</projectUrl>
+    <projectUrl>https://github.com/ptv-logistics/Log4ALA/</projectUrl>
     <licenseUrl>https://github.com/ptv-logistics/Log4ALA/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2025 PTV Logistics</copyright>
-    <releaseNotes>Add disableNumberTypeConvertion (default is false) to disable automatic type convertion of number values so it doesn't matter whether the value contains only numeric chars or alphanumeric chars to use the same key/column for both values this results in the column type string.</releaseNotes>
+    <releaseNotes>Change project url.</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.10" />
