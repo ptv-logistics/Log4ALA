@@ -192,7 +192,7 @@ alaLogger2.Info(new { Id=$"log-{i}", Message=$"test-{i}", Num=i, IsEnabled=true 
 log without prefix set disableAnonymousPropsPrefix=true and you will get the custom fields Id_s, Message_s, Num_d, IsEnabled_b without MiscMsg_ prefix.
 11. Configurable workspace domain name default is ods.opinsights.azure.com (the domain name could be configured with logAnalyticsDNS). Now it's possible to change the domain name to Azure government workspaces ods.opinsights.azure.**us**.
 12. Configurable passthrough timestamp with enablePassThroughTimeStampField default is false if true the field should be contained in the log message e.g with "...;DateValue=2016-05-12T20:00:00.625Z;...".
-
+13. Use disableNumberTypeConvertion=true (default is false) to disable automatic type convertion of number values so it doesn't matter whether the value contains only numeric chars or alphanumeric chars to use the same key/column for both values this results in the column type string.
 
 
 ## General Configuration 

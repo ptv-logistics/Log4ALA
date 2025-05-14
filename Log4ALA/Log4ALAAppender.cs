@@ -76,7 +76,8 @@ namespace Log4ALA
         public string DcEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DC_ENDPOINT_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
         public bool IngestionApiGzipLegacyMangedDeflateStream { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM;
-       
+        public bool DisableNumberTypeConvertion { get; set; } = ConfigSettings.DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION;
+
 
         public string IngestionApiDebugHeaderValue { get; set; }
 
@@ -244,6 +245,11 @@ namespace Log4ALA
 
                 IngestionApiGzipLegacyMangedDeflateStream = configSettings.ALAIngestionApiGzipLegacyMangedDeflateStream == null ? IngestionApiGzipLegacyMangedDeflateStream : (bool)configSettings.ALAIngestionApiGzipLegacyMangedDeflateStream;
                 log.Inf($"[{this.Name}] - ingestionApiGzipLegacyMangedDeflateStream:[{IngestionApiGzipLegacyMangedDeflateStream}]", true);
+
+                DisableNumberTypeConvertion = configSettings.ALADisableNumberTypeConvertion == null ? DisableNumberTypeConvertion : (bool)configSettings.ALADisableNumberTypeConvertion;
+                log.Inf($"[{this.Name}] - disableNumberTypeConvertion:[{DisableNumberTypeConvertion}]", true);
+
+                
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0

@@ -3,8 +3,8 @@
 # **********************
 
 
-# How to create initial log analytics custom table, dcr and dce:
-# --------------------------------------------------------------
+# How to create initial:
+# ------------------------
 # log analytics custom table, data collection rule (dcr) and data collection endpoint (dce)
 # 1) set your values under the REQUIRED SETTINGS section
 # 2) set $saveCurrentTableSchema2File to $false
@@ -21,8 +21,8 @@
 
 
 
-# How to update already created log analytics custom table, dcr and dce from above:
-# ---------------------------------------------------------------------------------
+# How to update already created table dcr and dce:
+# ------------------------------------------------
 # If you want to add new table columns to the current table schema:
 # 1) set $saveCurrentTableSchema2File to $true and run this script to get the current table schema
 # 2) now modify (add/remove columns) the curent table schema file script/$name_CL.json and the 

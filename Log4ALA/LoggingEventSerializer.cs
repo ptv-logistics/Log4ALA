@@ -73,7 +73,7 @@ namespace Log4ALA
                     if (!valObjects.ContainsKey(val.Key))
                     {
                         var key = val.Key.TrimFieldName((int)appender.MaxFieldNameLength);
-                        payload.Add((isKeyToLowerCase ? key.ToLower() : key ), val.Value.TypeConvert((int)appender.MaxFieldByteLength));
+                        payload.Add((isKeyToLowerCase ? key.ToLower() : key), val.Value.TypeConvert((int)appender.MaxFieldByteLength, appender.DisableNumberTypeConvertion));
                     }
                 }
             }
@@ -188,7 +188,7 @@ namespace Log4ALA
 
                                 if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                                 {
-                                    CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion), maxFieldNameLength, isKeyToLowerCase);
                                 }
                             }
                             else if(keyValueCount == 2) {
@@ -206,13 +206,13 @@ namespace Log4ALA
                                     string.IsNullOrWhiteSpace(le1ppSP[2]) && le1pp.Trim().EndsWith(KeyValueSeparator) && 
                                     $"{le1ppSP[1].Trim()}{KeyValueSeparator}".IsBase64())
                                 {
-                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}{KeyValueSeparator}".TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
+                                    CreateAlaField(payload, duplicates, le1ppSP[0], $"{le1ppSP[1].Trim()}{KeyValueSeparator}".TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion), maxFieldNameLength, isKeyToLowerCase);
 
                                 }
                             }
                             else
                             {
-                                misc.Append(le1pp.TypeConvert(maxByteLength));
+                                misc.Append(le1pp.TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion));
                                 misc.Append(" ");
                             }
                         }
@@ -233,12 +233,12 @@ namespace Log4ALA
 
                             if (!string.IsNullOrWhiteSpace(le1ppSP[0]) && le1ppSP.Length == 2)
                             {
-                                CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength), maxFieldNameLength, isKeyToLowerCase);
+                                CreateAlaField(payload, duplicates, le1ppSP[0], le1ppSP[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion), maxFieldNameLength, isKeyToLowerCase);
                             }
                         }
                         else
                         {
-                            misc.Append(le1p.TypeConvert(maxByteLength));
+                            misc.Append(le1p.TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion));
                             misc.Append(" ");
                         }
                     }
@@ -263,22 +263,22 @@ namespace Log4ALA
                 {
                     if (KeyValueSeparator.Length == 1)
                     {
-                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
                     }
                     else
                     {
-                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                        payload = message.Split(appender.KeyValuePairSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
                     }
                 }
                 else
                 {
                     if (KeyValueSeparator.Length == 1)
                     {
-                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
+                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(KeyValueSeparator.ToCharArray())).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion)); //.ToDictionary(x => x[0], x => x[1].TypeConvert(maxByteLength, perfBoost));
                     }
                     else
                     {
-                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength));
+                        payload = message.Split(appender.KeyValuePairSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(appender.KeyValueSeparators, StringSplitOptions.None)).GroupBy(x => x[0]).ToDictionary(x => x.Key, x => x.First()[1].TypeConvert(maxByteLength, appender.DisableNumberTypeConvertion));
                     }
                 }
             }
@@ -366,18 +366,19 @@ namespace Log4ALA
             }
         }
 
-        public static object TypeConvert(this string messageValue, int maxByteLength)
+        public static object TypeConvert(this string messageValue, int maxByteLength, bool disableNumberTypeConvertion = false)
         {
             string value = messageValue;
             object convertedValue = null;
             DateTime parsedDateTime;
             double parsedDouble;
             bool parsedBool;
-            if (Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedDouble))
+
+            if (!disableNumberTypeConvertion && Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedDouble))
             {
                 convertedValue = parsedDouble;
             }
-            else if (yearRegex.Matches(value).Count == 1 &&  DateTime.TryParse(value, out parsedDateTime))
+            else if (yearRegex.Matches(value).Count == 1 && DateTime.TryParse(value, out parsedDateTime))
             {
                 convertedValue = parsedDateTime.ToUniversalTime();
             }
@@ -389,7 +390,7 @@ namespace Log4ALA
             {
                 convertedValue = messageValue.OfMaxBytes(maxByteLength).TrimEnd(new char[] { ConfigSettings.COMMA });
             }
-
+ 
             return convertedValue;
         }
 
