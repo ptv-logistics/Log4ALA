@@ -82,6 +82,13 @@ $workSpaceId = "YOUR_LOG_ANALYTICS_WORKSPACE_ID"
 # dce name = $name-DCE
 $name = "YOUR_GLOBAL_NAME"
 
+
+# the system name, if set it will be uses as suffix for unique table, dcr and dce names
+# table name = $name_$system_CL
+# dcr name = $name_$system_DCR
+# dce name = $name_$system_DCE
+# $system = "YOUR_SYSTEM_NAME"
+
 # Transformations in Azure Monitor allow you to filter or modify incoming data before it's sent to a Log Analytics workspace
 # https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-transformations-samples
 # default is source wich means all incoming json columns will be mapped 1:1 to the Azure log analytics custom table columns
@@ -181,14 +188,20 @@ function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser
 # MAIN SCRIPT 
 # **********************
 
+
+if($system){
+	$systemCommon = "$($system)_"
+	$systemDce = "$($system)-"
+}
+
 # log analytics custom table name with _CL suffix
-$dcrTable = "$($name)_CL"
+$dcrTable = "$($name)_$($systemCommon)CL"
 
 # name of the data collection rule (dcr)
-$dcrName = "$($name.TrimEnd("_DCR"))_DCR"
+$dcrName = "$($name.TrimEnd("_DCR"))_$($systemCommon)DCR"
 
 # name of the data collection endpoint (dce)
-$dcEndpointName = "$($name)-DCE"
+$dcEndpointName = "$($name)-$($systemDce)DCE"
 
 
 $saveDCRDefinition = $saveCurrentTableSchema2File
