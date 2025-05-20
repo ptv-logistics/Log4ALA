@@ -341,9 +341,16 @@ variable with dotnetcore appsettings notation e.g.:
 ```csharp
  // path = D:\home\LogFiles\Log4Net if your ASP.NET Core App will be deployid as Azure App Service
  var path = Path.Combine(System.Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Log4Net");
- System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
- System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll:infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
+ System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll__errAppenderFile", Path.Combine(path, "log4ALA_error.log"));
+ System.Environment.SetEnvironmentVariable("Log4ALAAppenderAll__infoAppenderFile", Path.Combine(path, "log4ALA_info.log"));
 ``` 
+
+And why we need double underscore instead of colon ... because the : separator is not supported by bash e.g. in the docker environment. The double underscore __ is:
+
+- Supported by all platforms.
+- Automatically replaced by a colon
+
+=> https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0#non-prefixed-environment-variables 
 
 or by using appsettings.{env.EnvironmentName}.json (env.EnvironmentName => ASPNETCORE_ENVIRONMENT environment variable). 
 The order of the appsettings loading strategy how the settings will be overwritten or extended is:
