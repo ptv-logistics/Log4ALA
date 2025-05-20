@@ -86,7 +86,7 @@ $name = "YOUR_GLOBAL_NAME"
 # the system name, if set it will be uses as suffix for unique table, dcr and dce names
 # table name = $name_$system_CL
 # dcr name = $name_$system_DCR
-# dce name = $name_$system_DCE
+# dce name = $name-$system-DCE
 # $system = "YOUR_SYSTEM_NAME"
 
 # Transformations in Azure Monitor allow you to filter or modify incoming data before it's sent to a Log Analytics workspace
