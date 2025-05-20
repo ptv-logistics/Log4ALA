@@ -83,7 +83,7 @@ $workSpaceId = "YOUR_LOG_ANALYTICS_WORKSPACE_ID"
 $name = "YOUR_GLOBAL_NAME"
 
 
-# the system name, if set it will be uses as suffix for unique table, dcr and dce names
+# the system name, if set it will be used as suffix for unique table, dcr and dce names in case e.g. of different systems (test, prod...)
 # table name = $name_$system_CL
 # dcr name = $name_$system_DCR
 # dce name = $name-$system-DCE
