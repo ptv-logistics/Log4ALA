@@ -64,6 +64,9 @@ $azureCredUser = "YOUR_AZURE_LOGIN_USER"
 $azureCredPwd = "YOUR_AZURE_LOGIN_USER_PASSWORD" # clear text pwd
 
 
+# Azure Tenant id (could be found under Microsoft Entra ID/Overview via Azure Portal)
+$tenantId = "YOUR_AZURE_TENANT_ID"
+
 # Azure subscription id of which contains the log analytics custom table and dcr rule
 $subscriptionId = "YOUR_AZURE_SUBSCRIPTION_ID"
 
@@ -140,7 +143,7 @@ function DoAzureUserMgmtIdentityLoginWithSub([string]$userManagedIdentity, [stri
 
 }
 
-function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser, [string]$azureCredPwd){
+function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser, [string]$azureCredPwd, [string]$tenantId = $null){
 
 	# sign in
 	Log "Logging in (user)...";
@@ -151,18 +154,16 @@ function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser
 		#continue
 	}
 
-	if(!$azureRMCtx -or 
-		!$azureRMCtx.Account -or 
-		!$azureRMCtx.Account.Id -or 
-		($azureRMCtx.Account.Id -ne $azureCredUser)){
 
-		$securePassword = ConvertTo-SecureString -String "$azureCredPwd" -AsPlainText -Force;
-		$cred = New-Object System.Management.Automation.PSCredential($azureCredUser, $securePassword);
-		Connect-AzAccount -Credential $cred;
+	$securePassword = ConvertTo-SecureString -String "$azureCredPwd" -AsPlainText -Force;
+	$cred = New-Object System.Management.Automation.PSCredential($azureCredUser, $securePassword);
 
-	}else{
-		Log "already logged in to [$($azureRMCtx.Account.Id)]"               
-	}
+    if($tenantId){
+	    Connect-AzAccount -Credential $cred -TenantId $tenantId
+    }else{
+	    Connect-AzAccount -Credential $cred
+    }
+
 
 
 	# select subscription
@@ -175,7 +176,7 @@ function DoAzureUserLoginWithSub([string]$subscriptionId, [string]$azureCredUser
 	{
        	Log "Clear-AzContext -Scope Process -Force..."
 		Clear-AzContext -Scope Process -Force
-		DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd
+		DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd -tenantId $tenantId
 	}
 
 	return $true
@@ -240,7 +241,7 @@ $DcrTemplate = "$PSScriptRoot\templateDataCollectionRule.json"
 if($isUserManagedIdentity){
 	DoAzureUserMgmtIdentityLoginWithSub -userManagedIdentity $userManagedIdentity -subscriptionId $subscriptionId -reconnect $false
 }else{
-	DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd
+	DoAzureUserLoginWithSub -subscriptionId $subscriptionId -azureCredUser $azureCredUser -azureCredPwd $azureCredPwd -tenantId $tenantId
 }
 
 
