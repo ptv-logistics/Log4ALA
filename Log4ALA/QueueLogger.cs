@@ -257,6 +257,9 @@ namespace Log4ALA
             var rootDelay = ConfigSettings.MIN_DELAY;
             int retryCount = 0;
 
+            var apiMessage = (bool)appender.IngestionApi ? "Logs Ingestion" : "Log Analytics Data Collector";
+                
+
             while (true)
             {
                 try
@@ -264,10 +267,10 @@ namespace Log4ALA
                     httpClient = OpenConnection();
                     try
                     {
-                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API", init ? true : appender.LogMessageToFile);
+                        appender.log.Inf($"[{appender.Name}] - successfully {(init ? "connected" : "reconnected")} to {apiMessage} API", init ? true : appender.LogMessageToFile);
                         if (appender.EnableDebugConsoleLog)
                         {
-                            var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} successfully {(init ? "connected" : "reconnected")} to Log Analytics Data Collector API";
+                            var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} successfully {(init ? "connected" : "reconnected")} to {apiMessage} API";
                             appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
                             System.Console.WriteLine(message);
                         }
@@ -281,7 +284,7 @@ namespace Log4ALA
                 catch (Exception ex)
                 {
                     CloseConnection(httpClient);
-                    string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Unable to {(init ? "connect" : "reconnect")} to Log Analytics Data Collector API => [{ex.Message}] retry [{(retryCount + 1)}]";
+                    string errMessage = $"{(!string.IsNullOrWhiteSpace(httpClientId) ? $"httpClient [{httpClientId}] " : "")} Unable to {(init ? "connect" : "reconnect")} to {apiMessage} API => [{ex.Message}] retry [{(retryCount + 1)}]";
                     if (appender.EnableDebugConsoleLog)
                     {
                         var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|ERROR|[{nameof(QueueLogger)}.httpClient-PostData-Result] - {errMessage}";
