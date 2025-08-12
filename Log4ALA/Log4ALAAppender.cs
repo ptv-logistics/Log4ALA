@@ -74,6 +74,11 @@ namespace Log4ALA
         public string DcEndpoint { get; set; }
         public string DcrId { get; set; }
         public string DcEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DC_ENDPOINT_API_VERSION;
+        public string MsiEndpointEnvName { get; set; } = ConfigSettings.DEFAULT_MSI_ENDPOINT_ENV_NAME;
+        public string MsiSecretEnvName { get; set; } = ConfigSettings.DEFAULT_MSI_SECRET_ENV_NAME;
+        public string UserManagedIdentityClientId { get; set; }
+        public string MsiIdentityHeaderName { get; set; } = ConfigSettings.DEFAULT_MSI_IDENTITY_HEADER_NAME;
+        public string MsiApiVersion { get; set; } = ConfigSettings.DEFAULT_MSI_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
         public bool IngestionApiGzipLegacyMangedDeflateStream { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM;
         public bool DisableNumberTypeConvertion { get; set; } = ConfigSettings.DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION;
@@ -318,6 +323,20 @@ namespace Log4ALA
                 DcEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) ? DcEndpointApiVersion : configSettings.ALADcEndpointApiVersion;
                 log.Inf($"[{this.Name}] - dcEndpointApiVersion:[{DcEndpointApiVersion}]", true);
 
+                MsiEndpointEnvName = string.IsNullOrWhiteSpace(configSettings.ALAMsiEndpointEnvName) ? MsiEndpointEnvName : configSettings.ALAMsiEndpointEnvName;
+                log.Inf($"[{this.Name}] - msiEndpointEnvName:[{MsiEndpointEnvName}]", true);
+
+                MsiSecretEnvName = string.IsNullOrWhiteSpace(configSettings.ALAMsiSecretEnvName) ? MsiSecretEnvName : configSettings.ALAMsiSecretEnvName;
+                log.Inf($"[{this.Name}] - msiSecretEnvName:[{MsiSecretEnvName}]", true);
+
+                UserManagedIdentityClientId = string.IsNullOrWhiteSpace(configSettings.ALAUserManagedIdentityClientId) ? UserManagedIdentityClientId : configSettings.ALAUserManagedIdentityClientId;
+                log.Inf($"[{this.Name}] - UserManagedIdentityClientId:[{UserManagedIdentityClientId}]", true);
+
+                MsiIdentityHeaderName = string.IsNullOrWhiteSpace(configSettings.ALAMsiIdentityHeaderName) ? MsiIdentityHeaderName : configSettings.ALAMsiIdentityHeaderName;
+                log.Inf($"[{this.Name}] - msiIdentityHeaderName:[{MsiIdentityHeaderName}]", true);
+
+                MsiApiVersion = string.IsNullOrWhiteSpace(configSettings.ALAMsiApiVersion) ? MsiApiVersion : configSettings.ALAMsiApiVersion;
+                log.Inf($"[{this.Name}] - msiApiVersion:[{MsiApiVersion}]", true);
 
                 IngestionApiDebugHeaderValue = string.IsNullOrWhiteSpace(configSettings.ALAIngestionApiDebugHeaderValue) ? IngestionApiDebugHeaderValue : configSettings.ALAIngestionApiDebugHeaderValue;
                 log.Inf($"[{this.Name}] - ingestionApiDebugHeaderValue:[{IngestionApiDebugHeaderValue}]", true);

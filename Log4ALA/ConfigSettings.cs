@@ -64,6 +64,11 @@ namespace Log4ALA
         private const string ALA_INGESTION_API_DEBUG_HEADER_VALUE_PROP = "ingestionApiDebugHeaderValue";
         private const string ALA_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM_PROP = "ingestionApiGzipLegacyManagedDeflateStream";
 
+        private const string ALA_MSI_ENDPOINT_ENV_NAME_PROP = "msiEndpointEnvName";
+        private const string ALA_MSI_SECRET_ENV_NAME_PROP = "msiSecretEnvName";
+        private const string ALA_MSI_IDENTITY_HEADER_NAME_PROP = "msiIdentityHeaderName";
+        private const string ALA_MSI_API_VERSION_PROP = "msiApiVersion";
+        private const string ALA_USER_MANAGED_IDENTITY_CLIENT_ID_PROP = "userManagedIdentityClientId";
 
         private const string ALA_ENABLE_PASSTHROUGH_TIMESTAMP_FIELD_PROP = "enablePassThroughTimeStampField";
 
@@ -115,6 +120,10 @@ namespace Log4ALA
         public const bool DEFAULT_INGESTION_API_GZIP = true;
         public const bool DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM = false;
         public const bool DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION = false;
+        public const string DEFAULT_MSI_ENDPOINT_ENV_NAME = "MSI_ENDPOINT";
+        public const string DEFAULT_MSI_SECRET_ENV_NAME = "MSI_SECRET";
+        public const string DEFAULT_MSI_IDENTITY_HEADER_NAME = "X-IDENTITY-HEADER";
+        public const string DEFAULT_MSI_API_VERSION = "2019-08-01";
 
         public static int BATCH_SIZE_MAX = 29000000; //quota limit per post 
         public static int INGESTION_API_BATCH_SIZE_MAX = 1024 * 1024; //quota limit per post 
@@ -643,6 +652,67 @@ namespace Log4ALA
                               
 
                 return ingIdentityLogin;
+            }
+        }
+
+
+        public string ALAMsiEndpointEnvName
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_ENDPOINT_ENV_NAME_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}"];
+#endif
+            }
+        }
+
+        public string ALAMsiSecretEnvName
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_SECRET_ENV_NAME_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}"];
+#endif
+            }
+        }
+
+        public string ALAUserManagedIdentityClientId
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_USER_MANAGED_IDENTITY_CLIENT_ID_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_USER_MANAGED_IDENTITY_CLIENT_ID_PROP}"];
+#endif
+            }
+        }
+
+        public string ALAMsiIdentityHeaderName
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_IDENTITY_HEADER_NAME_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_IDENTITY_HEADER_NAME_PROP}"];
+#endif
+            }
+        }
+
+        public string ALAMsiApiVersion
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_API_VERSION_PROP}");
+#else
+                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_API_VERSION_PROP}"];
+#endif
             }
         }
 
