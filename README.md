@@ -50,7 +50,17 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  <b>dcrId</b></br>
  The data collection rule (dcr) id which should be used for the transformation.</br>
  <b>dcEndpointApiVersion</b></br>
- The dce api version - default is 2023-01-01.
+ The dce api version - default is 2023-01-01.</br>
+ <b>userManagedIdentityClientId</b></br>
+ The Client ID of the assigned user managed identity which is **only** required for **containerized** Azure App/Function Service with enabled Manged Identity.</br>
+ <b>msiEndpointEnvName</b></br>
+ The **optional** msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT</br>
+ <b>msiSecretEnvName</b></br>
+ The **optional** msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET</br>
+ <b>msiIdentityHeaderName</b></br>
+ The **optional** msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER</br>
+ <b>msiApiVersion</b></br>
+ The **optional** msi api version if userManagedIdentityClientId is set - default is 2019-08-01</br>
 
 ### Changed Behaviour
 
@@ -64,7 +74,14 @@ Custom table schema, dce and dcr changes e.g. create/update/delete/change column
 #### Required Access role Assignement
 
 Please note to better keep the Azure dcr and dce resources in the same Azure resource group and add the <b>Monitoring Metrics Publisher</b> access role assignement to the Service Principal (appId) and/or the system/user managed identity of this resource group
-to grant access to the Azure Ingestion API from the depending service principal and/or managed identity ![service principal and/or managed identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/system_user_identity.png).
+to grant access to the Azure Logs Ingestion API from the depending service principal and/or managed identity ![service principal and/or managed identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/system_user_identity.png).
+
+The (user) Managed Identity:
+for example ![logs-ingestion-api-identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/userManagedIdentity.png).
+
+The enabled (user) Managed Identity on VMs, VMSSs, Azure Web/Function App...:
+for example ![logs-ingestion-api-identity](https://raw.githubusercontent.com/ptv-logistics/Log4ALA/master/enabledUserAssignedManagedIdentity.png).
+
 
 
 ## Use it
@@ -252,6 +269,17 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_1.dcEndpointApiVersion" value="2023-01-01"/>
 
 
+    <!-- The Client ID of the assigned user managed identity which is only required for containerized Azure App/Function Service with enabled Manged Identity. -->
+    <add key="Log4ALAAppender_1.userManagedIdentityClientId" value=""/>
+    <!-- The optional msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT -->
+    <add key="Log4ALAAppender_1.msiEndpointEnvName" value="MSI_ENDPOINT"/>
+    <!-- The optional msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET -->
+    <add key="Log4ALAAppender_1.msiSecretEnvName" value="MSI_SECRET"/>
+    <!-- The optional msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
+    <add key="Log4ALAAppender_1.msiIdentityHeaderName" value="X-IDENTITY-HEADER"/>
+    <!-- The optional msi api version if userManagedIdentityClientId is set - default is 2019-08-01 -->
+    <add key="Log4ALAAppender_1.msiApiVersion" value="2019-08-01"/>
+
     <add key="Log4ALAAppender_1.logType" value=""/>
     <add key="Log4ALAAppender_1.logMessageToFile" value="true"/>
 
@@ -307,13 +335,19 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "dcrId": "",
     "dcEndpointApiVersion": "",
     "logType": "",
+    "userManagedIdentityClientId": "",
+    "msiEndpointEnvName": "MSI_ENDPOINT",
+    "msiSecretEnvName": "MSI_SECRET",
+    "msiIdentityHeaderName": "X-IDENTITY-HEADER",
+    "msiApiVersion": "2019-08-01",
     "logMessageToFile": true,
     "jsonDetection": true,
     "batchWaitMaxInSec": "2",
     "coreFieldNames": "{'DateFieldName':'DateValue','MiscMessageFieldName':'MiscMsg','LoggerFieldName':'Logger','LevelFieldName':'Level'}",
-	"keyValueSeparator": "[=]",
+	  "keyValueSeparator": "[=]",
     "keyValuePairSeparator": "[;]"
    },
+
    "alaQueueSizeLogIntervalEnabled": false,
    "alaQueueSizeLogIntervalInSec": "100",
    "disableInfoLogFile": false,
@@ -420,6 +454,16 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!-- the dce api version - default is 2023-01-01 -->
     <dcEndpointApiVersion value="2023-01-01"/>
 
+    <!-- The Client ID of the assigned user managed identity which is only required for containerized Azure App/Function Service with enabled Manged Identity. -->
+    <userManagedIdentityClientId value=""/>
+    <!-- The optional msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT -->
+    <msiEndpointEnvName value="MSI_ENDPOINT"/>
+    <!-- The optional msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET -->
+    <msiSecretEnvName value="MSI_SECRET"/>
+    <!-- The optional msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
+    <msiIdentityHeaderName value="X-IDENTITY-HEADER"/>
+    <!-- The optional msi api version if userManagedIdentityClientId is set - default is 2019-08-01 -->
+    <msiApiVersion value="2019-08-01"/>
 
 	 
     <!-- 
