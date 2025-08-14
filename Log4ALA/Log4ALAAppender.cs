@@ -142,7 +142,7 @@ namespace Log4ALA
             {
                 configSettings = new ConfigSettings(this.Name);
 
-                EnableDebugConsoleLog = true; //ConfigSettings.ALAEnableDebugConsoleLog == null ? EnableDebugConsoleLog : (bool)ConfigSettings.ALAEnableDebugConsoleLog;
+                EnableDebugConsoleLog = ConfigSettings.ALAEnableDebugConsoleLog == null ? EnableDebugConsoleLog : (bool)ConfigSettings.ALAEnableDebugConsoleLog;
 
 
                 LogMessageToFile = configSettings.ALALogMessageToFile == null ? LogMessageToFile : (bool)configSettings.ALALogMessageToFile;
@@ -246,7 +246,7 @@ namespace Log4ALA
                 IngestionApi = configSettings.ALAIngestionApi == null ? IngestionApi : (bool)configSettings.ALAIngestionApi;
                 log.Inf($"[{this.Name}] - ingestionApi:[{IngestionApi}]", true);
 
-                IngestionIdentityLogin = true; //configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
+                IngestionIdentityLogin = configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
                 log.Inf($"[{this.Name}] - ingestionIdentityLogin:[{IngestionIdentityLogin}]", true);
 
                 IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
@@ -272,7 +272,7 @@ namespace Log4ALA
 
                 if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) && string.IsNullOrWhiteSpace(WorkspaceId))
                 {
-                    throw new Exception($"the Log4ALAAppender property workspaceId [{WorkspaceId}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property workspaceId [{WorkspaceId}] shouldn't be empty");
                 }
 
                 WorkspaceId = string.IsNullOrWhiteSpace(configSettings.ALAWorkspaceId) ? WorkspaceId : configSettings.ALAWorkspaceId;
@@ -280,7 +280,7 @@ namespace Log4ALA
 
                 if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALATenantId) && string.IsNullOrWhiteSpace(TenantId))
                 {
-                    throw new Exception($"the Log4ALAAppender property tenantId [{TenantId}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property tenantId [{TenantId}] shouldn't be empty");
                 }
 
                 TenantId = string.IsNullOrWhiteSpace(configSettings.ALATenantId) ? TenantId : configSettings.ALATenantId;
@@ -288,7 +288,7 @@ namespace Log4ALA
 
                 if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALAAppId) && string.IsNullOrWhiteSpace(AppId))
                 {
-                    throw new Exception($"the Log4ALAAppender property appId [{AppId}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property appId [{AppId}] shouldn't be empty");
                 }
 
                 AppId = string.IsNullOrWhiteSpace(configSettings.ALAAppId) ? AppId : configSettings.ALAAppId;
@@ -296,7 +296,7 @@ namespace Log4ALA
 
                 if (IngestionApi && !IngestionIdentityLogin && string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) && string.IsNullOrWhiteSpace(AppSecret))
                 {
-                    throw new Exception($"the Log4ALAAppender property appSecret [{AppSecret}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property appSecret [{AppSecret}] shouldn't be empty");
                 }
 
                 AppSecret = string.IsNullOrWhiteSpace(configSettings.ALAAppSecret) ? AppSecret : configSettings.ALAAppSecret;
@@ -304,7 +304,7 @@ namespace Log4ALA
 
                 if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcEndpoint) && string.IsNullOrWhiteSpace(DcEndpoint))
                 {
-                    throw new Exception($"the Log4ALAAppender property dcEndpoint [{DcEndpoint}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property dcEndpoint [{DcEndpoint}] shouldn't be empty");
                 }
 
                 DcEndpoint = string.IsNullOrWhiteSpace(configSettings.ALADcEndpoint) ? DcEndpoint : configSettings.ALADcEndpoint;
@@ -312,7 +312,7 @@ namespace Log4ALA
 
                 if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcrId) && string.IsNullOrWhiteSpace(DcrId))
                 {
-                    throw new Exception($"the Log4ALAAppender property dcrId [{DcrId}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property dcrId [{DcrId}] shouldn't be empty");
                 }
 
                 DcrId = string.IsNullOrWhiteSpace(configSettings.ALADcrId) ? DcrId : configSettings.ALADcrId;
@@ -320,7 +320,7 @@ namespace Log4ALA
 
                 if (IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) && string.IsNullOrWhiteSpace(DcEndpointApiVersion))
                 {
-                    throw new Exception($"the Log4ALAAppender property dcEndpointApiVersion [{DcEndpointApiVersion}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property dcEndpointApiVersion [{DcEndpointApiVersion}] shouldn't be empty");
                 }
 
                 DcEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) ? DcEndpointApiVersion : configSettings.ALADcEndpointApiVersion;
@@ -338,7 +338,7 @@ namespace Log4ALA
 
                 if (IngestionIdentityLogin && IsAzureWebOrFunctionAppConext && !MsiLogin && string.IsNullOrWhiteSpace(UserManagedIdentityClientId))
                 {
-                    throw new Exception($"At least one of the {this.Name} properties msiLogin [{MsiLogin}] or userManagedIdentityClientId [{UserManagedIdentityClientId}] should be set because the app is running in an Azure Web/Function App context");
+                    throw new AppenderParameterException($"At least one of the {this.Name} properties msiLogin [{MsiLogin}] or userManagedIdentityClientId [{UserManagedIdentityClientId}] should be set because the app is running in an Azure Web/Function App context");
                 }
 
 
@@ -360,7 +360,7 @@ namespace Log4ALA
 
                 if (!IngestionApi && string.IsNullOrWhiteSpace(configSettings.ALASharedKey) && string.IsNullOrWhiteSpace(SharedKey))
                 {
-                    throw new Exception($"the Log4ALAAppender property sharedKey [{SharedKey}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property sharedKey [{SharedKey}] shouldn't be empty");
                 }
 
                 SharedKey = string.IsNullOrWhiteSpace(configSettings.ALASharedKey) ? SharedKey : configSettings.ALASharedKey;
@@ -368,7 +368,7 @@ namespace Log4ALA
 
                 if (string.IsNullOrWhiteSpace(configSettings.ALALogType) && string.IsNullOrWhiteSpace(LogType))
                 {
-                    throw new Exception($"the Log4ALAAppender property logType [{LogType}] shouldn't be empty");
+                    throw new AppenderParameterException($"the Log4ALAAppender property logType [{LogType}] shouldn't be empty");
                 }
 
                 LogType = string.IsNullOrWhiteSpace(configSettings.ALALogType) ? LogType : configSettings.ALALogType;
@@ -392,7 +392,7 @@ namespace Log4ALA
                 ThreadPriority priority;
                 if (!Enum.TryParse(ThreadPriority, out priority))
                 {
-                    throw new Exception($"the Log4ALAAppender wrong threadPriority value [{ThreadPriority}] possible values -> Lowest/BelowNormal/Normal/AboveNormal/Highest");
+                    throw new AppenderParameterException($"the Log4ALAAppender wrong threadPriority value [{ThreadPriority}] possible values -> Lowest/BelowNormal/Normal/AboveNormal/Highest");
                 }
                 log.Inf($"[{this.Name}] - threadPriority:[{ThreadPriority}]", true);
 
@@ -515,6 +515,14 @@ namespace Log4ALA
                 queueLogger = new QueueLogger(this);
 
             }
+            catch (AppenderParameterException aex)
+            {
+                queueLogger = null;
+                string message = $"[{this.Name}] - Unable to activate Log4ALAAppender: [{aex.Message}]";
+                System.Console.WriteLine(message);
+                log.Err(message);
+                extraLog.Err(message);
+            }
             catch (Exception ex)
             {
                 queueLogger = null;
@@ -523,6 +531,7 @@ namespace Log4ALA
                 log.Err(message);
                 extraLog.Err(message);
             }
+            
         }
 
         private bool SetAppenderFileNameIfAvailable(string appenderFile, string internalAppenderName, out string errMessage)
@@ -703,6 +712,20 @@ namespace Log4ALA
         public string MiscMessageFieldName { get; set; } = ConfigSettings.DEFAULT_MISC_MSG_FIELD_NAME;
         public string LoggerFieldName { get; set; } = ConfigSettings.DEFAULT_LOGGER_FIELD_NAME;
         public string LevelFieldName { get; set; } = ConfigSettings.DEFAULT_LEVEL_FIELD_NAME;
+
+    }
+
+
+    public class AppenderParameterException : Exception
+    {
+        /// <summary>
+        /// Constructor that takes a message text.
+        /// </summary>
+        /// <param name="message">The message text for the exception.</param>
+        public AppenderParameterException(string message)
+            : base(message)
+        {
+        }
 
     }
 
