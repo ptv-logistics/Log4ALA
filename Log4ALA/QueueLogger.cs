@@ -887,7 +887,7 @@ namespace Log4ALA
 #endif
 
 
-                if (!IsAzureWebOrFunctionAppConext || (!appender.MsiLogin && string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId)))
+                if (!appender.IsAzureWebOrFunctionAppConext || (!appender.MsiLogin && string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId)))
                 {
                     requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
                     httpClient.DefaultRequestHeaders.Add("Metadata", "true");
