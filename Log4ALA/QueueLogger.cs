@@ -39,7 +39,7 @@ namespace Log4ALA
         private CancellationToken cToken;
         private ManualResetEvent manualResetEvent;
 
-        private AzureADToken azureADToken;
+        private AzureBaseToken azureBaseToken;
 
         private int commaByteLength = 1;
 
@@ -49,14 +49,15 @@ namespace Log4ALA
         {
             this.commaByteLength = appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength($"{ConfigSettings.COMMA}") : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.COMMA}")) : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.COMMA}");
             this.squareBracketsSize = appender.IngestionApi ? (appender.IngestionApiGzip ? CompressionLength($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}") : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}")) : System.Text.Encoding.UTF8.GetByteCount($"{ConfigSettings.SQUARE_BRACKET_OPEN}{ConfigSettings.SQUARE_BRACKET_CLOSE}");
-            this.azureADToken = new AzureADToken() { ExpiresInD = DateTimeOffset.Now.AddDays(-1).ToUniversalTime() };
+            this.azureBaseToken = new AzureBaseToken() { ExpiresInD = DateTimeOffset.Now.AddDays(-1).ToUniversalTime() };
             this.tokenSource = new CancellationTokenSource();
             this.cToken = tokenSource.Token;
             this.manualResetEvent = new ManualResetEvent(false);
             this.appender = appender;
             Queue = new BlockingCollection<string>(appender.LoggingQueueSize != null && appender.LoggingQueueSize > 0 ? (int)appender.LoggingQueueSize : ConfigSettings.DEFAULT_LOGGER_QUEUE_SIZE);
 
-            if (!string.IsNullOrWhiteSpace(appender.SharedKey)) {
+            if (!string.IsNullOrWhiteSpace(appender.SharedKey))
+            {
                 SharedKeyBytes = Convert.FromBase64String(appender.SharedKey);
             }
             WorkerThread = new Thread(new ThreadStart(Run));
@@ -258,7 +259,7 @@ namespace Log4ALA
             int retryCount = 0;
 
             var apiMessage = (bool)appender.IngestionApi ? "Logs Ingestion" : "Log Analytics Data Collector";
-                
+
 
             while (true)
             {
@@ -543,7 +544,7 @@ namespace Log4ALA
 
                 var alaQueryContext = $"?api-version={appender.AzureApiVersion}";
                 string url = "https://" + appender.WorkspaceId + $".{appender.LogAnalyticsDNS}/api/logs{alaQueryContext}";
-                
+
                 if ((bool)appender.IngestionApi)
                 {
                     url = $"{appender.DcEndpoint.TrimEnd('/')}/dataCollectionRules/{appender.DcrId}/streams/Custom-{appender.LogType}_CL?api-version={appender.DcEndpointApiVersion}";
@@ -580,7 +581,7 @@ namespace Log4ALA
 
                         throw;
                     }
-                     
+
                     accessToken = task.Result.AccessToken;
 
                     if (appender.EnableDebugConsoleLog)
@@ -860,11 +861,11 @@ namespace Log4ALA
         }
 
         //https://learn.microsoft.com/en-us/azure/azure-monitor/logs/tutorial-logs-ingestion-code?tabs=powershell
-        private async Task<AzureADToken> GetTokenAsync()
+        private async Task<AzureBaseToken> GetTokenAsync()
         {
-            lock (azureADToken)
+            lock (azureBaseToken)
             {
-                if (!azureADToken.HasTokenExpired()) return azureADToken;
+                if (!azureBaseToken.HasTokenExpired()) return azureBaseToken;
             }
 
             var ingestionIdentityLogin = appender.IngestionIdentityLogin;
@@ -885,23 +886,24 @@ namespace Log4ALA
                 var resource = System.Uri.EscapeDataString("https://monitor.azure.com/");
 #endif
 
-                requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
 
-                if (appender.EnableDebugConsoleLog)
+                if (string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId))
                 {
-                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.GetTokenAsync] - ingestionIdentityLogin token requestUrl: [{requestUrl}]";
-                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
-                    System.Console.WriteLine(message);
+                    requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
+                    httpClient.DefaultRequestHeaders.Add("Metadata", "true");
+                }
+                else
+                {
+                    requestUrl = $"{appender.MsiEndpointEnvVar}?resource={resource}&api-version={appender.MsiApiVersion}&client_id={appender.UserManagedIdentityClientId}";
+                    httpClient.DefaultRequestHeaders.Add(appender.MsiIdentityHeaderName, appender.MsiSecretEnvVar);
                 }
 
-
-                httpClient.DefaultRequestHeaders.Add("Metadata", "true");
                 response = await httpClient.GetAsync(requestUrl);
 
             }
             else
             {
- 
+
                 var tenantId = appender.TenantId;
                 var appId = appender.AppId;
                 var secret = appender.AppSecret;
@@ -928,19 +930,24 @@ namespace Log4ALA
                 response = await httpClient.PostAsync(requestUrl, requestBody);
 
             }
-  
+
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync();
- 
-            lock (azureADToken)
+
+            lock (azureBaseToken)
             {
-                azureADToken = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureADToken>(responseContent);
+                if (ingestionIdentityLogin && !string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId))
+                {
+                    azureBaseToken = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureADMSIToken>(responseContent);
+                }
+                else
+                {
+                    azureBaseToken = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureADToken>(responseContent);
+                }
             }
-            return azureADToken;
+            return azureBaseToken;
         }
-
-
     }
 
     public class OperationResult
@@ -1031,17 +1038,32 @@ namespace Log4ALA
         }
     }
 
-    public class AzureADToken
+
+    public class AzureBaseToken
     {
         [JsonProperty("token_type")]
         public string TokenType { get; set; }
 
-        public DateTimeOffset ExpiresInD { get; set; }
+        public DateTimeOffset? ExpiresInD { get; set; } = null;
+
+        public bool HasTokenExpired()
+        {
+            return ExpiresInD <= DateTimeOffset.Now.ToUniversalTime();
+        }
+
+        public string Resource { get; set; }
+
+        [JsonProperty("access_token")]
+        public string AccessToken { get; set; }
+    }
+
+    public class AzureADToken : AzureBaseToken
+    {
         private string expiresIn;
 
         [JsonProperty("expires_in")]
-        public string ExpiresIn {
-
+        public string ExpiresIn
+        {
             set
             {
                 expiresIn = value;
@@ -1055,21 +1077,23 @@ namespace Log4ALA
         [JsonProperty("ext_expires_in")]
         public string ExtExpiresIn { get; set; }
 
-        [JsonProperty("expires_on")]
-        public string ExpiresOn { get; set; }
-
-        public bool HasTokenExpired()
-        {
-            return ExpiresInD <= DateTimeOffset.Now.ToUniversalTime();
-        }
-
         [JsonProperty("not_before")]
         public string NotBefore { get; set; }
+    }
 
-        public string Resource { get; set; }
-
-        [JsonProperty("access_token")]
-        public string AccessToken { get; set; }
+    public class AzureADMSIToken : AzureBaseToken
+    {
+        private string expiresOn;
+        [JsonProperty("expires_on")]
+        public string ExpiresOn
+        {
+            set
+            {
+                expiresOn = value;
+                // Unix timestamp is seconds past epoch
+                ExpiresInD = (new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).AddSeconds(double.Parse(expiresOn)).ToUniversalTime();
+            }
+        }
     }
 
 }

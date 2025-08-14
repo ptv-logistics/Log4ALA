@@ -120,8 +120,8 @@ namespace Log4ALA
         public const bool DEFAULT_INGESTION_API_GZIP = true;
         public const bool DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM = false;
         public const bool DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION = false;
-        public const string DEFAULT_MSI_ENDPOINT_ENV_NAME = "MSI_ENDPOINT";
-        public const string DEFAULT_MSI_SECRET_ENV_NAME = "MSI_SECRET";
+        private const string DEFAULT_MSI_ENDPOINT_ENV_NAME = "MSI_ENDPOINT";
+        private const string DEFAULT_MSI_SECRET_ENV_NAME = "MSI_SECRET";
         public const string DEFAULT_MSI_IDENTITY_HEADER_NAME = "X-IDENTITY-HEADER";
         public const string DEFAULT_MSI_API_VERSION = "2019-08-01";
 
@@ -656,26 +656,40 @@ namespace Log4ALA
         }
 
 
-        public string ALAMsiEndpointEnvName
+        public string ALAMsiEndpointEnvVar
         {
             get
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_ENDPOINT_ENV_NAME_PROP}");
+
+                string msiEndointEnvVarName = CloudConfigurationManager.GetSetting($"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}");
+                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? DEFAULT_MSI_ENDPOINT_ENV_NAME : msiEndointEnvVarName;
+
+                return System.Environment.GetEnvironmentVariable(msiEndointEnvVarName);
 #else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}"];
+                var msiEndointEnvVarName = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}"];
+                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? DEFAULT_MSI_ENDPOINT_ENV_NAME : msiEndointEnvVarName;
+                
+                return EnvVars[msiEndointEnvVarName];
 #endif
             }
         }
 
-        public string ALAMsiSecretEnvName
+        public string ALAMsiSecretEnvVar
         {
             get
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
-                return CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_SECRET_ENV_NAME_PROP}");
+                string msiSecretEnvVarName = CloudConfigurationManager.GetSetting($"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}");
+                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? DEFAULT_MSI_SECRET_ENV_NAME : msiSecretEnvVarName;
+
+                return System.Environment.GetEnvironmentVariable(msiSecretEnvVarName);
 #else
-                return CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}"];
+
+                var msiSecretEnvVarName = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}"];
+                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? DEFAULT_MSI_SECRET_ENV_NAME : msiSecretEnvVarName;
+                
+                return EnvVars[msiSecretEnvVarName];
 #endif
             }
         }

@@ -74,8 +74,8 @@ namespace Log4ALA
         public string DcEndpoint { get; set; }
         public string DcrId { get; set; }
         public string DcEndpointApiVersion { get; set; } = ConfigSettings.DEFAULT_DC_ENDPOINT_API_VERSION;
-        public string MsiEndpointEnvName { get; set; } = ConfigSettings.DEFAULT_MSI_ENDPOINT_ENV_NAME;
-        public string MsiSecretEnvName { get; set; } = ConfigSettings.DEFAULT_MSI_SECRET_ENV_NAME;
+        public string MsiEndpointEnvVar { get; set; }
+        public string MsiSecretEnvVar { get; set; }
         public string UserManagedIdentityClientId { get; set; }
         public string MsiIdentityHeaderName { get; set; } = ConfigSettings.DEFAULT_MSI_IDENTITY_HEADER_NAME;
         public string MsiApiVersion { get; set; } = ConfigSettings.DEFAULT_MSI_API_VERSION;
@@ -323,11 +323,11 @@ namespace Log4ALA
                 DcEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) ? DcEndpointApiVersion : configSettings.ALADcEndpointApiVersion;
                 log.Inf($"[{this.Name}] - dcEndpointApiVersion:[{DcEndpointApiVersion}]", true);
 
-                MsiEndpointEnvName = string.IsNullOrWhiteSpace(configSettings.ALAMsiEndpointEnvName) ? MsiEndpointEnvName : configSettings.ALAMsiEndpointEnvName;
-                log.Inf($"[{this.Name}] - msiEndpointEnvName:[{MsiEndpointEnvName}]", true);
+                MsiEndpointEnvVar = string.IsNullOrWhiteSpace(configSettings.ALAMsiEndpointEnvVar) ? MsiEndpointEnvVar : configSettings.ALAMsiEndpointEnvVar.TrimEnd('/');
+                log.Inf($"[{this.Name}] - msiEndpointEnvVar:[{MsiEndpointEnvVar}]", true);
 
-                MsiSecretEnvName = string.IsNullOrWhiteSpace(configSettings.ALAMsiSecretEnvName) ? MsiSecretEnvName : configSettings.ALAMsiSecretEnvName;
-                log.Inf($"[{this.Name}] - msiSecretEnvName:[{MsiSecretEnvName}]", true);
+                MsiSecretEnvVar = string.IsNullOrWhiteSpace(configSettings.ALAMsiSecretEnvVar) ? MsiSecretEnvVar : configSettings.ALAMsiSecretEnvVar;
+                log.Inf($"[{this.Name}] - msiSecretEnvVar:[{MsiSecretEnvVar}]", true);
 
                 UserManagedIdentityClientId = string.IsNullOrWhiteSpace(configSettings.ALAUserManagedIdentityClientId) ? UserManagedIdentityClientId : configSettings.ALAUserManagedIdentityClientId;
                 log.Inf($"[{this.Name}] - UserManagedIdentityClientId:[{UserManagedIdentityClientId}]", true);
