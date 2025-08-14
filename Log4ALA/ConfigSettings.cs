@@ -64,6 +64,7 @@ namespace Log4ALA
         private const string ALA_INGESTION_API_DEBUG_HEADER_VALUE_PROP = "ingestionApiDebugHeaderValue";
         private const string ALA_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM_PROP = "ingestionApiGzipLegacyManagedDeflateStream";
 
+        private const string ALA_MSI_LOGIN_PROP = "msiLogin";
         private const string ALA_MSI_ENDPOINT_ENV_NAME_PROP = "msiEndpointEnvName";
         private const string ALA_MSI_SECRET_ENV_NAME_PROP = "msiSecretEnvName";
         private const string ALA_MSI_IDENTITY_HEADER_NAME_PROP = "msiIdentityHeaderName";
@@ -120,8 +121,11 @@ namespace Log4ALA
         public const bool DEFAULT_INGESTION_API_GZIP = true;
         public const bool DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM = false;
         public const bool DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION = false;
+        public const bool DEFAULT_MSI_LOGIN = false;
         private const string DEFAULT_MSI_ENDPOINT_ENV_NAME = "MSI_ENDPOINT";
+        private const string DEFAULT_MSI_ENDPOINT_ENV_NAME_FALLBACK = "IDENTITY_ENDPOINT";
         private const string DEFAULT_MSI_SECRET_ENV_NAME = "MSI_SECRET";
+        private const string DEFAULT_MSI_SECRET_ENV_NAME_FALLBACK = "IDENTITY_HEADER";
         public const string DEFAULT_MSI_IDENTITY_HEADER_NAME = "X-IDENTITY-HEADER";
         public const string DEFAULT_MSI_API_VERSION = "2019-08-01";
 
@@ -648,11 +652,38 @@ namespace Log4ALA
 #else
                 string aLAIngestionIdentityLogin = CloudConfigurationManager[$"{this.propPrefix}:{ALA_INGESTION_IDENTITY_LOGIN_PROP}"];
 #endif
-                var ingIdentityLogin = (string.IsNullOrWhiteSpace(aLAIngestionIdentityLogin) ? (bool?)null : Boolean.Parse(aLAIngestionIdentityLogin));
+                var identityLogin = (string.IsNullOrWhiteSpace(aLAIngestionIdentityLogin) ? (bool?)null : Boolean.Parse(aLAIngestionIdentityLogin));
                               
 
-                return ingIdentityLogin;
+                return identityLogin;
             }
+        }
+
+        public bool? ALAMsiLogin
+        {
+            get
+            {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+                string aLAMsiLogin = CloudConfigurationManager.GetSetting($"{this.propPrefix}.{ALA_MSI_LOGIN_PROP}");
+#else
+                string aLAMsiLogin = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_LOGIN_PROP}"];
+#endif
+                var msiLogin = (string.IsNullOrWhiteSpace(aLAMsiLogin) ? (bool?)null : Boolean.Parse(aLAMsiLogin));
+                              
+
+                return msiLogin;
+            }
+        }
+
+
+        private string GetMsiEnvVarNameFallback(string defaultEnvVarName, string defaultEnvVarNameFallback, string envVarName = null)
+        {
+#if !NETSTANDARD2_0 && !NETCOREAPP2_0
+
+            return (envVarName == null || string.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable(envVarName))) ? (string.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable(defaultEnvVarName)) ? defaultEnvVarNameFallback : defaultEnvVarName) : envVarName;
+#else
+            return (envVarName == null || string.IsNullOrWhiteSpace(EnvVars[envVarName])) ? (string.IsNullOrWhiteSpace(EnvVars[defaultEnvVarName]) ? defaultEnvVarNameFallback : defaultEnvVarName) : envVarName;
+#endif
         }
 
 
@@ -663,17 +694,19 @@ namespace Log4ALA
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
 
                 string msiEndointEnvVarName = CloudConfigurationManager.GetSetting($"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}");
-                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? DEFAULT_MSI_ENDPOINT_ENV_NAME : msiEndointEnvVarName;
+                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? GetMsiEnvVarNameFallback(DEFAULT_MSI_ENDPOINT_ENV_NAME, DEFAULT_MSI_ENDPOINT_ENV_NAME_FALLBACK) : GetMsiEnvVarNameFallback(DEFAULT_MSI_ENDPOINT_ENV_NAME, DEFAULT_MSI_ENDPOINT_ENV_NAME_FALLBACK, msiEndointEnvVarName);
 
                 return System.Environment.GetEnvironmentVariable(msiEndointEnvVarName);
 #else
                 var msiEndointEnvVarName = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_ENDPOINT_ENV_NAME_PROP}"];
-                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? DEFAULT_MSI_ENDPOINT_ENV_NAME : msiEndointEnvVarName;
+                msiEndointEnvVarName = string.IsNullOrWhiteSpace(msiEndointEnvVarName) ? GetMsiEnvVarNameFallback(DEFAULT_MSI_ENDPOINT_ENV_NAME, DEFAULT_MSI_ENDPOINT_ENV_NAME_FALLBACK) : GetMsiEnvVarNameFallback(DEFAULT_MSI_ENDPOINT_ENV_NAME, DEFAULT_MSI_ENDPOINT_ENV_NAME_FALLBACK, msiEndointEnvVarName);
+
                 
                 return EnvVars[msiEndointEnvVarName];
 #endif
             }
         }
+
 
         public string ALAMsiSecretEnvVar
         {
@@ -681,18 +714,28 @@ namespace Log4ALA
             {
 #if !NETSTANDARD2_0 && !NETCOREAPP2_0
                 string msiSecretEnvVarName = CloudConfigurationManager.GetSetting($"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}");
-                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? DEFAULT_MSI_SECRET_ENV_NAME : msiSecretEnvVarName;
+                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? GetMsiEnvVarNameFallback(DEFAULT_MSI_SECRET_ENV_NAME, DEFAULT_MSI_SECRET_ENV_NAME_FALLBACK) : GetMsiEnvVarNameFallback(DEFAULT_MSI_SECRET_ENV_NAME, DEFAULT_MSI_SECRET_ENV_NAME_FALLBACK, msiSecretEnvVarName);
 
                 return System.Environment.GetEnvironmentVariable(msiSecretEnvVarName);
 #else
 
                 var msiSecretEnvVarName = CloudConfigurationManager[$"{this.propPrefix}:{ALA_MSI_SECRET_ENV_NAME_PROP}"];
-                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? DEFAULT_MSI_SECRET_ENV_NAME : msiSecretEnvVarName;
-                
+                msiSecretEnvVarName = string.IsNullOrWhiteSpace(msiSecretEnvVarName) ? GetMsiEnvVarNameFallback(DEFAULT_MSI_SECRET_ENV_NAME, DEFAULT_MSI_SECRET_ENV_NAME_FALLBACK) : GetMsiEnvVarNameFallback(DEFAULT_MSI_SECRET_ENV_NAME, DEFAULT_MSI_SECRET_ENV_NAME_FALLBACK, msiSecretEnvVarName);
+
+               
                 return EnvVars[msiSecretEnvVarName];
 #endif
             }
         }
+
+        public bool IsAzureWebOrFunctionAppConext
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(ALAMsiEndpointEnvVar);
+            }
+        }
+
 
         public string ALAUserManagedIdentityClientId
         {

@@ -77,11 +77,15 @@ namespace Log4ALA
         public string MsiEndpointEnvVar { get; set; }
         public string MsiSecretEnvVar { get; set; }
         public string UserManagedIdentityClientId { get; set; }
+        public bool MsiLogin { get; set; } = ConfigSettings.DEFAULT_MSI_LOGIN;
         public string MsiIdentityHeaderName { get; set; } = ConfigSettings.DEFAULT_MSI_IDENTITY_HEADER_NAME;
         public string MsiApiVersion { get; set; } = ConfigSettings.DEFAULT_MSI_API_VERSION;
         public bool IngestionApiGzip { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP;
         public bool IngestionApiGzipLegacyMangedDeflateStream { get; set; } = ConfigSettings.DEFAULT_INGESTION_API_GZIP_LEGACY_MANAGED_DEFLATE_STREAM;
         public bool DisableNumberTypeConvertion { get; set; } = ConfigSettings.DEFAULT_DISABLE_NUMBER_TYPE_CONVERTION;
+        public bool IsAzureWebOrFunctionAppConext { get; set; }
+
+        
 
 
         public string IngestionApiDebugHeaderValue { get; set; }
@@ -138,7 +142,7 @@ namespace Log4ALA
             {
                 configSettings = new ConfigSettings(this.Name);
 
-                EnableDebugConsoleLog = ConfigSettings.ALAEnableDebugConsoleLog == null ? EnableDebugConsoleLog : (bool)ConfigSettings.ALAEnableDebugConsoleLog;
+                EnableDebugConsoleLog = true; //ConfigSettings.ALAEnableDebugConsoleLog == null ? EnableDebugConsoleLog : (bool)ConfigSettings.ALAEnableDebugConsoleLog;
 
 
                 LogMessageToFile = configSettings.ALALogMessageToFile == null ? LogMessageToFile : (bool)configSettings.ALALogMessageToFile;
@@ -242,7 +246,7 @@ namespace Log4ALA
                 IngestionApi = configSettings.ALAIngestionApi == null ? IngestionApi : (bool)configSettings.ALAIngestionApi;
                 log.Inf($"[{this.Name}] - ingestionApi:[{IngestionApi}]", true);
 
-                IngestionIdentityLogin = configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
+                IngestionIdentityLogin = true; //configSettings.ALAIngestionIdentityLogin == null ? IngestionIdentityLogin : (bool)configSettings.ALAIngestionIdentityLogin;
                 log.Inf($"[{this.Name}] - ingestionIdentityLogin:[{IngestionIdentityLogin}]", true);
 
                 IngestionApiGzip = configSettings.ALAIngestionApiGzip == null ? IngestionApiGzip : (bool)configSettings.ALAIngestionApiGzip;
@@ -254,7 +258,6 @@ namespace Log4ALA
                 DisableNumberTypeConvertion = configSettings.ALADisableNumberTypeConvertion == null ? DisableNumberTypeConvertion : (bool)configSettings.ALADisableNumberTypeConvertion;
                 log.Inf($"[{this.Name}] - disableNumberTypeConvertion:[{DisableNumberTypeConvertion}]", true);
 
-                
 
 
 #if NETSTANDARD2_0 || NETCOREAPP2_0
@@ -323,14 +326,27 @@ namespace Log4ALA
                 DcEndpointApiVersion = string.IsNullOrWhiteSpace(configSettings.ALADcEndpointApiVersion) ? DcEndpointApiVersion : configSettings.ALADcEndpointApiVersion;
                 log.Inf($"[{this.Name}] - dcEndpointApiVersion:[{DcEndpointApiVersion}]", true);
 
+                IsAzureWebOrFunctionAppConext = configSettings.IsAzureWebOrFunctionAppConext;
+                log.Inf($"[CommonConfiguration] - isAzureWebOrFunctionAppConext:[{IsAzureWebOrFunctionAppConext}]", true);
+
+                MsiLogin = configSettings.ALAMsiLogin == null ? MsiLogin : (bool)configSettings.ALAMsiLogin;
+                log.Inf($"[{this.Name}] - msiLogin:[{MsiLogin}]", true);
+
+                UserManagedIdentityClientId = string.IsNullOrWhiteSpace(configSettings.ALAUserManagedIdentityClientId) ? UserManagedIdentityClientId : configSettings.ALAUserManagedIdentityClientId;
+                log.Inf($"[{this.Name}] - userManagedIdentityClientId:[{UserManagedIdentityClientId}]", true);
+
+
+                if (IngestionIdentityLogin && IsAzureWebOrFunctionAppConext && !MsiLogin && string.IsNullOrWhiteSpace(UserManagedIdentityClientId))
+                {
+                    throw new Exception($"At least one of the {this.Name} properties msiLogin [{MsiLogin}] or userManagedIdentityClientId [{UserManagedIdentityClientId}] should be set because the app is running in an Azure Web/Function App context");
+                }
+
+
                 MsiEndpointEnvVar = string.IsNullOrWhiteSpace(configSettings.ALAMsiEndpointEnvVar) ? MsiEndpointEnvVar : configSettings.ALAMsiEndpointEnvVar.TrimEnd('/');
                 log.Inf($"[{this.Name}] - msiEndpointEnvVar:[{MsiEndpointEnvVar}]", true);
 
                 MsiSecretEnvVar = string.IsNullOrWhiteSpace(configSettings.ALAMsiSecretEnvVar) ? MsiSecretEnvVar : configSettings.ALAMsiSecretEnvVar;
                 log.Inf($"[{this.Name}] - msiSecretEnvVar:[{MsiSecretEnvVar}]", true);
-
-                UserManagedIdentityClientId = string.IsNullOrWhiteSpace(configSettings.ALAUserManagedIdentityClientId) ? UserManagedIdentityClientId : configSettings.ALAUserManagedIdentityClientId;
-                log.Inf($"[{this.Name}] - UserManagedIdentityClientId:[{UserManagedIdentityClientId}]", true);
 
                 MsiIdentityHeaderName = string.IsNullOrWhiteSpace(configSettings.ALAMsiIdentityHeaderName) ? MsiIdentityHeaderName : configSettings.ALAMsiIdentityHeaderName;
                 log.Inf($"[{this.Name}] - msiIdentityHeaderName:[{MsiIdentityHeaderName}]", true);

@@ -887,16 +887,31 @@ namespace Log4ALA
 #endif
 
 
-                if (string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId))
+                if (!IsAzureWebOrFunctionAppConext || (!appender.MsiLogin && string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId)))
                 {
                     requestUrl = $"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2019-08-01&resource={resource}";
                     httpClient.DefaultRequestHeaders.Add("Metadata", "true");
                 }
                 else
                 {
-                    requestUrl = $"{appender.MsiEndpointEnvVar}?resource={resource}&api-version={appender.MsiApiVersion}&client_id={appender.UserManagedIdentityClientId}";
+
+                    string clientId = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId))
+                    {
+                        clientId = $"&client_id={appender.UserManagedIdentityClientId}";
+                    }
+
+                    requestUrl = $"{appender.MsiEndpointEnvVar}?resource={resource}&api-version={appender.MsiApiVersion}{clientId}";
                     httpClient.DefaultRequestHeaders.Add(appender.MsiIdentityHeaderName, appender.MsiSecretEnvVar);
                 }
+
+                if (appender.EnableDebugConsoleLog)
+                {
+                    var message = $@"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")}|Log4ALA|[{appender.Name}]|INFO|[{nameof(QueueLogger)}.GetTokenAsync] - ingestion API token url: [{requestUrl}]";
+                    appender.log.Deb($"{message}", appender.EnableDebugConsoleLog);
+                    System.Console.WriteLine(message);
+                }
+
 
                 response = await httpClient.GetAsync(requestUrl);
 
@@ -937,7 +952,7 @@ namespace Log4ALA
 
             lock (azureBaseToken)
             {
-                if (ingestionIdentityLogin && !string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId))
+                if (ingestionIdentityLogin && (appender.MsiLogin || !string.IsNullOrWhiteSpace(appender.UserManagedIdentityClientId)))
                 {
                     azureBaseToken = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureADMSIToken>(responseContent);
                 }

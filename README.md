@@ -52,15 +52,17 @@ https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-ov
  <b>dcEndpointApiVersion</b></br>
  The dce api version - default is 2023-01-01.</br>
  <b>userManagedIdentityClientId</b></br>
- The Client ID of the assigned user managed identity which is **only** required for **containerized** Azure App/Function Service with enabled Manged Identity.</br>
+ The **optional** Client ID of the assigned user managed identity which can be set if needed for containerized or standard Azure App/Function Service with enabled user assigned identity.</br>
+ <b>msiLogin</b></br>
+ The should be true in case of containerized or standard Azure App/Function Service with enabled system assigned identity. - default is false</br>
  <b>msiEndpointEnvName</b></br>
- The **optional** msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT</br>
+ The **optional** msi endpoint environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_ENDPOINT (if not available fallback to the newer env var IDENTITY_ENDPOINT)</br>
  <b>msiSecretEnvName</b></br>
- The **optional** msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET</br>
+ The **optional** msi secret environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_SECRET (if not available fallback to the newer env var IDENTITY_HEADER)</br>
  <b>msiIdentityHeaderName</b></br>
- The **optional** msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER</br>
+ The **optional** msi identity header name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is X-IDENTITY-HEADER</br>
  <b>msiApiVersion</b></br>
- The **optional** msi api version if userManagedIdentityClientId is set - default is 2019-08-01</br>
+ The **optional** msi api version which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is 2019-08-01</br>
 
 ### Changed Behaviour
 
@@ -269,15 +271,17 @@ This configuration is also available as a [App.config](https://github.com/ptv-lo
     <add key="Log4ALAAppender_1.dcEndpointApiVersion" value="2023-01-01"/>
 
 
-    <!-- The Client ID of the assigned user managed identity which is only required for containerized Azure App/Function Service with enabled Manged Identity. -->
+    <!-- The optional Client ID of the assigned user managed identity which can be set if needed for containerized or standard Azure App/Function Service with enabled user assigned identity. -->
     <add key="Log4ALAAppender_1.userManagedIdentityClientId" value=""/>
-    <!-- The optional msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT -->
+    <!-- The should be true in case of containerized or standard Azure App/Function Service with enabled system assigned identity. - default is false -->
+    <add key="Log4ALAAppender_1.msiLogin" value="false"/>
+    <!-- The optional msi endpoint environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_ENDPOINT (if not available fallback to the newer env var IDENTITY_ENDPOINT) -->
     <add key="Log4ALAAppender_1.msiEndpointEnvName" value="MSI_ENDPOINT"/>
-    <!-- The optional msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET -->
+    <!-- The optional msi secret environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_SECRET (if not available fallback to the newer env var IDENTITY_HEADER) -->
     <add key="Log4ALAAppender_1.msiSecretEnvName" value="MSI_SECRET"/>
-    <!-- The optional msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
+    <!-- The optional msi identity header name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
     <add key="Log4ALAAppender_1.msiIdentityHeaderName" value="X-IDENTITY-HEADER"/>
-    <!-- The optional msi api version if userManagedIdentityClientId is set - default is 2019-08-01 -->
+    <!-- The optional msi api version which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is 2019-08-01 -->
     <add key="Log4ALAAppender_1.msiApiVersion" value="2019-08-01"/>
 
     <add key="Log4ALAAppender_1.logType" value=""/>
@@ -336,6 +340,7 @@ This configuration is also available as a [appsettings.json](https://github.com/
     "dcEndpointApiVersion": "",
     "logType": "",
     "userManagedIdentityClientId": "",
+    "msiLogin": false,
     "msiEndpointEnvName": "MSI_ENDPOINT",
     "msiSecretEnvName": "MSI_SECRET",
     "msiIdentityHeaderName": "X-IDENTITY-HEADER",
@@ -454,15 +459,17 @@ Control Panel > System > Advanced system settings > Environment Variables... > N
     <!-- the dce api version - default is 2023-01-01 -->
     <dcEndpointApiVersion value="2023-01-01"/>
 
-    <!-- The Client ID of the assigned user managed identity which is only required for containerized Azure App/Function Service with enabled Manged Identity. -->
+    <!-- The optional Client ID of the assigned user managed identity which can be set if needed for containerized or standard Azure App/Function Service with enabled user assigned identity. -->
     <userManagedIdentityClientId value=""/>
-    <!-- The optional msi endpoint environment variable name if userManagedIdentityClientId is set - default is MSI_ENDPOINT -->
+    <!-- The should be true in case of containerized or standard Azure App/Function Service with enabled system assigned identity. - default is false -->
+    <msiLogin value="false">
+    <!-- The optional msi endpoint environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_ENDPOINT (if not available fallback to the newer env var IDENTITY_ENDPOINT) -->
     <msiEndpointEnvName value="MSI_ENDPOINT"/>
-    <!-- The optional msi secret environment variable name if userManagedIdentityClientId is set - default is MSI_SECRET -->
+    <!-- The optional msi secret environment variable name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is MSI_SECRET (if not available fallback to the newer env var IDENTITY_HEADER) -->
     <msiSecretEnvName value="MSI_SECRET"/>
-    <!-- The optional msi identity header name if userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
+    <!-- The optional msi identity header name which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is X-IDENTITY-HEADER -->
     <msiIdentityHeaderName value="X-IDENTITY-HEADER"/>
-    <!-- The optional msi api version if userManagedIdentityClientId is set - default is 2019-08-01 -->
+    <!-- The optional msi api version which can be changed if needed but only if msiLogin=true and/or userManagedIdentityClientId is set - default is 2019-08-01 -->
     <msiApiVersion value="2019-08-01"/>
 
 	 
