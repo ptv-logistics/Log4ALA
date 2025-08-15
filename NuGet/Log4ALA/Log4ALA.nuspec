@@ -3,7 +3,7 @@
   <metadata minClientVersion="3.3.0">
     <id>Log4ALA</id>
     <title>Log4ALA</title>
-    <version>2.9.2</version>
+    <version>2.10.0</version>
     <authors>mob</authors>
     <owners>mob</owners>
     <projectUrl>https://github.com/ptv-logistics/Log4ALA/</projectUrl>
@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Log4Net appender fo Azure Log Analytics (ALA)... sending data to Azure Log Analytics. The data will also be logged/sent asynchronously for high performance and to avoid blocking the caller thread.</description>
     <copyright>Copyright © 2025 PTV Logistics</copyright>
-    <releaseNotes>Added user managed identity login support for containerized Azure App/Function Services.</releaseNotes>
+    <releaseNotes>Added system/user assigned identity login support for containerized and standard Azure Web/Function App.</releaseNotes>
     <dependencies>
       <group targetFramework="net45">
         <dependency id="log4net" version="2.0.10" />
